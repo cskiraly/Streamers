@@ -10,7 +10,15 @@ CPPFLAGS += -I$(GRAPES)/som
 LDFLAGS = -L$(GRAPES)/som/TopologyManager -L$(GRAPES)/som/ChunkTrading -L$(GRAPES)/som/ChunkBuffer
 LDLIBS = -ltrading -lcb -ltopman
 
-OBJS = dumbstreamer.o loop.o streaming.o output.o input.o net_helpers.o
+OBJS = dumbstreamer.o streaming.o output.o input.o net_helpers.o
+ifdef THREADS
+OBJS += loop-mt.o
+CFLAGS += -pthread
+LDFLAGS += -pthread
+else
+OBJS += loop.o
+endif
+
 
 all: dumbstreamer
 
