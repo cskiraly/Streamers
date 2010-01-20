@@ -5,6 +5,7 @@
 #include <chunk.h>
 
 #include "input.h"
+#include "dbg.h"
 
 void input_get(struct chunk *c)
 {
@@ -19,5 +20,5 @@ void input_get(struct chunk *c)
   c->attributes_size = 0;
   c->attributes = NULL;
 
-  fprintf(stderr, "Generate Chunk[%d] (TS: %llu): %s\n", c->id, c->timestamp, c->data);
+  dprintf("Generate Chunk[%d] (TS: %llu): %s\n", c->id, c->timestamp, c->data);
 }

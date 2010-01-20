@@ -7,6 +7,10 @@ CFLAGS += -g
 CPPFLAGS = -I$(GRAPES)/include
 CPPFLAGS += -I$(GRAPES)/som
 
+ifdef DEBUG
+CPPFLAGS += -DDEBUG
+endif
+
 LDFLAGS = -L$(GRAPES)/som/TopologyManager -L$(GRAPES)/som/ChunkTrading -L$(GRAPES)/som/ChunkBuffer
 LDLIBS = -ltrading -lcb -ltopman
 
