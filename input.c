@@ -18,4 +18,6 @@ void input_get(struct chunk *c)
   c->size = strlen(c->data) + 1;
   c->attributes_size = 0;
   c->attributes = NULL;
+
+  fprintf(stderr, "Generate Chunk[%d] (TS: %llu): %s\n", c->id, c->timestamp, c->data);
 }

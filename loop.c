@@ -128,11 +128,9 @@ void source_loop(struct nodeID *s, int csize, int chunks)
       int i, n;
       struct timeval tmp;
 
-      fprintf(stderr, "Generate Chunk\n");
       generated_chunk();
       neighbours = topGetNeighbourhood(&n);
       for (i = 0; i < chunks; i++) {
-        fprintf(stderr, "Send Chunk\n");
         send_chunk(neighbours, n);
       }
       if (cnt++ % 10 == 0) {

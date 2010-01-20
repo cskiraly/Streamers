@@ -58,14 +58,17 @@ void send_chunk(const struct nodeID **neighbours, int n)
   struct chunk *buff;
   int target, c, size;
 
+  fprintf(stderr, "Send Chunk: %d neighbours\n", n);
   if (n == 0) return;
   buff = cb_get_chunks(cb, &size);
+  fprintf(stderr, "\t %d chunks in buffer...\n", size);
   if (size == 0) return;
 
   /************ STUPID DUMB SCHEDULING ****************/
   target = n * (rand() / (RAND_MAX + 1.0)); /*0..n-1*/
   c = size * (rand() / (RAND_MAX + 1.0)); /*0..size-1*/
   /************ /STUPID DUMB SCHEDULING ****************/
+  fprintf(stderr, "\t sending chunk[%d]\n", buff[c].id);
 
   sendChunk(neighbours[target], buff + c);
 }
