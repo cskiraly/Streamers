@@ -19,13 +19,13 @@ static struct nodeID *s;
 
 static void *chunk_forging(void *dummy)
 {
-  int chunk_period = period / chunks_per_period;
+  int chunk_period = period;
 
   while(!done) {
-    usleep(chunk_period);
     pthread_mutex_lock(&cb_mutex);
     generated_chunk();
     pthread_mutex_unlock(&cb_mutex);
+    usleep(chunk_period);
   }
 
   return NULL;
@@ -91,10 +91,10 @@ static void *topology_sending(void *dummy)
   topParseData(NULL, 0);
   pthread_mutex_unlock(&topology_mutex);
   while(!done) {
-    usleep(gossiping_period);
     pthread_mutex_lock(&topology_mutex);
     topParseData(NULL, 0);
     pthread_mutex_unlock(&topology_mutex);
+    usleep(gossiping_period);
   }
 
   return NULL;
@@ -102,19 +102,19 @@ static void *topology_sending(void *dummy)
 
 static void *chunk_sending(void *dummy)
 {
-  int chunk_period = period;
+  int chunk_period = period / chunks_per_period;
 
   while(!done) {
     const struct nodeID **neighbours;
     int n;
 
-    usleep(chunk_period);
     pthread_mutex_lock(&topology_mutex);
     neighbours = topGetNeighbourhood(&n);
     pthread_mutex_lock(&cb_mutex);
     send_chunk(neighbours, n);
     pthread_mutex_unlock(&cb_mutex);
     pthread_mutex_unlock(&topology_mutex);
+    usleep(chunk_period);
   }
 
   return NULL;
