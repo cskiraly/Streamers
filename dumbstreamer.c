@@ -53,8 +53,9 @@ static struct nodeID *init(void)
   struct nodeID *myID;
 
   myID = create_socket(my_addr, port);
-  if (myID == NULL) {
+  if (myID == NULL || getFD(myID) == -1) {
     fprintf(stderr, "Error creating my socket (%s:%d)!\n", my_addr, port);
+    return NULL;
   }
   topInit(myID);
 
@@ -69,6 +70,9 @@ int main(int argc, char *argv[])
   cmdline_parse(argc, argv);
 
   my_sock = init();
+  if (my_sock == NULL) {
+    return -1;
+  }
   if (srv_port != 0) {
     struct nodeID *srv;
 
