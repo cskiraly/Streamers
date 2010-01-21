@@ -27,7 +27,7 @@ void stream_init(int size, struct nodeID *myID)
 void received_chunk(const uint8_t *buff, int len)
 {
   int res;
-  struct chunk c;
+  static struct chunk c;
 
   res = decodeChunk(&c, buff + 1, len - 1);
   if (res > 0) {
