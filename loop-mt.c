@@ -74,6 +74,7 @@ static void *receive(void *dummy)
         pthread_mutex_lock(&cb_mutex);
         received_chunk(buff, len);
         pthread_mutex_unlock(&cb_mutex);
+        break;
       default:
         fprintf(stderr, "Unknown Message Type %x\n", buff[0]);
     }

@@ -74,6 +74,7 @@ void loop(struct nodeID *s, int csize)
           break;
         case 12:
           received_chunk(buff, len);
+          break;
         default:
           fprintf(stderr, "Unknown Message Type %x\n", buff[0]);
       }
