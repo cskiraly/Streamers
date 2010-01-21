@@ -18,7 +18,7 @@
 static const char *my_addr = "127.0.0.1";
 static int port = 6666;
 static int srv_port;
-static const char *srv_ip;
+static const char *srv_ip = "";
 static int period = 500;
 static int chunks_per_second = 4;
 
@@ -77,6 +77,11 @@ int main(int argc, char *argv[])
     struct nodeID *srv;
 
     srv = create_socket(srv_ip, srv_port);
+    if (srv == NULL) {
+      fprintf(stderr, "Cannot resolve remote address %s:%d\n", srv_ip, srv_port);
+
+      return -1;
+    }
     topAddNeighbour(srv);
 
     loop(my_sock, 1000000 / chunks_per_second);
