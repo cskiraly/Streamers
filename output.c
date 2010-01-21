@@ -2,31 +2,45 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include <chunk.h>
+
+#include "dbg.h"
 
 #define SIZE 8
 
 static int next_chunk;
-static int outfd;
+static int outfd = 1;
 static int buff_size = SIZE;
 
 static struct {
   void *data;
   int size;
+  int id;
 } buff[SIZE];
+
+void buffer_free(int i)
+{
+#ifdef DEBUG
+  fprintf(stderr, "\t\tFlush Buf %d: %s\n", i, buff[i].data);
+#else
+  write(outfd, buff[i].data, buff[i].size);
+#endif
+  free(buff[i].data);
+  buff[i].data = NULL;
+  fprintf(stderr, "Next Chunk: %d -> %d\n", next_chunk, buff[i].id + 1);
+  next_chunk = buff[i].id + 1;
+}
 
 void buffer_flush(int id)
 {
   int i = id % buff_size;
 
   while(buff[i].data) {
-    write(outfd, buff[i].data, buff[i].size);
-    free(buff[i].data);
-    buff[i].data = NULL;
+    buffer_free(i);
     i = (i + 1) % buff_size;
-    next_chunk++;
-    if (i == id) {
+    if (i == id % buff_size) {
       break;
     }
   }
@@ -34,14 +48,47 @@ void buffer_flush(int id)
 
 void output_deliver(const struct chunk *c)
 {
+  dprintf("Chunk %d delivered\n", c->id);
+  if (c->id < next_chunk) {
+    return;
+  }
+
+  if (c->id >= next_chunk + buff_size) {
+    int i;
+
+    /* We might need some space for storing this chunk,
+     * or the stored chunks are too old
+     */
+    for (i = next_chunk; i <= c->id - buff_size; i++) {
+      if (buff[i % buff_size].data) {
+        buffer_free(i % buff_size);
+      } else {
+        next_chunk++;
+      }
+    }
+    buffer_flush(next_chunk);
+    dprintf("Next is now %d, chunk is %d\n", next_chunk, c->id);
+  }
+
+  dprintf("%d == %d?\n", c->id, next_chunk);
   if (c->id == next_chunk) {
+#ifdef DEBUG
+    fprintf(stderr, "\tOut Chunk[%d] - %d: %s\n", c->id, c->id % buff_size, c->data);
+#else
     write(outfd, c->data, c->size);
+#endif
     next_chunk++;
     buffer_flush(next_chunk);
   } else {
-    buffer_flush(c->id);
+    dprintf("Storing %d (in %d)\n", c->id, c->id % buff_size);
+    if (buff[c->id % buff_size].data && buff[c->id % buff_size].id != c->id) {
+      fprintf(stderr, "Crap!\n");
+      exit(-1);
+    }
+    /* We previously flushed, so we know that c->id is free */
     buff[c->id % buff_size].data = malloc(c->size);
     memcpy(buff[c->id % buff_size].data, c->data, c->size);
     buff[c->id % buff_size].size = c->size;
+    buff[c->id % buff_size].id = c->id;
   }
 }
