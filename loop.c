@@ -58,7 +58,7 @@ void loop(struct nodeID *s, int csize)
   period.tv_usec = csize % 1000000;
   
   topParseData(NULL, 0);
-  stream_init(8);	// FIXME!
+  stream_init(8, s);
   while (!done) {
     int len;
     int fd;
@@ -104,7 +104,7 @@ void source_loop(struct nodeID *s, int csize, int chunks)
   period.tv_sec = csize  / 1000000;
   period.tv_usec = csize % 1000000;
   
-  stream_init(1);
+  stream_init(1, s);
   while (!done) {
     int len;
     int fd;

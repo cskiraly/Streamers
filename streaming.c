@@ -15,12 +15,13 @@
 
 static struct chunk_buffer *cb;
 
-void stream_init(int size)
+void stream_init(int size, struct nodeID *myID)
 {
   char conf[32];
 
   sprintf(conf, "size=%d", size);
   cb = cb_init(conf);
+  chunkInit(myID);
 }
 
 void received_chunk(const uint8_t *buff, int len)

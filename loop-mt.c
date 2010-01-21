@@ -127,7 +127,7 @@ void loop(struct nodeID *s1, int csize)
   period = csize;
   s = s1;
  
-  stream_init(8);	// FIXME!
+  stream_init(8, s);	// FIXME!
   pthread_mutex_init(&cb_mutex, NULL);
   pthread_mutex_init(&topology_mutex, NULL);
   pthread_create(&receive_thread, NULL, receive, NULL); 
@@ -147,7 +147,7 @@ void source_loop(struct nodeID *s1, int csize, int chunks)
   chunks_per_period = chunks;
   s = s1;
  
-  stream_init(1);	// FIXME!
+  stream_init(1, s);
   pthread_mutex_init(&cb_mutex, NULL);
   pthread_mutex_init(&topology_mutex, NULL);
   pthread_create(&receive_thread, NULL, source_receive, NULL); 
