@@ -29,7 +29,7 @@ void buffer_free(int i)
 #endif
   free(buff[i].data);
   buff[i].data = NULL;
-  fprintf(stderr, "Next Chunk: %d -> %d\n", next_chunk, buff[i].id + 1);
+  dprintf("Next Chunk: %d -> %d\n", next_chunk, buff[i].id + 1);
   next_chunk = buff[i].id + 1;
 }
 
