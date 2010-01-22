@@ -121,14 +121,14 @@ static void *chunk_sending(void *dummy)
   return NULL;
 }
 
-void loop(struct nodeID *s1, int csize)
+void loop(struct nodeID *s1, int csize, int buff_size)
 {
   pthread_t receive_thread, gossiping_thread, distributing_thread;
   
   period = csize;
   s = s1;
  
-  stream_init(8, s);	// FIXME!
+  stream_init(buff_size, s);
   pthread_mutex_init(&cb_mutex, NULL);
   pthread_mutex_init(&topology_mutex, NULL);
   pthread_create(&receive_thread, NULL, receive, NULL); 

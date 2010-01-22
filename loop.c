@@ -47,7 +47,7 @@ static int wait4data(struct nodeID *s)
   return -1;
 }
 
-void loop(struct nodeID *s, int csize)
+void loop(struct nodeID *s, int csize, int buff_size)
 {
   int done = 0;
 #define BUFFSIZE 1024
@@ -58,7 +58,7 @@ void loop(struct nodeID *s, int csize)
   period.tv_usec = csize % 1000000;
   
   topParseData(NULL, 0);
-  stream_init(8, s);
+  stream_init(buff_size, s);
   while (!done) {
     int len;
     int fd;

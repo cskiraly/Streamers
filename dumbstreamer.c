@@ -21,13 +21,23 @@ static int srv_port;
 static const char *srv_ip = "";
 static int period = 500;
 static int chunks_per_second = 4;
+static int buff_size = 8;
 
 static void cmdline_parse(int argc, char *argv[])
 {
   int o;
 
-  while ((o = getopt(argc, argv, "p:i:P:I:")) != -1) {
+  while ((o = getopt(argc, argv, "b:c:t:p:i:P:I:")) != -1) {
     switch(o) {
+      case 'b':
+        buff_size = atoi(optarg);
+        break;
+      case 'c':
+        chunks_per_second = atoi(optarg);
+        break;
+      case 't':
+        period = atoi(optarg);
+        break;
       case 'p':
         srv_port = atoi(optarg);
         break;
@@ -84,7 +94,7 @@ int main(int argc, char *argv[])
     }
     topAddNeighbour(srv);
 
-    loop(my_sock, 1000000 / chunks_per_second);
+    loop(my_sock, 1000000 / chunks_per_second, buff_size);
   }
 
   source_loop(my_sock, period * 1000, chunks_per_second * period / 1000);
