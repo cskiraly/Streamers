@@ -68,7 +68,8 @@ void send_chunk(const struct nodeID **neighbours, int n)
   target = n * (rand() / (RAND_MAX + 1.0)); /*0..n-1*/
   c = size * (rand() / (RAND_MAX + 1.0)); /*0..size-1*/
   /************ /STUPID DUMB SCHEDULING ****************/
-  dprintf("\t sending chunk[%d]\n", buff[c].id);
+  dprintf("\t sending chunk[%d] (%d) to ", buff[c].id, c);
+  dprintf("%s\n", node_addr(neighbours[target]));
 
   sendChunk(neighbours[target], buff + c);
 }
