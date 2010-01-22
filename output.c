@@ -81,7 +81,11 @@ void output_deliver(const struct chunk *c)
     buffer_flush(next_chunk);
   } else {
     dprintf("Storing %d (in %d)\n", c->id, c->id % buff_size);
-    if (buff[c->id % buff_size].data && buff[c->id % buff_size].id != c->id) {
+    if (buff[c->id % buff_size].data) {
+      if (buff[c->id % buff_size].id == c->id) {
+        /* Duplicate of a stored chunk */
+        return;
+      }
       fprintf(stderr, "Crap!\n");
       exit(-1);
     }
