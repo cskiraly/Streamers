@@ -46,12 +46,10 @@ void generated_chunk(void)
   struct chunk c;
 
   input_get(&c);
-  if (res > 0) {
-    res = cb_add_chunk(cb, &c);
-    if (res < 0) {
-      free(c.data);
-      free(c.attributes);
-    }
+  res = cb_add_chunk(cb, &c);
+  if (res < 0) {
+    free(c.data);
+    free(c.attributes);
   }
 }
 
