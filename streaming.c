@@ -71,7 +71,7 @@ void generated_chunk(void)
 void send_chunk(const struct nodeID **neighbours, int n)
 {
   struct chunk *buff;
-  int target, c, size;
+  int target, c, size, res;
 
   dprintf("Send Chunk: %d neighbours\n", n);
   if (n == 0) return;
@@ -86,5 +86,6 @@ void send_chunk(const struct nodeID **neighbours, int n)
   dprintf("\t sending chunk[%d] (%d) to ", buff[c].id, c);
   dprintf("%s\n", node_addr(neighbours[target]));
 
-  sendChunk(neighbours[target], buff + c);
+  res = sendChunk(neighbours[target], buff + c);
+  dprintf("Result: %d\n", res);
 }
