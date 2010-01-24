@@ -44,7 +44,7 @@ void input_close(struct input_desc *s)
     av_close_input_file(s);
 }
 
-int input_get(struct input_desc *s, struct chunk *c)
+int input_get_1(struct input_desc *s, struct chunk *c)
 {
     static AVPacket pkt;
     static int inited;
@@ -108,6 +108,31 @@ int input_get(struct input_desc *s, struct chunk *c)
     }
 
     return 0;
+}
+
+int input_get(struct input_desc *s, struct chunk *c)
+{
+    AVPacket pkt;
+    int res;
+    static int cid;
+
+    res = av_read_frame(s, &pkt);
+    if (res < 0) {
+      fprintf(stderr, "First read failed: %d!!!\n", res);
+
+      return 0;
+    }
+    
+    c->size = pkt.size;
+    c->data = malloc(c->size);
+    if (c->data == NULL) {
+      return 0;
+    }
+    memcpy(c->data, pkt.data, c->size);
+    c->attributes_size = 0;
+    c->attributes = NULL;
+    c->id = cid++; 
+    return 1;
 }
 
 #if 0
