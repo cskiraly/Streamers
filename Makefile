@@ -14,7 +14,7 @@ endif
 LDFLAGS = -L$(GRAPES)/som/TopologyManager -L$(GRAPES)/som/ChunkTrading -L$(GRAPES)/som/ChunkBuffer
 LDLIBS = -ltrading -lcb -ltopman
 
-OBJS = dumbstreamer.o streaming.o output.o input.o net_helpers.o
+OBJS = dumbstreamer.o streaming.o output.o net_helpers.o
 ifdef THREADS
 OBJS += loop-mt.o
 CFLAGS += -pthread
@@ -23,10 +23,21 @@ else
 OBJS += loop.o
 endif
 
+ifdef FFDIR
+FFSRC ?= $(FFDIR)
+OBJS += Chunkiser/input-avs.o
+LDFLAGS += -L$(FFDIR)/libavcodec -L$(FFDIR)/libavformat -L$(FFDIR)/libavutil
+LDLIBS += -lavformat -lavcodec -lavutil
+LDLIBS += -lz -lm	#FIXME!
+else
+OBJS += input-dummy.o
+endif
 
 all: dumbstreamer
 
 dumbstreamer: $(OBJS) $(GRAPES)/som/net_helper.o
+
+Chunkiser/input-avs.o: CPPFLAGS += -I$(FFSRC) 
 
 clean:
 	rm -f dumbstreamer

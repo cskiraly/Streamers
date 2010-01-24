@@ -7,7 +7,16 @@
 #include "input.h"
 #include "dbg.h"
 
-void input_get(struct chunk *c)
+struct input_desc *input_open(const char *fname)
+{
+  return NULL;
+}
+
+void input_close(struct input_desc *s)
+{
+}
+
+int input_get(struct input_desc *dummy, struct chunk *c)
 {
   char buff[64];
   static int id;
@@ -21,4 +30,6 @@ void input_get(struct chunk *c)
   c->attributes = NULL;
 
   dprintf("Generate Chunk[%d] (TS: %llu): %s\n", c->id, c->timestamp, c->data);
+
+  return 1;
 }

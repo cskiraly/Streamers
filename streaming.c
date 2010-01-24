@@ -14,6 +14,7 @@
 #include "dbg.h"
 
 static struct chunk_buffer *cb;
+static struct input_desc *input;
 
 void stream_init(int size, struct nodeID *myID)
 {
@@ -22,6 +23,7 @@ void stream_init(int size, struct nodeID *myID)
   sprintf(conf, "size=%d", size);
   cb = cb_init(conf);
   chunkInit(myID);
+  input = input_open("Blah");		// FIXME!
 }
 
 void received_chunk(const uint8_t *buff, int len)
@@ -45,7 +47,7 @@ void generated_chunk(void)
   int res;
   struct chunk c;
 
-  input_get(&c);
+  input_get(input, &c);
   res = cb_add_chunk(cb, &c);
   if (res < 0) {
     free(c.data);
