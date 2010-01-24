@@ -95,7 +95,7 @@ void loop(struct nodeID *s, int csize, int buff_size)
   }
 }
 
-void source_loop(struct nodeID *s, int csize, int chunks)
+void source_loop(const char *fname, struct nodeID *s, int csize, int chunks)
 {
   int done = 0;
 #define BUFFSIZE 1024
@@ -105,7 +105,7 @@ void source_loop(struct nodeID *s, int csize, int chunks)
   period.tv_sec = csize  / 1000000;
   period.tv_usec = csize % 1000000;
   
-  stream_init(1, s);
+  source_init(fname, s);
   while (!done) {
     int len;
     int fd;

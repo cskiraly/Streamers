@@ -23,7 +23,17 @@ void stream_init(int size, struct nodeID *myID)
   sprintf(conf, "size=%d", size);
   cb = cb_init(conf);
   chunkInit(myID);
-  input = input_open("Blah");		// FIXME!
+}
+
+int source_init(const char *fname, struct nodeID *myID)
+{
+  input = input_open(fname);
+  if (input == NULL) {
+    return -1;
+  }
+
+  stream_init(1, myID);
+  return 0;
 }
 
 void received_chunk(const uint8_t *buff, int len)
