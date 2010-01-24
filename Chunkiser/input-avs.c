@@ -77,8 +77,14 @@ int input_get(struct input_desc *s, struct chunk *c)
         if (res >= 0) {
             st = s->streams[pkt.stream_index];
             if (pkt.flags & PKT_FLAG_KEY) {
-                c->data = static_buff;
                 c->size = p - static_buff;
+                c->data = malloc(c->size);
+                if (c->data == NULL) {
+                  return 0;
+                }
+                memcpy(c->data, static_buff, c->size);
+                c->attributes_size = 0;
+                c->attributes = NULL;
                 c->id = cid++; 
                 return 1;
             }
@@ -86,8 +92,14 @@ int input_get(struct input_desc *s, struct chunk *c)
             p += pkt.size;
         } else {
             if (p - static_buff > 0) {
-                c->data = static_buff;
                 c->size = p - static_buff;
+                c->data = malloc(c->size);
+                if (c->data == NULL) {
+                  return 0;
+                }
+                memcpy(c->data, static_buff, c->size);
+                c->attributes_size = 0;
+                c->attributes = NULL;
                 c->id = cid++; 
                 return 1;
             }

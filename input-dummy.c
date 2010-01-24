@@ -7,9 +7,12 @@
 #include "input.h"
 #include "dbg.h"
 
+static struct input_desc {
+} dummy_input;
+
 struct input_desc *input_open(const char *fname)
 {
-  return NULL;
+  return &dummy_input;
 }
 
 void input_close(struct input_desc *s)
