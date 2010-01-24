@@ -10,6 +10,7 @@
 #include "streaming.h"
 #include "loop.h"
 
+#define BUFFSIZE 64 * 1024
 static int chunks_per_period = 1;
 static int period = 500000;
 static int done;
@@ -36,7 +37,6 @@ static void *source_receive(void *dummy)
   while (!done) {
     int len;
     struct nodeID *remote;
-#define BUFFSIZE 1024
   static uint8_t buff[BUFFSIZE];
 
     len = recv_data(s, &remote, buff, BUFFSIZE);
@@ -60,7 +60,6 @@ static void *receive(void *dummy)
   while (!done) {
     int len;
     struct nodeID *remote;
-#define BUFFSIZE 1024
   static uint8_t buff[BUFFSIZE];
 
     len = recv_data(s, &remote, buff, BUFFSIZE);

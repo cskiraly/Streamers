@@ -11,6 +11,7 @@
 #include "streaming.h"
 #include "loop.h"
 
+#define BUFFSIZE 64 * 1024
 static struct timeval period = {0, 500000};
 static struct timeval tnext;
 
@@ -50,7 +51,6 @@ static int wait4data(struct nodeID *s)
 void loop(struct nodeID *s, int csize, int buff_size)
 {
   int done = 0;
-#define BUFFSIZE 1024
   static uint8_t buff[BUFFSIZE];
   int cnt = 0;
   
@@ -98,7 +98,6 @@ void loop(struct nodeID *s, int csize, int buff_size)
 void source_loop(const char *fname, struct nodeID *s, int csize, int chunks)
 {
   int done = 0;
-#define BUFFSIZE 1024
   static uint8_t buff[BUFFSIZE];
   int cnt = 0;
 
