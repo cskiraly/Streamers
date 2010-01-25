@@ -13,6 +13,8 @@
 #include "input.h"
 #include "dbg.h"
 
+#include "scheduler_la.h"
+
 static struct chunk_buffer *cb;
 static struct input_desc *input;
 
@@ -68,10 +70,25 @@ void generated_chunk(void)
   }
 }
 
+/**
+ *example function to filter chunks based on whether a given peer needs them. The real implementation
+ * should look at buffermap information received about the given peer (or it should guess)
+ */
+int needs(const struct peer *p, const struct chunk *c){
+  return 1;	//TODO: avoid at least sending to the source :)
+}
+double randomPeer(const struct peer **p){
+  return 1;
+}
+double getChunkTimestamp(const struct chunk **c){
+  return (double) (*c)->timestamp;
+}
+
+
 void send_chunk(const struct nodeID **neighbours, int n)
 {
   struct chunk *buff;
-  int target, c, size, res;
+  int target, c, size, res, i;
 
   dprintf("Send Chunk: %d neighbours\n", n);
   if (n == 0) return;
@@ -80,12 +97,23 @@ void send_chunk(const struct nodeID **neighbours, int n)
   if (size == 0) return;
 
   /************ STUPID DUMB SCHEDULING ****************/
-  target = n * (rand() / (RAND_MAX + 1.0)); /*0..n-1*/
-  c = size * (rand() / (RAND_MAX + 1.0)); /*0..size-1*/
+  //target = n * (rand() / (RAND_MAX + 1.0)); /*0..n-1*/
+  //c = size * (rand() / (RAND_MAX + 1.0)); /*0..size-1*/
   /************ /STUPID DUMB SCHEDULING ****************/
-  dprintf("\t sending chunk[%d] (%d) to ", buff[c].id, c);
-  dprintf("%s\n", node_addr(neighbours[target]));
 
-  res = sendChunk(neighbours[target], buff + c);
-  dprintf("Result: %d\n", res);
+  /************ USE SCHEDULER ****************/
+  size_t selectedpairs_len = 1;
+  struct chunk *pbuff[size];
+  for (i=0;i<size;i++) pbuff[i]=buff+i;
+  struct PeerChunk selectedpairs[1];
+  schedSelectPeerFirst(SCHED_BEST, neighbours, n, pbuff, size, selectedpairs, &selectedpairs_len, needs, randomPeer, getChunkTimestamp);
+  /************ /USE SCHEDULER ****************/
+
+  for (i=0; i<selectedpairs_len ; i++){
+    dprintf("\t sending chunk[%d] to ", selectedpairs[i].chunk->id);
+    dprintf("%s\n", node_addr(selectedpairs[i].peer));
+
+    res = sendChunk(selectedpairs[i].peer, selectedpairs[i].chunk);
+    dprintf("Result: %d\n", res);
+  }
 }

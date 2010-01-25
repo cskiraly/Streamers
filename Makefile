@@ -23,8 +23,8 @@ ifdef DEBUG
 CPPFLAGS += -DDEBUG
 endif
 
-LDFLAGS = -L$(GRAPES)/som/TopologyManager -L$(GRAPES)/som/ChunkTrading -L$(GRAPES)/som/ChunkBuffer
-LDLIBS = -ltrading -lcb -ltopman
+LDFLAGS = -L$(GRAPES)/som/TopologyManager -L$(GRAPES)/som/ChunkTrading -L$(GRAPES)/som/ChunkBuffer -L$(GRAPES)/som/Scheduler
+LDLIBS = -ltrading -lcb -ltopman -lsched
 
 OBJS = dumbstreamer.o streaming.o output.o net_helpers.o
 ifdef THREADS
