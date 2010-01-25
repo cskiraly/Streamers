@@ -119,6 +119,9 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks)
           fprintf(stderr, "Top Parse\n");
           topParseData(buff, len);
           break;
+        case 12:
+          fprintf(stderr, "Some dumb peer pushed a chunk to me!\n");
+          break;
         default:
           fprintf(stderr, "Bad Message Type %x\n", buff[0]);
       }

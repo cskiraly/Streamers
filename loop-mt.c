@@ -46,6 +46,9 @@ static void *source_receive(void *dummy)
         topParseData(buff, len);
         pthread_mutex_unlock(&topology_mutex);
         break;
+      case 12:
+        fprintf(stderr, "Some dumb peer pushed a chunk to me!\n");
+        break;
       default:
         fprintf(stderr, "Unknown Message Type %x\n", buff[0]);
     }
