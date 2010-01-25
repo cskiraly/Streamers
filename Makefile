@@ -3,6 +3,7 @@ CFLAGS += -Wdeclaration-after-statement
 CFLAGS += -Wno-switch -Wpointer-arith -Wredundant-decls
 CFLAGS += -Wno-pointer-sign 
 CFLAGS += -g
+GRAPES ?= GRAPES
 
 CPPFLAGS = -I$(GRAPES)/include
 CPPFLAGS += -I$(GRAPES)/som
@@ -38,6 +39,12 @@ all: dumbstreamer
 dumbstreamer: $(OBJS) $(GRAPES)/som/net_helper.o
 
 Chunkiser/input-avs.o: CPPFLAGS += -I$(FFSRC) 
+
+GRAPES:
+	git clone http://www.disi.unitn.it/~abeni/PublicGits/GRAPES.git
+
+prepare: GRAPES
+	make -C GRAPES/som
 
 clean:
 	rm -f dumbstreamer
