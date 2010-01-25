@@ -10,7 +10,7 @@
 
 #include "net_helpers.h"
 
-const char *iface_addr(const char *iface)
+char *iface_addr(const char *iface)
 {
     int s, res;
     struct ifreq iface_request;

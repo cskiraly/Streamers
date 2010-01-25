@@ -1,2 +1,2 @@
-const char *iface_addr(const char *iface);
+char *iface_addr(const char *iface);
 

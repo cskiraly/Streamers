@@ -15,7 +15,7 @@
 #include "net_helpers.h"
 #include "loop.h"
 
-static const char *my_addr = "127.0.0.1";
+static const char *my_iface = "eth0";
 static int port = 6666;
 static int srv_port;
 static const char *srv_ip = "";
@@ -49,7 +49,7 @@ static void cmdline_parse(int argc, char *argv[])
         port =  atoi(optarg);
         break;
       case 'I':
-        my_addr = iface_addr(optarg);
+        my_iface = strdup(optarg);
         break;
       default:
         fprintf(stderr, "Error: unknown option %c\n", o);
@@ -62,12 +62,15 @@ static void cmdline_parse(int argc, char *argv[])
 static struct nodeID *init(void)
 {
   struct nodeID *myID;
+  char *my_addr = iface_addr(my_iface);
 
   myID = create_socket(my_addr, port);
   if (myID == NULL || getFD(myID) == -1) {
     fprintf(stderr, "Error creating my socket (%s:%d)!\n", my_addr, port);
+    free(my_addr);
     return NULL;
   }
+  free(my_addr);
   topInit(myID);
 
   return myID;
