@@ -1,8 +1,19 @@
-CFLAGS = -Wall
-CFLAGS += -Wdeclaration-after-statement
-CFLAGS += -Wno-switch -Wpointer-arith -Wredundant-decls
-CFLAGS += -Wno-pointer-sign 
-CFLAGS += -g
+include utils.mak
+
+CFLAGS = -g -Wall
+CFLAGS += $(call cc-option, -Wdeclaration-after-statement)
+CFLAGS += $(call cc-option, -Wno-switch)
+CFLAGS += $(call cc-option, -Wdisabled-optimization)
+CFLAGS += $(call cc-option, -Wpointer-arith)
+CFLAGS += $(call cc-option, -Wredundant-decls)
+CFLAGS += $(call cc-option, -Wno-pointer-sign)
+CFLAGS += $(call cc-option, -Wcast-qual)
+CFLAGS += $(call cc-option, -Wwrite-strings)
+CFLAGS += $(call cc-option, -Wtype-limits)
+CFLAGS += $(call cc-option, -Wundef)
+
+CFLAGS += $(call cc-option, -funit-at-a-time)
+
 GRAPES ?= GRAPES
 
 CPPFLAGS = -I$(GRAPES)/include
@@ -29,7 +40,9 @@ FFSRC ?= $(FFDIR)
 OBJS += Chunkiser/input-avs.o
 LDFLAGS += -L$(FFDIR)/libavcodec -L$(FFDIR)/libavformat -L$(FFDIR)/libavutil
 LDLIBS += -lavformat -lavcodec -lavutil
-LDLIBS += -lz -lm	#FIXME!
+LDLIBS += -lm
+LDLIBS += $(call ld-option, -lz)
+LDLIBS += $(call ld-option, -lbz2)
 else
 OBJS += input-dummy.o
 endif
