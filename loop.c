@@ -7,6 +7,7 @@
 
 #include <net_helper.h>
 #include <topmanager.h>
+#include <msg_types.h>
 
 #include "streaming.h"
 #include "loop.h"
@@ -69,10 +70,10 @@ void loop(struct nodeID *s, int csize, int buff_size)
 
       len = recv_data(s, &remote, buff, BUFFSIZE);
       switch (buff[0] /* Message Type */) {
-        case 0x10 /* NCAST_PROTO */:
+        case MSG_TYPE_TOPOLOGY:
           topParseData(buff, len);
           break;
-        case 12:
+        case MSG_TYPE_CHUNK:
           received_chunk(buff, len);
           break;
         default:
@@ -115,11 +116,11 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks)
 
       len = recv_data(s, &remote, buff, BUFFSIZE);
       switch (buff[0] /* Message Type */) {
-        case 0x10 /* NCAST_PROTO */:
+        case MSG_TYPE_TOPOLOGY:
           fprintf(stderr, "Top Parse\n");
           topParseData(buff, len);
           break;
-        case 12:
+        case MSG_TYPE_CHUNK:
           fprintf(stderr, "Some dumb peer pushed a chunk to me!\n");
           break;
         default:

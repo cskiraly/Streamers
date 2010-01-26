@@ -6,6 +6,7 @@
 
 #include <net_helper.h>
 #include <topmanager.h>
+#include <msg_types.h>
 
 #include "streaming.h"
 #include "loop.h"
@@ -41,12 +42,12 @@ static void *source_receive(void *dummy)
 
     len = recv_data(s, &remote, buff, BUFFSIZE);
     switch (buff[0] /* Message Type */) {
-      case 0x10 /* NCAST_PROTO */:
+      case MSG_TYPE_TOPOLOGY:
         pthread_mutex_lock(&topology_mutex);
         topParseData(buff, len);
         pthread_mutex_unlock(&topology_mutex);
         break;
-      case 12:
+      case MSG_TYPE_CHUNK:
         fprintf(stderr, "Some dumb peer pushed a chunk to me!\n");
         break;
       default:
@@ -67,12 +68,12 @@ static void *receive(void *dummy)
 
     len = recv_data(s, &remote, buff, BUFFSIZE);
     switch (buff[0] /* Message Type */) {
-      case 0x10 /* NCAST_PROTO */:
+      case MSG_TYPE_TOPOLOGY:
         pthread_mutex_lock(&topology_mutex);
         topParseData(buff, len);
         pthread_mutex_unlock(&topology_mutex);
         break;
-      case 12:
+      case MSG_TYPE_CHUNK:
         pthread_mutex_lock(&cb_mutex);
         received_chunk(buff, len);
         pthread_mutex_unlock(&cb_mutex);
