@@ -74,13 +74,13 @@ void generated_chunk(void)
  *example function to filter chunks based on whether a given peer needs them. The real implementation
  * should look at buffermap information received about the given peer (or it should guess)
  */
-int needs(const struct peer *p, const struct chunk *c){
+int needs(struct peer *p, struct chunk *c){
   return 1;	//TODO: avoid at least sending to the source :)
 }
-double randomPeer(const struct peer **p){
+double randomPeer(struct peer **p){
   return 1;
 }
-double getChunkTimestamp(const struct chunk **c){
+double getChunkTimestamp(struct chunk **c){
   return (double) (*c)->timestamp;
 }
 
