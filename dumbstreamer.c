@@ -64,10 +64,11 @@ static struct nodeID *init(void)
   struct nodeID *myID;
   char *my_addr = iface_addr(my_iface);
 
-  myID = create_socket(my_addr, port);
-  if (myID == NULL || getFD(myID) == -1) {
+  myID = net_helper_init(my_addr, port);
+  if (myID == NULL) {
     fprintf(stderr, "Error creating my socket (%s:%d)!\n", my_addr, port);
     free(my_addr);
+
     return NULL;
   }
   free(my_addr);
@@ -90,7 +91,7 @@ int main(int argc, char *argv[])
   if (srv_port != 0) {
     struct nodeID *srv;
 
-    srv = create_socket(srv_ip, srv_port);
+    srv = create_node(srv_ip, srv_port);
     if (srv == NULL) {
       fprintf(stderr, "Cannot resolve remote address %s:%d\n", srv_ip, srv_port);
 

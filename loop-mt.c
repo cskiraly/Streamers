@@ -40,7 +40,7 @@ static void *source_receive(void *dummy)
     struct nodeID *remote;
   static uint8_t buff[BUFFSIZE];
 
-    len = recv_data(s, &remote, buff, BUFFSIZE);
+    len = recv_from_peer(s, &remote, buff, BUFFSIZE);
     switch (buff[0] /* Message Type */) {
       case MSG_TYPE_TOPOLOGY:
         pthread_mutex_lock(&topology_mutex);
@@ -66,7 +66,7 @@ static void *receive(void *dummy)
     struct nodeID *remote;
   static uint8_t buff[BUFFSIZE];
 
-    len = recv_data(s, &remote, buff, BUFFSIZE);
+    len = recv_from_peer(s, &remote, buff, BUFFSIZE);
     switch (buff[0] /* Message Type */) {
       case MSG_TYPE_TOPOLOGY:
         pthread_mutex_lock(&topology_mutex);

@@ -31,24 +31,6 @@ void tout_init(struct timeval *tv)
   }
 }
 
-static int wait4data(struct nodeID *s)
-{
-  fd_set fds;
-  int res;
-  struct timeval tv;
-  int fd = getFD(s);
-
-  FD_ZERO(&fds);
-  FD_SET(fd, &fds);
-  tout_init(&tv);
-  res = select(fd + 1, &fds, NULL, NULL, &tv);
-  if (FD_ISSET(fd, &fds)) {
-    return fd;
-  }
-
-  return -1;
-}
-
 void loop(struct nodeID *s, int csize, int buff_size)
 {
   int done = 0;
@@ -61,14 +43,15 @@ void loop(struct nodeID *s, int csize, int buff_size)
   topParseData(NULL, 0);
   stream_init(buff_size, s);
   while (!done) {
-    int len;
-    int fd;
+    int len, res;
+    struct timeval tv;
 
-    fd = wait4data(s);
-    if (fd > 0) {
+    tout_init(&tv);
+    res = wait4data(s, tv);
+    if (res > 0) {
       struct nodeID *remote;
 
-      len = recv_data(s, &remote, buff, BUFFSIZE);
+      len = recv_from_peer(s, &remote, buff, BUFFSIZE);
       switch (buff[0] /* Message Type */) {
         case MSG_TYPE_TOPOLOGY:
           topParseData(buff, len);
@@ -107,14 +90,15 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks)
   
   source_init(fname, s);
   while (!done) {
-    int len;
-    int fd;
+    int len, res;
+    struct timeval tv;
 
-    fd = wait4data(s);
-    if (fd > 0) {
+    tout_init(&tv);
+    res = wait4data(s, tv);
+    if (res > 0) {
       struct nodeID *remote;
 
-      len = recv_data(s, &remote, buff, BUFFSIZE);
+      len = recv_from_peer(s, &remote, buff, BUFFSIZE);
       switch (buff[0] /* Message Type */) {
         case MSG_TYPE_TOPOLOGY:
           fprintf(stderr, "Top Parse\n");
