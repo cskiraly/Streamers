@@ -24,6 +24,8 @@
 #include "msg_types.h"
 #include "net_helper.h"
 
+#include "dbg.h"
+
 static struct nodeID *localID;
 static struct peerset *pset;
 
@@ -49,8 +51,12 @@ int sigParseData(uint8_t *buff, int buff_len) {
     struct sig_nal *signal;
     int sig;
     fprintf(stdout, "\tDecoding signaling message...");
-    c_set = decodeChunkSignaling(&meta, &meta_len, buff, buff_len);
     fprintf(stdout, "done\n");    
+    c_set = decodeChunkSignaling(&meta, &meta_len, buff+1, buff_len-1);
+    if (!c_set) {
+      fprintf(stdout, "ERROR decoding signaling message\n");
+      return -1;
+    }
     signal = (struct sig_nal *) meta;       
     sig = (int) (signal->type);    
     fprintf(stdout, "\tSignaling Type %d\n", sig);
@@ -90,26 +96,28 @@ int sigParseData(uint8_t *buff, int buff_len) {
  * @param[in] trans_id transaction number associated with this send
  * @return 0 on success, <0 on error
  */
-int sendBufferMap(const struct peer *to, const struct peer *owner, ChunkIDSet *bmap, int bmap_len, int trans_id) {    
+int sendBufferMap(const struct nodeID *to_id, const struct nodeID *owner_id, ChunkIDSet *bmap, int bmap_len, int trans_id) {    
     int buff_len, id_len, msg_len, ret;
     uint8_t *buff;
     //msgtype = MSG_TYPE_SIGNALLING;
     struct sig_nal sigmex;
     sigmex.type = MSG_SIG_BMOFF;
     sigmex.trans_id = trans_id;
-    id_len = nodeid_dump(&sigmex.third_peer, owner->id);
-    buff_len = bmap_len * 4 + 12 + sizeof(sigmex)-1 + id_len ; // this should be enough
-    fprintf(stdout, "SIG_HEADER: Type %d Tx %d PP %d\n",sigmex.type,sigmex.trans_id,sigmex.third_peer);
+    id_len = nodeid_dump(&sigmex.third_peer, owner_id);
+    buff_len = 1 + bmap_len * 4 + 12 + sizeof(sigmex)-1 + id_len; // this should be enough
+    dprintf("SIG_HEADER: Type %d Tx %d PP %s\n",sigmex.type,sigmex.trans_id,node_addr(owner_id));
     buff = malloc(buff_len);
     if (!buff) {
       return -1;
     }
-    msg_len = encodeChunkSignaling(bmap, &sigmex, sizeof(sigmex), buff, buff_len);
+    buff[0] = MSG_TYPE_SIGNALLING;
+    msg_len = 1 + encodeChunkSignaling(bmap, &sigmex, sizeof(sigmex)-1 + id_len, buff+1, buff_len-1);
+    dprintf("SIG_HEADER: len: %d, of which meta: %d\n", msg_len, sizeof(sigmex)-1 + id_len);
     if (msg_len < 0) {
       fprintf(stderr, "Error in encoding chunk set for sending a buffermap\n");
       ret = -1;
     } else {
-      send_to_peer(localID, to->id, buff, msg_len);
+      send_to_peer(localID, to_id, buff, msg_len);
     }
     ret = 1;
     free(buff);
