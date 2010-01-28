@@ -77,12 +77,9 @@ void loop(struct nodeID *s, int csize, int buff_size)
       }
       free(remote);
     } else {
-      const struct nodeID **neighbours;
-      int n;
       struct timeval tmp;
 
-      neighbours = topGetNeighbourhood(&n);
-      send_chunk(neighbours, n);
+      send_chunk(pset);
       if (cnt++ % 10 == 0) {
         update_peers(pset,NULL, 0);
       }
@@ -126,14 +123,12 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks)
       }
       free(remote);
     } else {
-      const struct nodeID **neighbours;
-      int i, n;
+      int i;
       struct timeval tmp;
 
       generated_chunk();
-      neighbours = topGetNeighbourhood(&n);
-      for (i = 0; i < chunks; i++) {
-        send_chunk(neighbours, n);
+      for (i = 0; i < chunks; i++) {	// @TODO: why this cycle?
+        send_chunk(pset);
       }
       if (cnt++ % 10 == 0) {
           update_peers(pset, NULL, 0);

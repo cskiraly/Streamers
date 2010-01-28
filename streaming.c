@@ -7,6 +7,8 @@
 #include <chunkbuffer.h> 
 #include <trade_msg_la.h>
 #include <trade_msg_ha.h>
+#include <peerset.h>
+#include <peer.h>
 
 #include "streaming.h"
 #include "output.h"
@@ -85,11 +87,14 @@ double getChunkTimestamp(struct chunk **c){
 }
 
 
-void send_chunk(const struct nodeID **neighbours, int n)
+void send_chunk(const struct peerset *pset)
 {
   struct chunk *buff;
-  int target, c, size, res, i;
+  int size, res, i, n;
+  const struct peer *neighbours;
 
+  n = peerset_size(pset);
+  neighbours = peerset_get_peers(pset);
   dprintf("Send Chunk: %d neighbours\n", n);
   if (n == 0) return;
   buff = cb_get_chunks(cb, &size);
@@ -103,17 +108,22 @@ void send_chunk(const struct nodeID **neighbours, int n)
 
   /************ USE SCHEDULER ****************/
   size_t selectedpairs_len = 1;
-  struct chunk *pbuff[size];
-  for (i=0;i<size;i++) pbuff[i]=buff+i;
+  struct chunk *chunkps[size];
+  for (i = 0;i < size; i++) chunkps[i] = buff+i;
+  struct peer *peerps[n];
+  for (i = 0; i<n; i++) peerps[i] = neighbours+i;
   struct PeerChunk selectedpairs[1];
-  schedSelectPeerFirst(SCHED_BEST, neighbours, n, pbuff, size, selectedpairs, &selectedpairs_len, needs, randomPeer, getChunkTimestamp);
+  schedSelectPeerFirst(SCHED_WEIGHTED, peerps, n, chunkps, size, selectedpairs, &selectedpairs_len, needs, randomPeer, getChunkTimestamp);
   /************ /USE SCHEDULER ****************/
 
   for (i=0; i<selectedpairs_len ; i++){
-    dprintf("\t sending chunk[%d] to ", selectedpairs[i].chunk->id);
-    dprintf("%s\n", node_addr(selectedpairs[i].peer));
+    struct peer *p = selectedpairs[i].peer;
+    struct chunk *c = selectedpairs[i].chunk;
+    dprintf("\t sending chunk[%d] to ", c->id);
+    dprintf("%s\n", node_addr(p->id));
 
-    res = sendChunk(selectedpairs[i].peer, selectedpairs[i].chunk);
+    res = sendChunk(p->id, c);
     dprintf("Result: %d\n", res);
+    }
   }
 }
