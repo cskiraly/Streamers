@@ -78,6 +78,7 @@ void received_chunk(struct peerset *pset, struct nodeID *from, const uint8_t *bu
     }
     if (p) {	//now we have it almost sure
       chunkID_set_add_chunk(p->bmap,c.id);	//don't send it back
+      send_bmap(p);	//send explicit ack
     }
   }
 }
