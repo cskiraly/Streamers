@@ -118,7 +118,7 @@ void send_chunk(const struct peerset *pset)
 {
   struct chunk *buff;
   int size, res, i, n;
-  const struct peer *neighbours;
+  struct peer *neighbours;
 
   n = peerset_size(pset);
   neighbours = peerset_get_peers(pset);
@@ -134,26 +134,29 @@ void send_chunk(const struct peerset *pset)
   /************ /STUPID DUMB SCHEDULING ****************/
 
   /************ USE SCHEDULER ****************/
-  size_t selectedpairs_len = 1;
-  struct chunk *chunkps[size];
-  for (i = 0;i < size; i++) chunkps[i] = buff+i;
-  struct peer *peerps[n];
-  for (i = 0; i<n; i++) peerps[i] = neighbours+i;
-  struct PeerChunk selectedpairs[1];
-  schedSelectPeerFirst(SCHED_WEIGHTED, peerps, n, chunkps, size, selectedpairs, &selectedpairs_len, needs, randomPeer, getChunkTimestamp);
+  {
+    size_t selectedpairs_len = 1;
+    struct chunk *chunkps[size];
+    struct peer *peerps[n];
+    struct PeerChunk selectedpairs[1];
+  
+    for (i = 0;i < size; i++) chunkps[i] = buff+i;
+    for (i = 0; i<n; i++) peerps[i] = neighbours+i;
+    schedSelectPeerFirst(SCHED_WEIGHTED, peerps, n, chunkps, size, selectedpairs, &selectedpairs_len, needs, randomPeer, getChunkTimestamp);
   /************ /USE SCHEDULER ****************/
 
-  for (i=0; i<selectedpairs_len ; i++){
-    struct peer *p = selectedpairs[i].peer;
-    struct chunk *c = selectedpairs[i].chunk;
-    dprintf("\t sending chunk[%d] to ", c->id);
-    dprintf("%s\n", node_addr(p->id));
+    for (i=0; i<selectedpairs_len ; i++){
+      struct peer *p = selectedpairs[i].peer;
+      struct chunk *c = selectedpairs[i].chunk;
+      dprintf("\t sending chunk[%d] to ", c->id);
+      dprintf("%s\n", node_addr(p->id));
 
-    res = sendChunk(p->id, c);
-    dprintf("Result: %d\n", res);
-    if (res>=0) {
-      chunkID_set_add_chunk(p->bmap,c->id); //don't send twice ... assuming that it will actually arrive
+      res = sendChunk(p->id, c);
+      dprintf("Result: %d\n", res);
+      if (res>=0) {
+        chunkID_set_add_chunk(p->bmap,c->id); //don't send twice ... assuming that it will actually arrive
+      }
+      send_bmap(p);
     }
-    send_bmap(p);
   }
 }
