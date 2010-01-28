@@ -26,7 +26,7 @@ endif
 LDFLAGS = -L$(GRAPES)/som/TopologyManager -L$(GRAPES)/som/ChunkTrading -L$(GRAPES)/som/ChunkBuffer -L$(GRAPES)/som/Scheduler -L$(GRAPES)/som/PeerSet -L$(GRAPES)/som/ChunkIDSet
 LDLIBS = -ltrading -lcb -ltopman -lsched -lpeerset -lsignalling
 
-OBJS = dumbstreamer.o streaming.o output.o net_helpers.o
+OBJS = dumbstreamer.o streaming.o output.o net_helpers.o chunk_signaling.o
 ifdef THREADS
 OBJS += loop-mt.o
 CFLAGS += -pthread

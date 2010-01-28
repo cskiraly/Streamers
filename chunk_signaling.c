@@ -11,20 +11,21 @@
  *
  */
 
-
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <errno.h>
 #include <assert.h>
-#include "chunk.h"
 #include "peer.h"
-#include "trade_sig_la.h"
-#include "trade_sig_ha.h"
-#include "ml.h"
-#include "transmissionHandler.h"
+#include "peerset.h"
 #include "chunkidset.h"
-#include "chunk_trading.h"
+#include "trade_sig_la.h"
+#include "chunk_signaling.h"
 #include "msg_types.h"
+#include "net_helper.h"
 
-BufferMapReceivedNotification bufferMapNotifier = NULL;
+static struct nodeID *localID;
+static struct peerset *pset;
 
 
  /**
@@ -41,43 +42,40 @@ BufferMapReceivedNotification bufferMapNotifier = NULL;
  * @return 0 on success, <0 on error
  */
 
-int sigParseData(char *buff, int buff_len) {
-    fprintf(stdout, "Signal Dispatcher - Receives a signaling message\n");
+int sigParseData(uint8_t *buff, int buff_len) {
     struct chunkID_set *c_set;
     void *meta;
     int meta_len;
+    struct sig_nal *signal;
+    int sig;
     fprintf(stdout, "\tDecoding signaling message...");
-    c_set = decodeChunkSignaling(&meta, &meta_len, ((uint8_t *) buff), buff_len);
+    c_set = decodeChunkSignaling(&meta, &meta_len, buff, buff_len);
     fprintf(stdout, "done\n");    
-    struct sig_nal *signal;    
-    signal = (SigType *) meta;       
-    int cset_len = chunkID_set_size(c_set);    
-    int sig = (int) (signal->type);    
-    struct peer contact;    
+    signal = (struct sig_nal *) meta;       
+    sig = (int) (signal->type);    
     fprintf(stdout, "\tSignaling Type %d\n", sig);
     //MaxDelivery  and Trans_Id to be defined
-    int res = EXIT_SUCCESS;
     switch (sig) {
         case MSG_SIG_BMOFF:
         {//BufferMap Received
-            contact.id = 1;
-            struct peer third;
-            third.id =signal->third_peer;
-            if(bufferMapSentNotifier == NULL){
-                fprintf(stderr,"No callback registered for BufferMap Offer.");
-                return EXIT_FAILURE;
-            }
-            else
-                bufferMapSentNotifier(&contact, &third, c_set, cset_len, signal->trans_id);
-            break;
+          int dummy;
+          struct nodeID *ownerid = nodeid_undump(&(signal->third_peer),&dummy);
+          struct peer *owner = peerset_get_peer(pset, ownerid);
+          if (!owner) {
+            printf("warning: received bmap of unknown peer: %s! Adding it to neighbourhood!\n", node_addr(ownerid));
+            peerset_add_peer(pset,ownerid);
+            owner = peerset_get_peer(pset,ownerid);
+          }
+          if (owner) {	//now we have it almost sure
+            chunkID_set_union(owner->bmap,c_set);	//don't send it back
+          }
         }
         default:
         {
-            res = EXIT_FAILURE;
-            break;
+            return -1;
         }
     }
-    return res;
+    return 1;
 }
 
 /**
@@ -93,48 +91,34 @@ int sigParseData(char *buff, int buff_len) {
  * @return 0 on success, <0 on error
  */
 int sendBufferMap(const struct peer *to, const struct peer *owner, ChunkIDSet *bmap, int bmap_len, int trans_id) {    
-    unsigned char msgtype;
-    int connectionID; //TODO to modify using net-helper to get the proper ConnectionID
-    int res;
-    send_params sParams;
-    int buff_len;
-    msgtype = MSG_TYPE_SIGNALLING;
+    int buff_len, id_len, msg_len, ret;
+    uint8_t *buff;
+    //msgtype = MSG_TYPE_SIGNALLING;
     struct sig_nal sigmex;
     sigmex.type = MSG_SIG_BMOFF;
     sigmex.trans_id = trans_id;
-    sigmex.third_peer= owner->id;
-    buff_len = bmap_len * 4 + 12 + sizeof (sigmex); // Signaling type + set len
+    id_len = nodeid_dump(&sigmex.third_peer, owner->id);
+    buff_len = bmap_len * 4 + 12 + sizeof(sigmex)-1 + id_len ; // this should be enough
     fprintf(stdout, "SIG_HEADER: Type %d Tx %d PP %d\n",sigmex.type,sigmex.trans_id,sigmex.third_peer);
-    uint8_t buff[buff_len];    
-    res = encodeChunkSignaling(bmap, &sigmex, sizeof(sigmex), buff, buff_len);
-    if (res < 0) {
-        fprintf(stderr, "Error in encoding chunk set for sending a buffermap\n");
-        return EXIT_FAILURE;
-    } else {
-        connectionID = 0;
-        send_data(connectionID, ((char *) buff), sizeof (buff), msgtype, &sParams);
+    buff = malloc(buff_len);
+    if (!buff) {
+      return -1;
     }
-    return EXIT_SUCCESS;
+    msg_len = encodeChunkSignaling(bmap, &sigmex, sizeof(sigmex), buff, buff_len);
+    if (msg_len < 0) {
+      fprintf(stderr, "Error in encoding chunk set for sending a buffermap\n");
+      ret = -1;
+    } else {
+      send_to_peer(localID, to->id, buff, msg_len);
+    }
+    ret = 1;
+    free(buff);
+    return ret;
 }
 
-/**
- * Notification function for (individual) SendBufferMap received
- */
-
-/**
- * Register a notification function for SendBufferMap (reception of a buffer map)
- *
- * @param[in] som Handle to the enclosing SOM instance
- * @param[in] p notify receiving a buffer map from Peer p, or from any peer if NULL
- * @param[in] fn pointer to the notification function.
- * @return a handle to the notification or NULL on error @see unregisterChunkRequestNotifier
- */
-HANDLE registerBufferMapReceivedNotifier(HANDLE som, BufferMapReceivedNotification fn) {
-    if (bufferMapSentNotifier == NULL) {
-        fprintf(stdout, "Registering BufferMapReceived notifier\n");
-    } else
-        fprintf(stdout, "Overwrite BufferMapReceived notifier\n");
-    bufferMapSentNotifier = fn;
-    return NULL;
+int sigInit(struct nodeID *myID, struct peerset *ps)
+{
+  localID = myID;
+  pset = ps;
+  return 1;
 }
-

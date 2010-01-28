@@ -1,10 +1,6 @@
 #ifndef CHUNK_SIGNALING_H
 #define CHUNK_SIGNALING_H
 
-#include <sys/time.h>
-#include "chunkbuffer.h"
-
-
 //Type of signaling message
 //Request a ChunkIDSet
 #define MSG_SIG_REQ 0
@@ -21,11 +17,21 @@
 
 
 struct sig_nal {
-    char type;//type of signal.
-    int max_deliver;//Max number of chunks to deliver.
-    int trans_id;//future use...
-    int third_peer;//for buffer map exchange from other peers
-    int future;//future use...
+    uint8_t type;//type of signal.
+    uint8_t max_deliver;//Max number of chunks to deliver.
+    uint16_t trans_id;//future use...
+    uint8_t third_peer;//for buffer map exchange from other peers, just the first byte!
 } ;
+
+
+/**
+  * Init the chunk signaling stuff...
+  *
+  *
+  * @param myID address of this peer
+  * @param pset the peerset to use
+  * @return >= 0 on success, <0 on error
+  */
+int sigInit(struct nodeID *myID, struct peerset *pset);
 
 #endif
