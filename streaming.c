@@ -135,6 +135,8 @@ void send_chunk(const struct peerset *pset)
 
     res = sendChunk(p->id, c);
     dprintf("Result: %d\n", res);
+    if (res>=0) {
+      chunkID_set_add_chunk(p->bmap,c->id); //don't send twice ... assuming that it will actually arrive
     }
   }
 }
