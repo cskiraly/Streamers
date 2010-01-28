@@ -50,16 +50,17 @@ int sigParseData(uint8_t *buff, int buff_len) {
     int meta_len;
     struct sig_nal *signal;
     int sig;
-    fprintf(stdout, "\tDecoding signaling message...");
-    fprintf(stdout, "done\n");    
+    dprintf("\tDecoding signaling message...");
     c_set = decodeChunkSignaling(&meta, &meta_len, buff+1, buff_len-1);
+    dprintf("SIG_HEADER: len: %d, of which meta: %d\n", buff_len, meta_len);
     if (!c_set) {
       fprintf(stdout, "ERROR decoding signaling message\n");
       return -1;
     }
+    dprintf("done\n");    
     signal = (struct sig_nal *) meta;       
     sig = (int) (signal->type);    
-    fprintf(stdout, "\tSignaling Type %d\n", sig);
+    dprintf("\tSignaling Type %d\n", sig);
     //MaxDelivery  and Trans_Id to be defined
     switch (sig) {
         case MSG_SIG_BMOFF:
