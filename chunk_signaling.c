@@ -124,6 +124,11 @@ int sendBufferMap(const struct nodeID *to_id, const struct nodeID *owner_id, Chu
     return ret;
 }
 
+int sendMyBufferMap(const struct nodeID *to_id, ChunkIDSet *bmap, int bmap_len, int trans_id)
+{
+  return sendBufferMap(to_id, localID, bmap, bmap_len, trans_id);
+}
+
 int sigInit(struct nodeID *myID, struct peerset *ps)
 {
   localID = myID;
