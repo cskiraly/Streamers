@@ -14,6 +14,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/time.h>
 #include <errno.h>
 #include <assert.h>
 #include "peer.h"
@@ -75,6 +76,7 @@ int sigParseData(uint8_t *buff, int buff_len) {
           }
           if (owner) {	//now we have it almost sure
             chunkID_set_union(owner->bmap,c_set);	//don't send it back
+            gettimeofday(&owner->bmap_timestamp, NULL);
           }
         }
         default:
