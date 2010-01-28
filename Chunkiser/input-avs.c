@@ -8,40 +8,60 @@
 
 #include <chunk.h>
 
-#define input_desc AVFormatContext
 #include "../input.h"
 #define STATIC_BUFF_SIZE 1000 * 1024
 
+struct input_desc {
+  AVFormatContext *s;
+  int audio_stream;
+  int video_stream;
+};
+
 struct input_desc *input_open(const char *fname)
 {
-    AVFormatContext *s;
-    int res;
+  struct input_desc *desc;
+  int i, res;
 
   avcodec_register_all();
   av_register_all();
 
-    res = av_open_input_file(&s, fname, NULL, 0, NULL);
-    if (res < 0) {
-        fprintf(stderr, "Error opening %s: %d\n", fname, res);
+  desc = malloc(sizeof(struct input_desc));
+  if (desc == NULL) {
+    return NULL;
+  }
+  res = av_open_input_file(&desc->s, fname, NULL, 0, NULL);
+  if (res < 0) {
+    fprintf(stderr, "Error opening %s: %d\n", fname, res);
 
-        return NULL;
+    return NULL;
+  }
+
+  res = av_find_stream_info(desc->s);
+  if (res < 0) {
+    fprintf(stderr, "Cannot find codec parameters for %s\n", fname);
+
+    return NULL;
+  }
+  desc->video_stream = -1;
+  desc->audio_stream = -1;
+  for (i = 0; i < desc->s->nb_streams; i++) {
+    if (desc->video_stream == -1 && desc->s->streams[i]->codec->codec_type == CODEC_TYPE_VIDEO) {
+      desc->video_stream = i;
     }
-
-    res = av_find_stream_info(s);
-    if (res < 0) {
-        fprintf(stderr, "Cannot find codec parameters for %s\n", fname);
-
-        return NULL;
+    if (desc->audio_stream == -1 && desc->s->streams[i]->codec->codec_type == CODEC_TYPE_AUDIO) {
+      desc->audio_stream = i;
     }
+  }
 
-    dump_format(s, 0, fname, 0);
+  dump_format(desc->s, 0, fname, 0);
 
-    return s;
+  return desc;
 }
 
 void input_close(struct input_desc *s)
 {
-    av_close_input_file(s);
+    av_close_input_file(s->s);
+    free(s);
 }
 
 int input_get_1(struct input_desc *s, struct chunk *c)
@@ -57,7 +77,7 @@ int input_get_1(struct input_desc *s, struct chunk *c)
     p = static_buff;
     if (inited == 0) {
         inited = 1;
-        res = av_read_frame(s, &pkt);
+        res = av_read_frame(s->s, &pkt);
         if (res < 0) {
             fprintf(stderr, "First read failed: %d!!!\n", res);
 
@@ -73,9 +93,9 @@ int input_get_1(struct input_desc *s, struct chunk *c)
     memcpy(p, pkt.data, pkt.size);
     p += pkt.size;
     while (1) {
-        res = av_read_frame(s, &pkt);
+        res = av_read_frame(s->s, &pkt);
         if (res >= 0) {
-            st = s->streams[pkt.stream_index];
+            st = s->s->streams[pkt.stream_index];
             if (pkt.flags & PKT_FLAG_KEY) {
                 c->size = p - static_buff;
                 c->data = malloc(c->size);
@@ -116,17 +136,23 @@ int input_get(struct input_desc *s, struct chunk *c)
     int res;
     static int cid;
 
-    res = av_read_frame(s, &pkt);
+    res = av_read_frame(s->s, &pkt);
     if (res < 0) {
-      fprintf(stderr, "First read failed: %d!!!\n", res);
+      fprintf(stderr, "AVPacket read failed: %d!!!\n", res);
+
+      return -1;
+    }
+    if (pkt.stream_index != s->video_stream) {
+      c->size = 0;
+      c->data = NULL;
 
       return 0;
     }
-    
+
     c->size = pkt.size;
     c->data = malloc(c->size);
     if (c->data == NULL) {
-      return 0;
+      return -1;
     }
     memcpy(c->data, pkt.data, c->size);
     c->attributes_size = 0;

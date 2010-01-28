@@ -57,9 +57,11 @@ void generated_chunk(void)
   int res;
   struct chunk c;
 
-  if (input_get(input, &c) <= 0) {
-    fprintf(stderr, "Error in input!\n");
-    exit(-1);
+  while ((res = input_get(input, &c)) <= 0) {
+    if (res < 0) {
+      fprintf(stderr, "Error in input!\n");
+      exit(-1);
+    }
   }
   res = cb_add_chunk(cb, &c);
   if (res < 0) {
