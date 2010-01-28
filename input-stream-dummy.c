@@ -7,8 +7,9 @@
 static struct input_stream {
 } fake_descriptor;
 
-struct input_stream *input_stream_open(const char *fname)
+struct input_stream *input_stream_open(const char *fname, int *period)
 {
+  *period = 40000;
   return &fake_descriptor;
 }
 
@@ -21,7 +22,7 @@ uint8_t *chunkise(struct input_stream *dummy, int id, int *size, uint64_t *ts)
   static char buff[80];
 
   sprintf(buff, "Chunk %d", id);
-  *ts = 40 * id;
+  *ts = 40 * id * 1000;
   *size = strlen(buff) + 1;
 
   return strdup(buff);

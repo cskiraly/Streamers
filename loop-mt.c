@@ -21,13 +21,13 @@ static struct nodeID *s;
 
 static void *chunk_forging(void *dummy)
 {
-  int chunk_period = period;
+  int d;
 
   while(!done) {
     pthread_mutex_lock(&cb_mutex);
-    generated_chunk();
+    d = generated_chunk();
     pthread_mutex_unlock(&cb_mutex);
-    usleep(chunk_period);
+    usleep(d);
   }
 
   return NULL;

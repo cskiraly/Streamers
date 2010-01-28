@@ -11,6 +11,7 @@
 
 #include "streaming.h"
 #include "loop.h"
+#include "dbg.h"
 
 #define BUFFSIZE 64 * 1024
 static struct timeval period = {0, 500000};
@@ -85,9 +86,6 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks)
   static uint8_t buff[BUFFSIZE];
   int cnt = 0;
 
-  period.tv_sec = csize  / 1000000;
-  period.tv_usec = csize % 1000000;
-  
   source_init(fname, s);
   while (!done) {
     int len, res;
@@ -114,9 +112,10 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks)
     } else {
       const struct nodeID **neighbours;
       int i, n;
-      struct timeval tmp;
+      struct timeval tmp, d;
 
-      generated_chunk();
+      d.tv_sec = 0;
+      d.tv_usec = generated_chunk();
       neighbours = topGetNeighbourhood(&n);
       for (i = 0; i < chunks; i++) {
         send_chunk(neighbours, n);
@@ -124,7 +123,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks)
       if (cnt++ % 10 == 0) {
         topParseData(NULL, 0);
       }
-      timeradd(&tnext, &period, &tmp);
+      timeradd(&tnext, &d, &tmp);
       tnext = tmp;
     }
   }

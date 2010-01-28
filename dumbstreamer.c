@@ -21,6 +21,7 @@ static int srv_port;
 static const char *srv_ip = "";
 static int period = 500;
 static int chunks_per_second = 4;
+static int multiply = 1;
 static int buff_size = 8;
 static const char *fname = "input.mpg";
 
@@ -102,7 +103,7 @@ int main(int argc, char *argv[])
     loop(my_sock, 1000000 / chunks_per_second, buff_size);
   }
 
-  source_loop(fname, my_sock, period * 1000, chunks_per_second * period / 1000);
+  source_loop(fname, my_sock, period * 1000, multiply);
 
   return 0;
 }
