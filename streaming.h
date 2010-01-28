@@ -1,5 +1,5 @@
 void stream_init(int size, struct nodeID *myID);
 int source_init(const char *fname, struct nodeID *myID);
-void received_chunk(const uint8_t *buff, int len);
+void received_chunk(struct peerset *pset, struct nodeID *from, const uint8_t *buff, int len);
 void send_chunk(const struct peerset *pset);
 void generated_chunk(void);

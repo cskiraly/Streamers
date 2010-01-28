@@ -9,6 +9,7 @@
 #include <trade_msg_ha.h>
 #include <peerset.h>
 #include <peer.h>
+#include <chunkidset.h>
 
 #include "streaming.h"
 #include "output.h"
@@ -40,7 +41,7 @@ int source_init(const char *fname, struct nodeID *myID)
   return 0;
 }
 
-void received_chunk(const uint8_t *buff, int len)
+void received_chunk(struct peerset *pset, struct nodeID *from, const uint8_t *buff, int len)
 {
   int res;
   static struct chunk c;

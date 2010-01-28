@@ -70,7 +70,7 @@ void loop(struct nodeID *s, int csize, int buff_size)
           update_peers(pset, buff, len);
           break;
         case MSG_TYPE_CHUNK:
-          received_chunk(buff, len);
+          received_chunk(pset, remote, buff, len);
           break;
         default:
           fprintf(stderr, "Unknown Message Type %x\n", buff[0]);
