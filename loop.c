@@ -8,6 +8,7 @@
 #include <net_helper.h>
 #include <topmanager.h>
 #include <msg_types.h>
+#include <peerset.h>
 
 #include "streaming.h"
 #include "loop.h"
@@ -31,16 +32,28 @@ void tout_init(struct timeval *tv)
   }
 }
 
+// currently it just makes the peerset grow
+void update_peers(struct peerset *pset, const uint8_t *buff, int len)
+{
+  int n_ids;
+  const struct nodeID **ids;
+  topParseData(buff, len);
+  ids = topGetNeighbourhood(&n_ids);
+  peerset_add_peers(pset,ids,n_ids);
+}
+
+
 void loop(struct nodeID *s, int csize, int buff_size)
 {
   int done = 0;
   static uint8_t buff[BUFFSIZE];
   int cnt = 0;
+  struct peerset *pset = peerset_init(0);
   
   period.tv_sec = csize / 1000000;
   period.tv_usec = csize % 1000000;
   
-  topParseData(NULL, 0);
+  update_peers(pset, NULL, 0);
   stream_init(buff_size, s);
   while (!done) {
     int len, res;
@@ -54,7 +67,7 @@ void loop(struct nodeID *s, int csize, int buff_size)
       len = recv_from_peer(s, &remote, buff, BUFFSIZE);
       switch (buff[0] /* Message Type */) {
         case MSG_TYPE_TOPOLOGY:
-          topParseData(buff, len);
+          update_peers(pset, buff, len);
           break;
         case MSG_TYPE_CHUNK:
           received_chunk(buff, len);
@@ -71,7 +84,7 @@ void loop(struct nodeID *s, int csize, int buff_size)
       neighbours = topGetNeighbourhood(&n);
       send_chunk(neighbours, n);
       if (cnt++ % 10 == 0) {
-        topParseData(NULL, 0);
+        update_peers(pset,NULL, 0);
       }
       timeradd(&tnext, &period, &tmp);
       tnext = tmp;
@@ -84,6 +97,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks)
   int done = 0;
   static uint8_t buff[BUFFSIZE];
   int cnt = 0;
+  struct peerset *pset = peerset_init(0);
 
   period.tv_sec = csize  / 1000000;
   period.tv_usec = csize % 1000000;
@@ -102,7 +116,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks)
       switch (buff[0] /* Message Type */) {
         case MSG_TYPE_TOPOLOGY:
           fprintf(stderr, "Top Parse\n");
-          topParseData(buff, len);
+          update_peers(pset, buff, len);
           break;
         case MSG_TYPE_CHUNK:
           fprintf(stderr, "Some dumb peer pushed a chunk to me!\n");
@@ -122,7 +136,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks)
         send_chunk(neighbours, n);
       }
       if (cnt++ % 10 == 0) {
-        topParseData(NULL, 0);
+          update_peers(pset, NULL, 0);
       }
       timeradd(&tnext, &period, &tmp);
       tnext = tmp;
