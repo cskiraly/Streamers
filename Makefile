@@ -55,6 +55,7 @@ Chunkiser/input-avs.o: CPPFLAGS += -I$(FFSRC)
 
 GRAPES:
 	git clone http://www.disi.unitn.it/~abeni/PublicGits/GRAPES.git
+	cd GRAPES; git checkout -b fixes origin/fixes
 
 prepare: GRAPES
 	make -C GRAPES/som
