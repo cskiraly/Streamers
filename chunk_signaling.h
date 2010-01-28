@@ -1,5 +1,5 @@
-#ifndef CHUNK_TRADING_H
-#define CHUNK_TRADING_H
+#ifndef CHUNK_SIGNALING_H
+#define CHUNK_SIGNALING_H
 
 #include <sys/time.h>
 #include "chunkbuffer.h"
@@ -27,11 +27,5 @@ struct sig_nal {
     int third_peer;//for buffer map exchange from other peers
     int future;//future use...
 } ;
-
-
-struct timeval simple_push(struct chunk_buffer *);
-
-
-
 
 #endif
