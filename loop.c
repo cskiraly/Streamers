@@ -111,17 +111,19 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks)
       free(remote);
     } else {
       const struct nodeID **neighbours;
-      int i, n;
+      int i, n, res;
       struct timeval tmp, d;
 
       d.tv_sec = 0;
-      d.tv_usec = generated_chunk();
-      neighbours = topGetNeighbourhood(&n);
-      for (i = 0; i < chunks; i++) {
-        send_chunk(neighbours, n);
-      }
-      if (cnt++ % 10 == 0) {
-        topParseData(NULL, 0);
+      res = generated_chunk(&d.tv_usec);
+      if (res) {
+        neighbours = topGetNeighbourhood(&n);
+        for (i = 0; i < chunks; i++) {
+          send_chunk(neighbours, n);
+        }
+        if (cnt++ % 10 == 0) {
+          topParseData(NULL, 0);
+        }
       }
       timeradd(&tnext, &d, &tmp);
       tnext = tmp;

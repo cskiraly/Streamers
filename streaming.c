@@ -52,16 +52,18 @@ void received_chunk(const uint8_t *buff, int len)
   }
 }
 
-int generated_chunk(void)
+int generated_chunk(suseconds_t *delta)
 {
-  int res, delta;
+  int res;
   struct chunk c;
 
-  while ((delta = input_get(input, &c)) <= 0) {
-    if (res < 0) {
-      fprintf(stderr, "Error in input!\n");
-      exit(-1);
-    }
+  *delta = input_get(input, &c);
+  if (*delta < 0) {
+    fprintf(stderr, "Error in input!\n");
+    exit(-1);
+  }
+  if (c.data == NULL) {
+    return 0;
   }
   res = cb_add_chunk(cb, &c);
   if (res < 0) {
@@ -69,7 +71,7 @@ int generated_chunk(void)
     free(c.attributes);
   }
 
-  return delta;
+  return 1;
 }
 
 void send_chunk(const struct nodeID **neighbours, int n)
