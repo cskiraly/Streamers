@@ -88,7 +88,7 @@ void generated_chunk(void)
  * should look at buffermap information received about the given peer (or it should guess)
  */
 int needs(struct peer *p, struct chunk *c){
-  return 1;	//TODO: avoid at least sending to the source :)
+  return (! p->bmap || chunkID_set_check(p->bmap,c->id) < 0);
 }
 double randomPeer(struct peer **p){
   return 1;
