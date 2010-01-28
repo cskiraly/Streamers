@@ -47,6 +47,10 @@ struct input_desc *input_open(const char *fname)
   for (i = 0; i < desc->s->nb_streams; i++) {
     if (desc->video_stream == -1 && desc->s->streams[i]->codec->codec_type == CODEC_TYPE_VIDEO) {
       desc->video_stream = i;
+      fprintf(stderr, "Video Frame Rate = %d/%d --- Period: %lld\n",
+              desc->s->streams[i]->r_frame_rate.num,
+              desc->s->streams[i]->r_frame_rate.den,
+              av_rescale(1000000, desc->s->streams[i]->r_frame_rate.den, desc->s->streams[i]->r_frame_rate.num));
     }
     if (desc->audio_stream == -1 && desc->s->streams[i]->codec->codec_type == CODEC_TYPE_AUDIO) {
       desc->audio_stream = i;
