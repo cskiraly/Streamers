@@ -45,6 +45,7 @@ void received_chunk(struct peerset *pset, struct nodeID *from, const uint8_t *bu
 {
   int res;
   static struct chunk c;
+  struct peer *p;
 
   res = decodeChunk(&c, buff + 1, len - 1);
   if (res > 0) {
@@ -53,6 +54,15 @@ void received_chunk(struct peerset *pset, struct nodeID *from, const uint8_t *bu
     if (res < 0) {
       free(c.data);
       free(c.attributes);
+    }
+    p = peerset_get_peer(pset,from);
+    if (!p) {
+      printf("warning: received chunk %d from unknown peer: %s! Adding it to neighbourhood!\n", c.id, node_addr(from));
+      peerset_add_peer(pset,from);
+      p = peerset_get_peer(pset,from);
+    }
+    if (p) {	//now we have it almost sure
+      chunkID_set_add_chunk(p->bmap,c.id);	//don't send it back
     }
   }
 }
