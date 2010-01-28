@@ -15,6 +15,7 @@
 #include "output.h"
 #include "input.h"
 #include "dbg.h"
+#include "chunk_signaling.h"
 
 #include "scheduler_la.h"
 
@@ -39,6 +40,20 @@ int source_init(const char *fname, struct nodeID *myID)
 
   stream_init(1, myID);
   return 0;
+}
+
+void send_bmap(struct peer *to)
+{
+  struct chunk *chunks;
+  int num_chunks, i;
+  struct chunkID_set *my_bmap = chunkID_set_init(0);
+  chunks = cb_get_chunks(cb, &num_chunks);
+
+  for(i=0; i<num_chunks; i++) {
+    chunkID_set_add_chunk(my_bmap, chunks[i].id);
+  }
+
+  sendMyBufferMap(to->id, my_bmap, chunkID_set_size(my_bmap), 0);
 }
 
 void received_chunk(struct peerset *pset, struct nodeID *from, const uint8_t *buff, int len)
