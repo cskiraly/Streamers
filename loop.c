@@ -10,12 +10,14 @@
 #include <msg_types.h>
 #include <peerset.h>
 
+#include "chunk_signaling.h"
 #include "streaming.h"
 #include "loop.h"
 
 #define BUFFSIZE 64 * 1024
 static struct timeval period = {0, 500000};
 static struct timeval tnext;
+
 
 void tout_init(struct timeval *tv)
 {
@@ -53,6 +55,7 @@ void loop(struct nodeID *s, int csize, int buff_size)
   period.tv_sec = csize / 1000000;
   period.tv_usec = csize % 1000000;
   
+  sigInit(s,pset);
   update_peers(pset, NULL, 0);
   stream_init(buff_size, s);
   while (!done) {
@@ -71,6 +74,9 @@ void loop(struct nodeID *s, int csize, int buff_size)
           break;
         case MSG_TYPE_CHUNK:
           received_chunk(pset, remote, buff, len);
+          break;
+        case MSG_TYPE_SIGNALLING:
+          sigParseData(buff, len);
           break;
         default:
           fprintf(stderr, "Unknown Message Type %x\n", buff[0]);
@@ -99,6 +105,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks)
   period.tv_sec = csize  / 1000000;
   period.tv_usec = csize % 1000000;
   
+  sigInit(s,pset);
   source_init(fname, s);
   while (!done) {
     int len, res;
@@ -117,6 +124,9 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks)
           break;
         case MSG_TYPE_CHUNK:
           fprintf(stderr, "Some dumb peer pushed a chunk to me!\n");
+          break;
+        case MSG_TYPE_SIGNALLING:
+          sigParseData(buff, len);
           break;
         default:
           fprintf(stderr, "Bad Message Type %x\n", buff[0]);
