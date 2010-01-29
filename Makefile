@@ -51,7 +51,7 @@ all: dumbstreamer
 
 dumbstreamer: $(OBJS) $(GRAPES)/som/net_helper.o
 
-Chunkiser/input-avs.o: CPPFLAGS += -I$(FFSRC) 
+Chunkiser/input-stream-avs.o: CPPFLAGS += -I$(FFSRC) 
 
 GRAPES:
 	git clone http://www.disi.unitn.it/~abeni/PublicGits/GRAPES.git

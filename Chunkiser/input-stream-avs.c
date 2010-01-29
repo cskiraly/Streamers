@@ -11,21 +11,21 @@
 #include "../input.h"
 #define STATIC_BUFF_SIZE 1000 * 1024
 
-struct input_desc {
+struct input_stream {
   AVFormatContext *s;
   int audio_stream;
   int video_stream;
 };
 
-struct input_desc *input_open(const char *fname)
+struct input_stream *input_stream_open(const char *fname, int *period)
 {
-  struct input_desc *desc;
+  struct input_stream *desc;
   int i, res;
 
   avcodec_register_all();
   av_register_all();
 
-  desc = malloc(sizeof(struct input_desc));
+  desc = malloc(sizeof(struct input_stream));
   if (desc == NULL) {
     return NULL;
   }
@@ -51,6 +51,7 @@ struct input_desc *input_open(const char *fname)
               desc->s->streams[i]->r_frame_rate.num,
               desc->s->streams[i]->r_frame_rate.den,
               av_rescale(1000000, desc->s->streams[i]->r_frame_rate.den, desc->s->streams[i]->r_frame_rate.num));
+      *period = av_rescale(1000000, desc->s->streams[i]->r_frame_rate.den, desc->s->streams[i]->r_frame_rate.num);
     }
     if (desc->audio_stream == -1 && desc->s->streams[i]->codec->codec_type == CODEC_TYPE_AUDIO) {
       desc->audio_stream = i;
@@ -62,13 +63,13 @@ struct input_desc *input_open(const char *fname)
   return desc;
 }
 
-void input_close(struct input_desc *s)
+void input_stream_close(struct input_stream *s)
 {
     av_close_input_file(s->s);
     free(s);
 }
 
-int input_get_1(struct input_desc *s, struct chunk *c)
+int input_get_1(struct input_stream *s, struct chunk *c)
 {
     static AVPacket pkt;
     static int inited;
@@ -134,35 +135,36 @@ int input_get_1(struct input_desc *s, struct chunk *c)
     return 0;
 }
 
-int input_get(struct input_desc *s, struct chunk *c)
+uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
 {
     AVPacket pkt;
     int res;
-    static int cid;
+    uint8_t *data;
 
     res = av_read_frame(s->s, &pkt);
     if (res < 0) {
       fprintf(stderr, "AVPacket read failed: %d!!!\n", res);
+      *size = -1;
 
-      return -1;
+      return NULL;
     }
     if (pkt.stream_index != s->video_stream) {
-      c->size = 0;
-      c->data = NULL;
+      *size = 0;
 
-      return 0;
+      return NULL;
     }
 
-    c->size = pkt.size;
-    c->data = malloc(c->size);
-    if (c->data == NULL) {
-      return -1;
+    *size = pkt.size;
+    data = malloc(pkt.size);
+    if (data == NULL) {
+      *size = -1;
+
+      return NULL;
     }
-    memcpy(c->data, pkt.data, c->size);
-    c->attributes_size = 0;
-    c->attributes = NULL;
-    c->id = cid++; 
-    return 1;
+    memcpy(data, pkt.data, *size);
+    *ts = pkt.dts;
+
+    return data;
 }
 
 #if 0
