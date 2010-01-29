@@ -6,9 +6,7 @@
 
 #include <libavformat/avformat.h>
 
-#include <chunk.h>
-
-#include "../input.h"
+#include "../input-stream.h"
 #define STATIC_BUFF_SIZE 1000 * 1024
 
 struct input_stream {
@@ -69,6 +67,7 @@ void input_stream_close(struct input_stream *s)
     free(s);
 }
 
+#if 0
 int input_get_1(struct input_stream *s, struct chunk *c)
 {
     static AVPacket pkt;
@@ -134,6 +133,7 @@ int input_get_1(struct input_stream *s, struct chunk *c)
 
     return 0;
 }
+#endif
 
 uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
 {
