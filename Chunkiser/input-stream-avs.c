@@ -162,7 +162,7 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
       return NULL;
     }
     memcpy(data, pkt.data, *size);
-    *ts = pkt.dts;
+    *ts = av_rescale_q(pkt.dts, s->s->streams[pkt.stream_index]->time_base, AV_TIME_BASE_Q);
 
     return data;
 }

@@ -54,7 +54,9 @@ int input_get(struct input_desc *s, struct chunk *c)
   if (c->size == -1) {
     return -1;
   }
-  c->id = s->id++;
+  if (c->data) {
+    c->id = s->id++;
+  }
   c->attributes_size = 0;
   c->attributes = NULL;
   if (s->first_ts == 0) {
