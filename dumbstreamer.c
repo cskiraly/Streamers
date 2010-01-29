@@ -29,7 +29,7 @@ static void cmdline_parse(int argc, char *argv[])
 {
   int o;
 
-  while ((o = getopt(argc, argv, "b:c:t:p:i:P:I:")) != -1) {
+  while ((o = getopt(argc, argv, "b:c:t:p:i:P:I:f:")) != -1) {
     switch(o) {
       case 'b':
         buff_size = atoi(optarg);
@@ -51,6 +51,9 @@ static void cmdline_parse(int argc, char *argv[])
         break;
       case 'I':
         my_iface = strdup(optarg);
+        break;
+      case 'f':
+        fname = strdup(optarg);
         break;
       default:
         fprintf(stderr, "Error: unknown option %c\n", o);
