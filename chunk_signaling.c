@@ -70,7 +70,7 @@ int sigParseData(uint8_t *buff, int buff_len) {
           struct nodeID *ownerid = nodeid_undump(&(signal->third_peer),&dummy);
           struct peer *owner = peerset_get_peer(pset, ownerid);
           if (!owner) {
-            printf("warning: received bmap of unknown peer: %s! Adding it to neighbourhood!\n", node_addr(ownerid));
+            fprintf(stderr,"warning: received bmap of unknown peer: %s! Adding it to neighbourhood!\n", node_addr(ownerid));
             peerset_add_peer(pset,ownerid);
             owner = peerset_get_peer(pset,ownerid);
           }

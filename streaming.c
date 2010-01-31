@@ -72,7 +72,7 @@ void received_chunk(struct peerset *pset, struct nodeID *from, const uint8_t *bu
     }
     p = peerset_get_peer(pset,from);
     if (!p) {
-      printf("warning: received chunk %d from unknown peer: %s! Adding it to neighbourhood!\n", c.id, node_addr(from));
+      fprintf(stderr,"warning: received chunk %d from unknown peer: %s! Adding it to neighbourhood!\n", c.id, node_addr(from));
       peerset_add_peer(pset,from);
       p = peerset_get_peer(pset,from);
     }
