@@ -6,21 +6,19 @@
 #include <stdio.h>
 
 #include <net_helper.h>
-#include <topmanager.h>
 #include <msg_types.h>
 #include <peerset.h>
 #include <peer.h>
 
 #include "chunk_signaling.h"
 #include "streaming.h"
+#include "topology.h"
 #include "loop.h"
 #include "dbg.h"
 
 #define BUFFSIZE 64 * 1024
 static struct timeval period = {0, 500000};
 static struct timeval tnext;
-static struct timeval tout_bmap = {3, 0};
-
 
 void tout_init(struct timeval *tv)
 {
@@ -36,30 +34,6 @@ void tout_init(struct timeval *tv)
     *tv = (struct timeval){0, 0};
   }
 }
-
-// currently it just makes the peerset grow
-void update_peers(struct peerset *pset, const uint8_t *buff, int len)
-{
-  int n_ids, i;
-  const struct nodeID **ids;
-  struct peer *peers;
-  struct timeval tnow, told;
-
-
-  topParseData(buff, len);
-  ids = topGetNeighbourhood(&n_ids);
-  peerset_add_peers(pset,ids,n_ids);
-
-  gettimeofday(&tnow, NULL);
-  timersub(&tnow, &tout_bmap, &told);
-  peers = peerset_get_peers(pset);
-  for (i = 0; i < peerset_size(pset); i++) {
-    if (timerisset(&peers[i].bmap_timestamp) && timercmp(&peers[i].bmap_timestamp, &told, <)) {
-      peerset_remove_peer(pset, peers[i--].id);
-    }
-  }
-}
-
 
 void loop(struct nodeID *s, int csize, int buff_size)
 {
