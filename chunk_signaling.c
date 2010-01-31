@@ -45,7 +45,7 @@ static struct peerset *pset;
  * @return 0 on success, <0 on error
  */
 
-int sigParseData(uint8_t *buff, int buff_len) {
+int sigParseData(const struct nodeID *from_id, uint8_t *buff, int buff_len) {
     struct chunkID_set *c_set;
     void *meta;
     int meta_len;

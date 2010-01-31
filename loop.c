@@ -66,7 +66,7 @@ void loop(struct nodeID *s, int csize, int buff_size)
           received_chunk(pset, remote, buff, len);
           break;
         case MSG_TYPE_SIGNALLING:
-          sigParseData(buff, len);
+          sigParseData(remote, buff, len);
           break;
         default:
           fprintf(stderr, "Unknown Message Type %x\n", buff[0]);
@@ -116,7 +116,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks)
           fprintf(stderr, "Some dumb peer pushed a chunk to me!\n");
           break;
         case MSG_TYPE_SIGNALLING:
-          sigParseData(buff, len);
+          sigParseData(remote, buff, len);
           break;
         default:
           fprintf(stderr, "Bad Message Type %x\n", buff[0]);

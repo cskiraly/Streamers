@@ -84,7 +84,7 @@ static void *receive(void *dummy)
         break;
       case MSG_TYPE_SIGNALLING:
         pthread_mutex_lock(&topology_mutex);
-        sigParseData(buff, len);
+        sigParseData(remote, buff, len);
         pthread_mutex_unlock(&topology_mutex);
         break;
       default:

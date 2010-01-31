@@ -26,7 +26,7 @@ struct sig_nal {
 } ;
 
 
-int sigParseData(uint8_t *buff, int buff_len);
+int sigParseData(const struct nodeID *from_id, uint8_t *buff, int buff_len);
 
 int sendBufferMap(const struct nodeID *to_id, const struct nodeID *owner_id, ChunkIDSet *bmap, int bmap_len, int trans_id);
 
