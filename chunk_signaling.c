@@ -31,6 +31,29 @@ static struct nodeID *localID;
 static struct peerset *pset;
 
 
+struct peer *nodeid_to_peer(const struct nodeID* id, int reg)
+{
+  struct peer *p = peerset_get_peer(pset, id);
+  if (!p) {
+    fprintf(stderr,"warning: received message from unknown peer: %s!\n",node_addr(id));
+    if (reg) {
+      fprintf(stderr,"Adding %s to neighbourhood!\n", node_addr(id));
+      peerset_add_peer(pset,id);
+      p = peerset_get_peer(pset,id);
+    }
+  }
+
+  return p;
+}
+
+void bmap_received(const struct nodeID *fromid, const struct nodeID *ownerid, struct chunkID_set *c_set, int trans_id) {
+  struct peer *owner = nodeid_to_peer(ownerid,1);
+  if (owner) {	//now we have it almost sure
+    chunkID_set_union(owner->bmap,c_set);	//don't send it back
+    gettimeofday(&owner->bmap_timestamp, NULL);
+  }
+}
+
  /**
  * Dispatcher for signaling messages.
  *
@@ -45,7 +68,7 @@ static struct peerset *pset;
  * @return 0 on success, <0 on error
  */
 
-int sigParseData(const struct nodeID *from_id, uint8_t *buff, int buff_len) {
+int sigParseData(const struct nodeID *fromid, uint8_t *buff, int buff_len) {
     struct chunkID_set *c_set;
     void *meta;
     int meta_len;
@@ -68,16 +91,7 @@ int sigParseData(const struct nodeID *from_id, uint8_t *buff, int buff_len) {
         {//BufferMap Received
           int dummy;
           struct nodeID *ownerid = nodeid_undump(&(signal->third_peer),&dummy);
-          struct peer *owner = peerset_get_peer(pset, ownerid);
-          if (!owner) {
-            fprintf(stderr,"warning: received bmap of unknown peer: %s! Adding it to neighbourhood!\n", node_addr(ownerid));
-            peerset_add_peer(pset,ownerid);
-            owner = peerset_get_peer(pset,ownerid);
-          }
-          if (owner) {	//now we have it almost sure
-            chunkID_set_union(owner->bmap,c_set);	//don't send it back
-            gettimeofday(&owner->bmap_timestamp, NULL);
-          }
+          bmap_received(fromid, ownerid, c_set, signal->trans_id);
         }
         default:
         {
