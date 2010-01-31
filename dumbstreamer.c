@@ -65,6 +65,12 @@ static struct nodeID *init(void)
   struct nodeID *myID;
   char *my_addr = iface_addr(my_iface);
 
+  if (my_addr == NULL) {
+    fprintf(stderr, "Cannot find network interface %s\n", my_iface);
+
+    return NULL;
+  }
+
   myID = net_helper_init(my_addr, port);
   if (myID == NULL) {
     fprintf(stderr, "Error creating my socket (%s:%d)!\n", my_addr, port);
