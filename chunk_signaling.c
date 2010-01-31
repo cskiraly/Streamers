@@ -81,9 +81,9 @@ int sigParseData(const struct nodeID *fromid, uint8_t *buff, int buff_len) {
       fprintf(stdout, "ERROR decoding signaling message\n");
       return -1;
     }
-    dprintf("done\n");    
-    signal = (struct sig_nal *) meta;       
-    sig = (int) (signal->type);    
+    dprintf("done\n");
+    signal = (struct sig_nal *) meta;
+    sig = (int) (signal->type);
     dprintf("\tSignaling Type %d\n", sig);
     //MaxDelivery  and Trans_Id to be defined
     switch (sig) {
