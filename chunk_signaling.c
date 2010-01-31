@@ -88,15 +88,14 @@ int sigParseData(const struct nodeID *fromid, uint8_t *buff, int buff_len) {
     //MaxDelivery  and Trans_Id to be defined
     switch (sig) {
         case MSG_SIG_BMOFF:
-        {//BufferMap Received
+        {
           int dummy;
           struct nodeID *ownerid = nodeid_undump(&(signal->third_peer),&dummy);
           bmap_received(fromid, ownerid, c_set, signal->trans_id);
+          break;
         }
         default:
-        {
-            return -1;
-        }
+          return -1;
     }
     return 1;
 }
