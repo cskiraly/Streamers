@@ -108,11 +108,10 @@ int sigParseData(const struct nodeID *fromid, uint8_t *buff, int buff_len) {
  * @param[in] to PeerID.
  * @param[in] owner Owner of the BufferMap to send.
  * @param[in] bmap the BufferMap to send.
- * @param[in] bmap_len length of the buffer map
  * @param[in] trans_id transaction number associated with this send
  * @return 0 on success, <0 on error
  */
-int sendBufferMap(const struct nodeID *to_id, const struct nodeID *owner_id, ChunkIDSet *bmap, int bmap_len, int trans_id) {    
+int sendBufferMap(const struct nodeID *to_id, const struct nodeID *owner_id, struct chunkID_set *bmap, int trans_id) {
     int buff_len, id_len, msg_len, ret;
     uint8_t *buff;
     //msgtype = MSG_TYPE_SIGNALLING;
@@ -120,7 +119,7 @@ int sendBufferMap(const struct nodeID *to_id, const struct nodeID *owner_id, Chu
     sigmex.type = MSG_SIG_BMOFF;
     sigmex.trans_id = trans_id;
     id_len = nodeid_dump(&sigmex.third_peer, owner_id);
-    buff_len = 1 + bmap_len * 4 + 12 + sizeof(sigmex)-1 + id_len; // this should be enough
+    buff_len = 1 + chunkID_set_size(bmap) * 4 + 12 + sizeof(sigmex)-1 + id_len; // this should be enough
     dprintf("SIG_HEADER: Type %d Tx %d PP %s\n",sigmex.type,sigmex.trans_id,node_addr(owner_id));
     buff = malloc(buff_len);
     if (!buff) {
@@ -140,9 +139,9 @@ int sendBufferMap(const struct nodeID *to_id, const struct nodeID *owner_id, Chu
     return ret;
 }
 
-int sendMyBufferMap(const struct nodeID *to_id, ChunkIDSet *bmap, int bmap_len, int trans_id)
+int sendMyBufferMap(const struct nodeID *to_id, struct chunkID_set *bmap, int trans_id)
 {
-  return sendBufferMap(to_id, localID, bmap, bmap_len, trans_id);
+  return sendBufferMap(to_id, localID, bmap, trans_id);
 }
 
 int sigInit(struct nodeID *myID, struct peerset *ps)

@@ -53,7 +53,7 @@ void send_bmap(struct peer *to)
     chunkID_set_add_chunk(my_bmap, chunks[i].id);
   }
 
-  sendMyBufferMap(to->id, my_bmap, chunkID_set_size(my_bmap), 0);
+  sendMyBufferMap(to->id, my_bmap, 0);
 }
 
 void received_chunk(struct peerset *pset, struct nodeID *from, const uint8_t *buff, int len)
