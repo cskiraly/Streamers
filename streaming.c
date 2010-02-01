@@ -45,18 +45,23 @@ int source_init(const char *fname, struct nodeID *myID)
   return 0;
 }
 
-void send_bmap(struct peer *to)
+struct chunkID_set *cb_to_bmap(struct chunk_buffer *chbuf)
 {
   struct chunk *chunks;
   int num_chunks, i;
   struct chunkID_set *my_bmap = chunkID_set_init(0);
-  chunks = cb_get_chunks(cb, &num_chunks);
+  chunks = cb_get_chunks(chbuf, &num_chunks);
 
   for(i=0; i<num_chunks; i++) {
     chunkID_set_add_chunk(my_bmap, chunks[i].id);
   }
+  return my_bmap;
+}
 
-  sendMyBufferMap(to->id, my_bmap, cb_size, 0);
+void send_bmap(struct peer *to)
+{
+  struct chunkID_set *my_bmap = cb_to_bmap(cb);
+   sendMyBufferMap(to->id, my_bmap, cb_size, 0);
 
   chunkID_set_clear(my_bmap,0);
   free(my_bmap);
