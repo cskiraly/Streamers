@@ -17,6 +17,7 @@
 #include <sys/time.h>
 #include <errno.h>
 #include <assert.h>
+#include <string.h>
 #include "peer.h"
 #include "peerset.h"
 #include "chunkidset.h"
@@ -48,24 +49,33 @@ struct peer *nodeid_to_peer(const struct nodeID* id, int reg)
 
 int sendSignalling(int type, const struct nodeID *to_id, const struct nodeID *owner_id, struct chunkID_set *cset, int max_deliver, int trans_id)
 {
-    int buff_len, id_len, msg_len, ret;
+    int buff_len, meta_len, msg_len, ret;
     uint8_t *buff;
-    struct sig_nal sigmex;
-    sigmex.type = type;
-    sigmex.max_deliver = max_deliver;
-    sigmex.trans_id = trans_id;
+    struct sig_nal *sigmex;
+    uint8_t *meta;
+
+    meta = malloc(1024);
+
+    sigmex = (struct sig_nal*) meta;
+    sigmex->type = type;
+    sigmex->max_deliver = max_deliver;
+    sigmex->trans_id = trans_id;
+    meta_len = sizeof(*sigmex)-1;
+      sigmex->third_peer = 0;
     if (owner_id) {
-      id_len = nodeid_dump(&sigmex.third_peer, owner_id);
-    } else {
-      id_len = 1;
+      meta_len += nodeid_dump(&sigmex->third_peer, owner_id);
     }
-    buff_len = 1 + chunkID_set_size(cset) * 4 + 12 + sizeof(sigmex)-1 + id_len; // this should be enough
+
+    buff_len = 1 + chunkID_set_size(cset) * 4 + 12 + meta_len; // this should be enough
     buff = malloc(buff_len);
     if (!buff) {
+      fprintf(stderr, "Error allocating buffer\n");
       return -1;
     }
+
     buff[0] = MSG_TYPE_SIGNALLING;
-    msg_len = 1 + encodeChunkSignaling(cset, &sigmex, sizeof(sigmex)-1 + id_len, buff+1, buff_len-1);
+    msg_len = 1 + encodeChunkSignaling(cset, meta, meta_len, buff+1, buff_len-1);
+    free(meta);
     if (msg_len < 0) {
       fprintf(stderr, "Error in encoding chunk set for sending a buffermap\n");
       ret = -1;
