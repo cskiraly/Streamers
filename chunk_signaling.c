@@ -46,6 +46,70 @@ struct peer *nodeid_to_peer(const struct nodeID* id, int reg)
   return p;
 }
 
+int sendSignalling(int type, const struct nodeID *to_id, const struct nodeID *owner_id, struct chunkID_set *cset, int max_deliver, int trans_id)
+{
+    int buff_len, id_len, msg_len, ret;
+    uint8_t *buff;
+    struct sig_nal sigmex;
+    sigmex.type = type;
+    sigmex.max_deliver = max_deliver;
+    sigmex.trans_id = trans_id;
+    if (owner_id) {
+      id_len = nodeid_dump(&sigmex.third_peer, owner_id);
+    } else {
+      id_len = 1;
+    }
+    buff_len = 1 + chunkID_set_size(cset) * 4 + 12 + sizeof(sigmex)-1 + id_len; // this should be enough
+    buff = malloc(buff_len);
+    if (!buff) {
+      return -1;
+    }
+    buff[0] = MSG_TYPE_SIGNALLING;
+    msg_len = 1 + encodeChunkSignaling(cset, &sigmex, sizeof(sigmex)-1 + id_len, buff+1, buff_len-1);
+    if (msg_len < 0) {
+      fprintf(stderr, "Error in encoding chunk set for sending a buffermap\n");
+      ret = -1;
+    } else {
+      send_to_peer(localID, to_id, buff, msg_len);
+    }
+    ret = 1;
+    free(buff);
+    return ret;
+}
+
+/**
+ * Send a BufferMap to a Peer.
+ *
+ * Send (our own or some other peer's) BufferMap to a third Peer.
+ *
+ * @param[in] to PeerID.
+ * @param[in] owner Owner of the BufferMap to send.
+ * @param[in] bmap the BufferMap to send.
+ * @param[in] trans_id transaction number associated with this send
+ * @return 0 on success, <0 on error
+ */
+int sendBufferMap(const struct nodeID *to_id, const struct nodeID *owner_id, struct chunkID_set *bmap, int trans_id) {
+  return sendSignalling(MSG_SIG_BMOFF, to_id, owner_id, bmap, 0, trans_id);
+}
+
+int sendMyBufferMap(const struct nodeID *to_id, struct chunkID_set *bmap, int trans_id)
+{
+  return sendBufferMap(to_id, localID, bmap, trans_id);
+}
+
+int offerChunks(const struct nodeID *to_id, struct chunkID_set *cset, int max_deliver, int trans_id) {
+  return sendSignalling(MSG_SIG_OFF, to_id, NULL, cset, max_deliver, trans_id);
+}
+
+int acceptChunks(const struct nodeID *to_id, struct chunkID_set *cset, int max_deliver, int trans_id) {
+  return sendSignalling(MSG_SIG_ACC, to_id, NULL, cset, max_deliver, trans_id);
+}
+
+
+/// ==================== ///
+///        RECEIVE       ///
+/// ==================== ///
+
 void bmap_received(const struct nodeID *fromid, const struct nodeID *ownerid, struct chunkID_set *c_set, int trans_id) {
   struct peer *owner = nodeid_to_peer(ownerid,1);
   if (owner) {	//now we have it almost sure
@@ -100,49 +164,9 @@ int sigParseData(const struct nodeID *fromid, uint8_t *buff, int buff_len) {
     return 1;
 }
 
-/**
- * Send a BufferMap to a Peer.
- *
- * Send (our own or some other peer's) BufferMap to a third Peer.
- *
- * @param[in] to PeerID.
- * @param[in] owner Owner of the BufferMap to send.
- * @param[in] bmap the BufferMap to send.
- * @param[in] trans_id transaction number associated with this send
- * @return 0 on success, <0 on error
- */
-int sendBufferMap(const struct nodeID *to_id, const struct nodeID *owner_id, struct chunkID_set *bmap, int trans_id) {
-    int buff_len, id_len, msg_len, ret;
-    uint8_t *buff;
-    //msgtype = MSG_TYPE_SIGNALLING;
-    struct sig_nal sigmex;
-    sigmex.type = MSG_SIG_BMOFF;
-    sigmex.trans_id = trans_id;
-    id_len = nodeid_dump(&sigmex.third_peer, owner_id);
-    buff_len = 1 + chunkID_set_size(bmap) * 4 + 12 + sizeof(sigmex)-1 + id_len; // this should be enough
-    dprintf("SIG_HEADER: Type %d Tx %d PP %s\n",sigmex.type,sigmex.trans_id,node_addr(owner_id));
-    buff = malloc(buff_len);
-    if (!buff) {
-      return -1;
-    }
-    buff[0] = MSG_TYPE_SIGNALLING;
-    msg_len = 1 + encodeChunkSignaling(bmap, &sigmex, sizeof(sigmex)-1 + id_len, buff+1, buff_len-1);
-    dprintf("SIG_HEADER: len: %d, of which meta: %d\n", msg_len, sizeof(sigmex)-1 + id_len);
-    if (msg_len < 0) {
-      fprintf(stderr, "Error in encoding chunk set for sending a buffermap\n");
-      ret = -1;
-    } else {
-      send_to_peer(localID, to_id, buff, msg_len);
-    }
-    ret = 1;
-    free(buff);
-    return ret;
-}
-
-int sendMyBufferMap(const struct nodeID *to_id, struct chunkID_set *bmap, int trans_id)
-{
-  return sendBufferMap(to_id, localID, bmap, trans_id);
-}
+/// ==================== ///
+///          INIT        ///
+/// ==================== ///
 
 int sigInit(struct nodeID *myID, struct peerset *ps)
 {
