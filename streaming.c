@@ -196,6 +196,38 @@ void send_accepted_chunks(struct peer *to, struct chunkID_set *cset_acc, int max
   }
 }
 
+void send_offer(const struct peerset *pset)
+{
+  struct chunk *buff;
+  int size, res, i, n;
+  struct peer *neighbours;
+
+  n = peerset_size(pset);
+  neighbours = peerset_get_peers(pset);
+  dprintf("Send Offer: %d neighbours\n", n);
+  if (n == 0) return;
+  buff = cb_get_chunks(cb, &size);
+  if (size == 0) return;
+
+  {
+    size_t selectedpeers_len = 1;
+    struct chunk *chunkps[size];
+    struct peer *peerps[n];
+    struct peer *selectedpeers[selectedpeers_len];
+
+    for (i = 0;i < size; i++) chunkps[i] = buff+i;
+    for (i = 0; i<n; i++) peerps[i] = neighbours+i;
+    selectPeersForChunks(SCHED_WEIGHTED, peerps, n, chunkps, size, selectedpeers, &selectedpeers_len, needs, randomPeer);	//select a peer that needs at least one of our chunks
+
+    for (i=0; i<selectedpeers_len ; i++){
+      int max_deliver = 1;
+      struct chunkID_set *my_bmap = cb_to_bmap(cb);
+      dprintf("\t sending offer to %s\n", node_addr(selectedpeers[i]->id));
+      res = offerChunks(selectedpeers[i]->id, my_bmap, max_deliver, 0);
+    }
+  }
+}
+
 
 void send_chunk(const struct peerset *pset)
 {

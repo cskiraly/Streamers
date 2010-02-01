@@ -75,7 +75,8 @@ void loop(struct nodeID *s, int csize, int buff_size)
     } else {
       struct timeval tmp;
 
-      send_chunk(pset);
+      //send_chunk(pset);
+      send_offer(pset);
       if (cnt++ % 10 == 0) {
         update_peers(pset,NULL, 0);
       }
