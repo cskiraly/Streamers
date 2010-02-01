@@ -119,6 +119,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks)
       if (res) {
         neighbours = topGetNeighbourhood(&n);
         for (i = 0; i < chunks; i++) {
+dprintf(" T: %lld\n", tnext.tv_sec * 1000 + tnext.tv_usec / 1000);
           send_chunk(neighbours, n);
         }
         if (cnt++ % 10 == 0) {
