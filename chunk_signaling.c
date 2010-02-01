@@ -148,6 +148,7 @@ int sigParseData(const struct nodeID *fromid, uint8_t *buff, int buff_len) {
     int meta_len;
     struct sig_nal *signal;
     int sig;
+    int ret = 1;
     dprintf("\tDecoding signaling message...");
     c_set = decodeChunkSignaling(&meta, &meta_len, buff+1, buff_len-1);
     dprintf("SIG_HEADER: len: %d, of which meta: %d\n", buff_len, meta_len);
@@ -166,12 +167,17 @@ int sigParseData(const struct nodeID *fromid, uint8_t *buff, int buff_len) {
           int dummy;
           struct nodeID *ownerid = nodeid_undump(&(signal->third_peer),&dummy);
           bmap_received(fromid, ownerid, c_set, signal->trans_id);
+          free(ownerid);
           break;
         }
         default:
-          return -1;
+          ret = -1;
     }
-    return 1;
+    
+    chunkID_set_clear(c_set,0);
+    free(c_set);
+    free(meta);
+    return ret;
 }
 
 /// ==================== ///
