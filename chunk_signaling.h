@@ -23,7 +23,7 @@ struct sig_nal {
     uint8_t max_deliver;//Max number of chunks to deliver.
     uint16_t trans_id;//future use...
     uint8_t third_peer;//for buffer map exchange from other peers, just the first byte!
-} ;
+} __attribute__((packed));
 
 
 int sigParseData(const struct nodeID *from_id, uint8_t *buff, int buff_len);
