@@ -47,6 +47,23 @@ int source_init(const char *fname, struct nodeID *myID)
   return 0;
 }
 
+// a simple implementation that request everything that we miss ... up to max deliver
+struct chunkID_set *get_chunks_to_accept(struct peer *from, const struct chunkID_set *cset_off, int max_deliver){
+  struct chunkID_set *cset_acc = chunkID_set_init(0);
+  int i, d, cset_off_size;
+
+  cset_off_size = chunkID_set_size(cset_off);
+  for (i = 0, d = 0; i < cset_off_size && d < max_deliver; i++) {
+    int chunkid = chunkID_set_get_chunk(cset_off, i);
+    if (! cb_get_chunk(cb, chunkid)) {
+      chunkID_set_add_chunk(cset_acc, chunkid);
+      d++;
+    }
+  }
+
+  return cset_acc;
+}
+
 struct chunkID_set *cb_to_bmap(struct chunk_buffer *chbuf)
 {
   struct chunk *chunks;
@@ -159,6 +176,24 @@ double randomPeer(struct peer **p){
 }
 double getChunkTimestamp(struct chunk **c){
   return (double) (*c)->timestamp;
+}
+
+void send_accepted_chunks(struct peer *to, struct chunkID_set *cset_acc, int max_deliver){
+  int i, d, cset_acc_size;
+
+  cset_acc_size = chunkID_set_size(cset_acc);
+  for (i = 0, d=0; i < cset_acc_size && d < max_deliver; i++) {
+    struct chunk *c;
+    int chunkid = chunkID_set_get_chunk(cset_acc, i);
+    c = cb_get_chunk(cb, chunkid);
+    if (c && needs(to, c) ) {	// we should have the chunk, and he should not have it. Although the "accept" should have been an answer to our "offer", we do some verification
+      int res = sendChunk(to->id, c);
+      if (res >= 0) {
+        chunkID_set_add_chunk(to->bmap, c->id); //don't send twice ... assuming that it will actually arrive
+        d++;
+      }
+    }
+  }
 }
 
 
