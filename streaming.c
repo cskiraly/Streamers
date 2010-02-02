@@ -67,9 +67,11 @@ void received_chunk(struct peerset *pset, struct nodeID *from, const uint8_t *bu
 
   res = decodeChunk(&c, buff + 1, len - 1);
   if (res > 0) {
+    dprintf("Received chunk %d from peer: %s\n", c.id, node_addr(from));
     output_deliver(&c);
     res = cb_add_chunk(cb, &c);
     if (res < 0) {
+      dprintf("\tchunk too old, buffer full with newer chunks\n");
       free(c.data);
       free(c.attributes);
     }
@@ -161,7 +163,7 @@ void send_chunk(const struct peerset *pset)
       dprintf("%s\n", node_addr(p->id));
 
       res = sendChunk(p->id, c);
-      dprintf("Result: %d\n", res);
+      dprintf("\tResult: %d\n", res);
       if (res>=0) {
         chunkID_set_add_chunk(p->bmap,c->id); //don't send twice ... assuming that it will actually arrive
       }

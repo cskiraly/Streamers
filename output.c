@@ -77,6 +77,7 @@ void output_deliver(const struct chunk *c)
     if (buff[c->id % buff_size].data) {
       if (buff[c->id % buff_size].id == c->id) {
         /* Duplicate of a stored chunk */
+        dprintf("\tDuplicate!\n");
         return;
       }
       fprintf(stderr, "Crap!\n");
