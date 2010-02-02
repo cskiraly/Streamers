@@ -133,6 +133,7 @@ int input_get(struct input_desc *s, struct chunk *c)
     c->attributes_size = 0;
     c->attributes = NULL;
     c->id = cid++; 
+    c->timestamp = pkt.dts;
     av_free_packet(&pkt);
     return 1;
 }
