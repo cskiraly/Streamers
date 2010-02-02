@@ -148,7 +148,7 @@ void offer_received(const struct nodeID *fromid, struct chunkID_set *cset, int m
     cset_acc = get_chunks_to_accept(from, cset, max_deliver);
 
     //send accept message
-    dprintf("\t accept %d chunks from peer %s, trans_id %d ", chunkID_set_size(cset_acc), node_addr(from->id), trans_id);
+    dprintf("\t accept %d chunks from peer %s, trans_id %d\n", chunkID_set_size(cset_acc), node_addr(from->id), trans_id);
     max_deliver2 = chunkID_set_size(cset_acc);
     acceptChunks(fromid, cset_acc, max_deliver2, trans_id);
 
