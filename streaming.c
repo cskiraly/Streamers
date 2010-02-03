@@ -162,12 +162,12 @@ void send_chunk(const struct peerset *pset)
       dprintf("\t sending chunk[%d] to ", c->id);
       dprintf("%s\n", node_addr(p->id));
 
+      send_bmap(p);
       res = sendChunk(p->id, c);
       dprintf("\tResult: %d\n", res);
       if (res>=0) {
         chunkID_set_add_chunk(p->bmap,c->id); //don't send twice ... assuming that it will actually arrive
       }
-      send_bmap(p);
     }
   }
 }
