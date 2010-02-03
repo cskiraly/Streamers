@@ -124,7 +124,8 @@ int acceptChunks(const struct nodeID *to_id, struct chunkID_set *cset, int max_d
 void bmap_received(const struct nodeID *fromid, const struct nodeID *ownerid, struct chunkID_set *c_set, int cb_size, int trans_id) {
   struct peer *owner = nodeid_to_peer(ownerid,1);
   if (owner) {	//now we have it almost sure
-    chunkID_set_union(owner->bmap,c_set);	//don't send it back
+    chunkID_set_clear(owner->bmap,cb_size+5);	//TODO: some better solution might be needed to keep info about chunks we sent in flight.
+    chunkID_set_union(owner->bmap,c_set);
     owner->cb_size = cb_size;
     gettimeofday(&owner->bmap_timestamp, NULL);
   }
