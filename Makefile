@@ -26,7 +26,7 @@ endif
 LDFLAGS = -L$(GRAPES)/som/TopologyManager -L$(GRAPES)/som/ChunkTrading -L$(GRAPES)/som/ChunkBuffer
 LDLIBS = -ltrading -lcb -ltopman
 
-OBJS = dumbstreamer.o streaming.o output.o net_helpers.o input.o
+OBJS = dumbstreamer.o streaming.o output.o net_helpers.o input.o out-stream.o
 ifdef THREADS
 OBJS += loop-mt.o
 CFLAGS += -pthread
