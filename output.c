@@ -22,7 +22,7 @@ static struct {
 
 void buffer_free(int i)
 {
-  dprintf(stderr, "\t\tFlush Buf %d: %s\n", i, buff[i].data);
+  dprintf(stderr, "\t\tFlush Buf %d: %s\n", i, (char *)buff[i].data);
   chunk_write(i, buff[i].data, buff[i].size);
   free(buff[i].data);
   buff[i].data = NULL;
