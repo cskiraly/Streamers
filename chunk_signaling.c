@@ -47,7 +47,7 @@ struct peer *nodeid_to_peer(const struct nodeID* id, int reg)
   return p;
 }
 
-int sendSignalling(int type, const struct nodeID *to_id, const struct nodeID *owner_id, struct chunkID_set *cset, int max_deliver, int trans_id)
+int sendSignalling(int type, const struct nodeID *to_id, const struct nodeID *owner_id, struct chunkID_set *cset, int max_deliver, int cb_size, int trans_id)
 {
     int buff_len, meta_len, msg_len, ret;
     uint8_t *buff;
@@ -59,6 +59,7 @@ int sendSignalling(int type, const struct nodeID *to_id, const struct nodeID *ow
     sigmex = (struct sig_nal*) meta;
     sigmex->type = type;
     sigmex->max_deliver = max_deliver;
+    sigmex->cb_size = cb_size;
     sigmex->trans_id = trans_id;
     meta_len = sizeof(*sigmex)-1;
       sigmex->third_peer = 0;
@@ -98,21 +99,21 @@ int sendSignalling(int type, const struct nodeID *to_id, const struct nodeID *ow
  * @param[in] trans_id transaction number associated with this send
  * @return 0 on success, <0 on error
  */
-int sendBufferMap(const struct nodeID *to_id, const struct nodeID *owner_id, struct chunkID_set *bmap, int trans_id) {
-  return sendSignalling(MSG_SIG_BMOFF, to_id, owner_id, bmap, 0, trans_id);
+int sendBufferMap(const struct nodeID *to_id, const struct nodeID *owner_id, struct chunkID_set *bmap, int cb_size, int trans_id) {
+  return sendSignalling(MSG_SIG_BMOFF, to_id, owner_id, bmap, 0, cb_size, trans_id);
 }
 
-int sendMyBufferMap(const struct nodeID *to_id, struct chunkID_set *bmap, int trans_id)
+int sendMyBufferMap(const struct nodeID *to_id, struct chunkID_set *bmap, int cb_size, int trans_id)
 {
-  return sendBufferMap(to_id, localID, bmap, trans_id);
+  return sendBufferMap(to_id, localID, bmap, cb_size, trans_id);
 }
 
 int offerChunks(const struct nodeID *to_id, struct chunkID_set *cset, int max_deliver, int trans_id) {
-  return sendSignalling(MSG_SIG_OFF, to_id, NULL, cset, max_deliver, trans_id);
+  return sendSignalling(MSG_SIG_OFF, to_id, NULL, cset, max_deliver, -1, trans_id);
 }
 
 int acceptChunks(const struct nodeID *to_id, struct chunkID_set *cset, int max_deliver, int trans_id) {
-  return sendSignalling(MSG_SIG_ACC, to_id, NULL, cset, max_deliver, trans_id);
+  return sendSignalling(MSG_SIG_ACC, to_id, NULL, cset, max_deliver, -1, trans_id);
 }
 
 
@@ -120,10 +121,11 @@ int acceptChunks(const struct nodeID *to_id, struct chunkID_set *cset, int max_d
 ///        RECEIVE       ///
 /// ==================== ///
 
-void bmap_received(const struct nodeID *fromid, const struct nodeID *ownerid, struct chunkID_set *c_set, int trans_id) {
+void bmap_received(const struct nodeID *fromid, const struct nodeID *ownerid, struct chunkID_set *c_set, int cb_size, int trans_id) {
   struct peer *owner = nodeid_to_peer(ownerid,1);
   if (owner) {	//now we have it almost sure
     chunkID_set_union(owner->bmap,c_set);	//don't send it back
+    owner->cb_size = cb_size;
     gettimeofday(&owner->bmap_timestamp, NULL);
   }
 }
@@ -165,7 +167,7 @@ int sigParseData(const struct nodeID *fromid, uint8_t *buff, int buff_len) {
         {
           int dummy;
           struct nodeID *ownerid = nodeid_undump(&(signal->third_peer),&dummy);
-          bmap_received(fromid, ownerid, c_set, signal->trans_id);
+          bmap_received(fromid, ownerid, c_set, signal->cb_size, signal->trans_id);
           free(ownerid);
           break;
         }
