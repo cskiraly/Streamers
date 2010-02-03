@@ -30,6 +30,7 @@ struct input_desc *input_open(const char *fname)
   res->id = 0;
   gettimeofday(&tv, NULL);
   res->start_time = tv.tv_usec + tv.tv_sec * 1000000ULL;
+  res->first_ts = 0;
   res->s = input_stream_open(fname, &res->interframe);
   if (res->s == NULL) {
     free(res);
