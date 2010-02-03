@@ -21,12 +21,15 @@
 
 static struct chunk_buffer *cb;
 static struct input_desc *input;
+static int cb_size;
 
 void stream_init(int size, struct nodeID *myID)
 {
   char conf[32];
 
-  sprintf(conf, "size=%d", size);
+  cb_size = size;
+
+  sprintf(conf, "size=%d", cb_size);
   cb = cb_init(conf);
   chunkInit(myID);
 }
@@ -53,7 +56,7 @@ void send_bmap(struct peer *to)
     chunkID_set_add_chunk(my_bmap, chunks[i].id);
   }
 
-  sendMyBufferMap(to->id, my_bmap, 0);
+  sendMyBufferMap(to->id, my_bmap, cb_size, 0);
 
   chunkID_set_clear(my_bmap,0);
   free(my_bmap);
