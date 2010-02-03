@@ -153,6 +153,7 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
     if (pkt.stream_index != s->video_stream) {
       *size = 0;
       *ts = s->last_ts;
+      av_free_packet(&pkt);
 
       return NULL;
     }
@@ -161,6 +162,7 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
     data = malloc(*size);
     if (data == NULL) {
       *size = -1;
+      av_free_packet(&pkt);
 
       return NULL;
     }
@@ -172,6 +174,7 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
     }
     *ts = av_rescale_q(pkt.dts, s->s->streams[pkt.stream_index]->time_base, AV_TIME_BASE_Q);
     s->last_ts = *ts;
+    av_free_packet(&pkt);
 
     return data;
 }
