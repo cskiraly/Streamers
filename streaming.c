@@ -23,6 +23,8 @@ static struct chunk_buffer *cb;
 static struct input_desc *input;
 static int cb_size;
 
+int _needs(struct chunkID_set *cset, int cb_size, int cid);
+
 void stream_init(int size, struct nodeID *myID)
 {
   char conf[32];
@@ -129,20 +131,23 @@ int needs(struct peer *p, struct chunk *c){
     dprintf("no bmap\n");
     return 1;	// if we have no bmap information, we assume it needs the chunk (aggressive behaviour!)
   }
+  return _needs(p->bmap, p->cb_size, c->id);
+}
 
-  if (chunkID_set_check(p->bmap,c->id) < 0) { //it might need the chunk
+int _needs(struct chunkID_set *cset, int cb_size, int cid){
+  if (chunkID_set_check(cset,cid) < 0) { //it might need the chunk
     int missing, min;
     //@TODO: add some bmap_timestamp based logic
 
-    if (chunkID_set_size(p->bmap) == 0) {
+    if (chunkID_set_size(cset) == 0) {
       dprintf("bmap empty\n");
       return 1;	// if the bmap seems empty, it needs the chunk
     }
-    missing = p->cb_size - chunkID_set_size(p->bmap);
+    missing = cb_size - chunkID_set_size(cset);
     missing = missing < 0 ? 0 : missing;
-    min = chunkID_set_get_chunk(p->bmap,0);
-      dprintf("%s ... c->id(%d) >= min(%d) - missing(%d) ?\n",(c->id >= min - missing)?"YES":"NO",c->id, min, missing);
-    return (c->id >= min - missing);
+    min = chunkID_set_get_chunk(cset,0);
+      dprintf("%s ... cid(%d) >= min(%d) - missing(%d) ?\n",(cid >= min - missing)?"YES":"NO",cid, min, missing);
+    return (cid >= min - missing);
   }
 
   dprintf("has it\n");
