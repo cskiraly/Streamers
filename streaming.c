@@ -114,12 +114,36 @@ int generated_chunk(suseconds_t *delta)
 }
 
 /**
- *example function to filter chunks based on whether a given peer needs them. The real implementation
- * should look at buffermap information received about the given peer (or it should guess)
+ *example function to filter chunks based on whether a given peer needs them.
+ *
+ * Looks at buffermap information received about the given peer.
  */
 int needs(struct peer *p, struct chunk *c){
-  return (! p->bmap || chunkID_set_check(p->bmap,c->id) < 0);
+  fprintf(stderr,"%s needs c%d ? :",node_addr(p->id),c->id);
+  if (! p->bmap) {
+    fprintf(stderr,"no bmap\n");
+    return 1;	// if we have no bmap information, we assume it needs the chunk (aggressive behaviour!)
+  }
+
+  if (chunkID_set_check(p->bmap,c->id) < 0) { //it might need the chunk
+    int missing, min;
+    //@TODO: add some bmap_timestamp based logic
+
+    if (chunkID_set_size(p->bmap) == 0) {
+      fprintf(stderr,"bmap empty\n");
+      return 1;	// if the bmap seems empty, it needs the chunk
+    }
+    missing = p->cb_size - chunkID_set_size(p->bmap);
+    missing = missing < 0 ? 0 : missing;
+    min = chunkID_set_get_chunk(p->bmap,0);
+      fprintf(stderr,"%s ... c->id(%d) >= min(%d) - missing(%d) ?\n",(c->id >= min - missing)?"YES":"NO",c->id, min, missing);
+    return (c->id >= min - missing);
+  }
+
+  fprintf(stderr,"has it\n");
+  return 0;
 }
+
 double randomPeer(struct peer **p){
   return 1;
 }
