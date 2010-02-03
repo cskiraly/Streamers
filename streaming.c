@@ -119,9 +119,9 @@ int generated_chunk(suseconds_t *delta)
  * Looks at buffermap information received about the given peer.
  */
 int needs(struct peer *p, struct chunk *c){
-  fprintf(stderr,"%s needs c%d ? :",node_addr(p->id),c->id);
+  dprintf("\t%s needs c%d ? :",node_addr(p->id),c->id);
   if (! p->bmap) {
-    fprintf(stderr,"no bmap\n");
+    dprintf("no bmap\n");
     return 1;	// if we have no bmap information, we assume it needs the chunk (aggressive behaviour!)
   }
 
@@ -130,17 +130,17 @@ int needs(struct peer *p, struct chunk *c){
     //@TODO: add some bmap_timestamp based logic
 
     if (chunkID_set_size(p->bmap) == 0) {
-      fprintf(stderr,"bmap empty\n");
+      dprintf("bmap empty\n");
       return 1;	// if the bmap seems empty, it needs the chunk
     }
     missing = p->cb_size - chunkID_set_size(p->bmap);
     missing = missing < 0 ? 0 : missing;
     min = chunkID_set_get_chunk(p->bmap,0);
-      fprintf(stderr,"%s ... c->id(%d) >= min(%d) - missing(%d) ?\n",(c->id >= min - missing)?"YES":"NO",c->id, min, missing);
+      dprintf("%s ... c->id(%d) >= min(%d) - missing(%d) ?\n",(c->id >= min - missing)?"YES":"NO",c->id, min, missing);
     return (c->id >= min - missing);
   }
 
-  fprintf(stderr,"has it\n");
+  dprintf("has it\n");
   return 0;
 }
 
