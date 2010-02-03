@@ -15,6 +15,7 @@ struct input_stream {
   int audio_stream;
   int video_stream;
   int64_t last_ts;
+  int frames_since_global_headers;
 };
 
 struct input_stream *input_stream_open(const char *fname, int *period)
@@ -45,6 +46,7 @@ struct input_stream *input_stream_open(const char *fname, int *period)
   desc->video_stream = -1;
   desc->audio_stream = -1;
   desc->last_ts = 0;
+  desc->frames_since_global_headers = 0;
   for (i = 0; i < desc->s->nb_streams; i++) {
     if (desc->video_stream == -1 && desc->s->streams[i]->codec->codec_type == CODEC_TYPE_VIDEO) {
       desc->video_stream = i;
@@ -160,7 +162,13 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
       return NULL;
     }
     header_out = (pkt.flags & PKT_FLAG_KEY) != 0;
-    header_out = ((id % HEADER_REFRESH_PERIOD) == 0);
+    if (header_out == 0) {
+      s->frames_since_global_headers++;
+      if (s->frames_since_global_headers == HEADER_REFRESH_PERIOD) {
+        s->frames_since_global_headers = 0;
+        header_out = 1;
+      }
+    }
     *size = pkt.size + s->s->streams[pkt.stream_index]->codec->extradata_size * header_out;
     data = malloc(*size);
     if (data == NULL) {
