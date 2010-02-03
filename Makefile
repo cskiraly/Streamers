@@ -54,8 +54,8 @@ dumbstreamer: $(OBJS) $(GRAPES)/som/net_helper.o
 Chunkiser/input-stream-avs.o: CPPFLAGS += -I$(FFSRC) 
 
 GRAPES:
-	git clone http://www.disi.unitn.it/~abeni/PublicGits/GRAPES.git
-	cd GRAPES; git checkout -b fixes origin/fixes
+	git clone http://www.disi.unitn.it/~kiraly/PublicGits/GRAPES.git
+	cd GRAPES; git checkout -b for-streamer origin/for-streamer
 
 prepare: GRAPES
 	make -C GRAPES/som
