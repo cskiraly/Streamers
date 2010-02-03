@@ -8,6 +8,7 @@
 
 #include "../input-stream.h"
 #define STATIC_BUFF_SIZE 1000 * 1024
+#define HEADER_REFRESH_PERIOD 50
 
 struct input_stream {
   AVFormatContext *s;
@@ -142,6 +143,7 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
     AVPacket pkt;
     int res;
     uint8_t *data;
+    int header_out;
 
     res = av_read_frame(s->s, &pkt);
     if (res < 0) {
@@ -157,8 +159,9 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
 
       return NULL;
     }
-
-    *size = pkt.size + s->s->streams[pkt.stream_index]->codec->extradata_size * ((pkt.flags & PKT_FLAG_KEY) != 0);
+    header_out = (pkt.flags & PKT_FLAG_KEY) != 0;
+    header_out = ((id % HEADER_REFRESH_PERIOD) == 0);
+    *size = pkt.size + s->s->streams[pkt.stream_index]->codec->extradata_size * header_out;
     data = malloc(*size);
     if (data == NULL) {
       *size = -1;
@@ -166,7 +169,7 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
 
       return NULL;
     }
-    if ((pkt.flags & PKT_FLAG_KEY) && s->s->streams[pkt.stream_index]->codec->extradata_size) {
+    if (header_out && s->s->streams[pkt.stream_index]->codec->extradata_size) {
       memcpy(data, s->s->streams[pkt.stream_index]->codec->extradata, s->s->streams[pkt.stream_index]->codec->extradata_size);
       memcpy(data + s->s->streams[pkt.stream_index]->codec->extradata_size, pkt.data, pkt.size);
     } else {
