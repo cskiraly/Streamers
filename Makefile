@@ -35,7 +35,8 @@ else
 OBJS += loop.o
 endif
 
-ifdef FFDIR
+ifndef DUMMY
+FFDIR ?= ffmpeg
 FFSRC ?= $(FFDIR)
 OBJS += Chunkiser/input-stream-avs.o
 LDFLAGS += -L$(FFDIR)/libavcodec -L$(FFDIR)/libavformat -L$(FFDIR)/libavutil
