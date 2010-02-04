@@ -71,7 +71,7 @@ void loop(struct nodeID *s, int csize, int buff_size)
         default:
           fprintf(stderr, "Unknown Message Type %x\n", buff[0]);
       }
-      free(remote);
+      nodeID_free(remote);
     } else {
       struct timeval tmp;
 
@@ -121,7 +121,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks)
         default:
           fprintf(stderr, "Bad Message Type %x\n", buff[0]);
       }
-      free(remote);
+      nodeID_free(remote);
     } else {
       int i, res;
       struct timeval tmp, d;

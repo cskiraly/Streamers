@@ -57,7 +57,7 @@ static void *source_receive(void *dummy)
       default:
         fprintf(stderr, "Unknown Message Type %x\n", buff[0]);
     }
-    free(remote);
+    nodeID_free(remote);
   }
 
   return NULL;
@@ -90,7 +90,7 @@ static void *receive(void *dummy)
       default:
         fprintf(stderr, "Unknown Message Type %x\n", buff[0]);
     }
-    free(remote);
+    nodeID_free(remote);
   }
 
   return NULL;
