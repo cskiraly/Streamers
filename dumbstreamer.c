@@ -30,13 +30,16 @@ static void cmdline_parse(int argc, char *argv[])
 {
   int o;
 
-  while ((o = getopt(argc, argv, "b:c:t:p:i:P:I:f:")) != -1) {
+  while ((o = getopt(argc, argv, "b:c:t:p:i:P:I:f:m:")) != -1) {
     switch(o) {
       case 'b':
         buff_size = atoi(optarg);
         break;
       case 'c':
         chunks_per_second = atoi(optarg);
+        break;
+      case 'm':
+        multiply = atoi(optarg);
         break;
       case 't':
         period = atoi(optarg);
