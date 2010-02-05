@@ -28,7 +28,8 @@ void update_peers(struct peerset *pset, const uint8_t *buff, int len)
   timersub(&tnow, &tout_bmap, &told);
   peers = peerset_get_peers(pset);
   for (i = 0; i < peerset_size(pset); i++) {
-    if (timerisset(&peers[i].bmap_timestamp) && timercmp(&peers[i].bmap_timestamp, &told, <)) {
+    if ( (!timerisset(&peers[i].bmap_timestamp) && timercmp(&peers[i].creation_timestamp, &told, <) ) ||
+         ( timerisset(&peers[i].bmap_timestamp) && timercmp(&peers[i].bmap_timestamp, &told, <)     )   ) {
       topRemoveNeighbour(peers[i].id);
       peerset_remove_peer(pset, peers[i--].id);
     }
