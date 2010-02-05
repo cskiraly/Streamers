@@ -13,7 +13,7 @@
 static struct timeval tout_bmap = {3, 0};
 
 // currently it just makes the peerset grow
-void update_peers(struct peerset *pset, const uint8_t *buff, int len)
+void update_peers(struct peerset *pset, struct nodeID *from, const uint8_t *buff, int len)
 {
   int n_ids, i;
   const struct nodeID **ids;

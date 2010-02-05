@@ -46,7 +46,7 @@ void loop(struct nodeID *s, int csize, int buff_size)
   period.tv_usec = csize % 1000000;
   
   sigInit(s,pset);
-  update_peers(pset, NULL, 0);
+  update_peers(pset, NULL, NULL, 0);
   stream_init(buff_size, s);
   while (!done) {
     int len, res;
@@ -60,7 +60,7 @@ void loop(struct nodeID *s, int csize, int buff_size)
       len = recv_from_peer(s, &remote, buff, BUFFSIZE);
       switch (buff[0] /* Message Type */) {
         case MSG_TYPE_TOPOLOGY:
-          update_peers(pset, buff, len);
+          update_peers(pset, remote, buff, len);
           break;
         case MSG_TYPE_CHUNK:
           received_chunk(pset, remote, buff, len);
@@ -78,7 +78,7 @@ void loop(struct nodeID *s, int csize, int buff_size)
       //send_chunk(pset);
       send_offer(pset);
       if (cnt++ % 10 == 0) {
-        update_peers(pset,NULL, 0);
+        update_peers(pset, NULL, NULL, 0);
       }
       timeradd(&tnext, &period, &tmp);
       tnext = tmp;
@@ -108,10 +108,11 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks)
       struct nodeID *remote;
 
       len = recv_from_peer(s, &remote, buff, BUFFSIZE);
+      dprintf("Received message (%c) from %s\n", buff[0], node_addr(remote));
       switch (buff[0] /* Message Type */) {
         case MSG_TYPE_TOPOLOGY:
           fprintf(stderr, "Top Parse\n");
-          update_peers(pset, buff, len);
+          update_peers(pset, remote, buff, len);
           break;
         case MSG_TYPE_CHUNK:
           fprintf(stderr, "Some dumb peer pushed a chunk to me!\n");
@@ -133,7 +134,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks)
           send_chunk(pset);
         }
         if (cnt++ % 10 == 0) {
-            update_peers(pset, NULL, 0);
+            update_peers(pset, NULL, NULL, 0);
         }
       }
       timeradd(&tnext, &d, &tmp);

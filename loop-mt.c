@@ -48,7 +48,7 @@ static void *source_receive(void *dummy)
     switch (buff[0] /* Message Type */) {
       case MSG_TYPE_TOPOLOGY:
         pthread_mutex_lock(&topology_mutex);
-        update_peers(pset, buff, len);
+        update_peers(pset, remote, buff, len);
         pthread_mutex_unlock(&topology_mutex);
         break;
       case MSG_TYPE_CHUNK:
@@ -74,7 +74,7 @@ static void *receive(void *dummy)
     switch (buff[0] /* Message Type */) {
       case MSG_TYPE_TOPOLOGY:
         pthread_mutex_lock(&topology_mutex);
-        update_peers(pset, buff, len);
+        update_peers(pset, remote, buff, len);
         pthread_mutex_unlock(&topology_mutex);
         break;
       case MSG_TYPE_CHUNK:
@@ -101,11 +101,11 @@ static void *topology_sending(void *dummy)
   int gossiping_period = period * 10;
 
   pthread_mutex_lock(&topology_mutex);
-  update_peers(pset, NULL, 0);
+  update_peers(pset, NULL, NULL, 0);
   pthread_mutex_unlock(&topology_mutex);
   while(!done) {
     pthread_mutex_lock(&topology_mutex);
-    update_peers(pset, NULL, 0);
+    update_peers(pset, NULL, NULL, 0);
     pthread_mutex_unlock(&topology_mutex);
     usleep(gossiping_period);
   }
