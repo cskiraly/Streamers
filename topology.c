@@ -8,6 +8,7 @@
 #include <topmanager.h>
 
 #include "topology.h"
+#include "dbg.h"
 
 static struct timeval tout_bmap = {3, 0};
 
@@ -19,10 +20,12 @@ void update_peers(struct peerset *pset, const uint8_t *buff, int len)
   struct peer *peers;
   struct timeval tnow, told;
 
-
+  dprintf("Update peers: topo_msg:%d, ",len);
+  dprintf("before:%d, ",peerset_size(pset));
   topParseData(buff, len);
   ids = topGetNeighbourhood(&n_ids);
   peerset_add_peers(pset,ids,n_ids);
+  dprintf("after:%d, ",peerset_size(pset));
 
   gettimeofday(&tnow, NULL);
   timersub(&tnow, &tout_bmap, &told);
@@ -34,4 +37,5 @@ void update_peers(struct peerset *pset, const uint8_t *buff, int len)
       peerset_remove_peer(pset, peers[i--].id);
     }
   }
+  dprintf("after timer check:%d\n",peerset_size(pset));
 }
