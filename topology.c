@@ -21,6 +21,11 @@ void update_peers(struct peerset *pset, struct nodeID *from, const uint8_t *buff
   struct timeval tnow, told;
 
   dprintf("Update peers: topo_msg:%d, ",len);
+  if (from) {
+    dprintf("from:%s, ",node_addr(from));
+    peerset_add_peer(pset,from);
+  }
+
   dprintf("before:%d, ",peerset_size(pset));
   topParseData(buff, len);
   ids = topGetNeighbourhood(&n_ids);
