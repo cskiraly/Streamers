@@ -23,7 +23,7 @@ static struct {
 void buffer_free(int i)
 {
   dprintf(stderr, "\t\tFlush Buf %d: %s\n", i, (char *)buff[i].data);
-  chunk_write(i, buff[i].data, buff[i].size);
+  chunk_write(buff[i].id, buff[i].data, buff[i].size);
   free(buff[i].data);
   buff[i].data = NULL;
   dprintf("Next Chunk: %d -> %d\n", next_chunk, buff[i].id + 1);
