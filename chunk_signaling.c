@@ -225,8 +225,7 @@ int sigParseData(const struct nodeID *fromid, uint8_t *buff, int buff_len) {
           ret = -1;
     }
     
-    chunkID_set_clear(c_set,0);
-    free(c_set);
+    chunkID_set_free(c_set);
     free(meta);
     return ret;
 }

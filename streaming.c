@@ -76,7 +76,7 @@ struct chunkID_set *get_chunks_to_accept(struct peer *from, const struct chunkID
     }
   }
 
-  free(my_bmap);
+  chunkID_set_free(my_bmap);
   return cset_acc;
 }
 
@@ -85,8 +85,7 @@ void send_bmap(struct peer *to)
   struct chunkID_set *my_bmap = cb_to_bmap(cb);
    sendMyBufferMap(to->id, my_bmap, cb_size, 0);
 
-  chunkID_set_clear(my_bmap,0);
-  free(my_bmap);
+  chunkID_set_free(my_bmap);
 }
 
 void received_chunk(struct peerset *pset, struct nodeID *from, const uint8_t *buff, int len)
