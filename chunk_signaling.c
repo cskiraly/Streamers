@@ -160,7 +160,7 @@ void offer_received(const struct nodeID *fromid, struct chunkID_set *cset, int m
     max_deliver2 = chunkID_set_size(cset_acc);
     acceptChunks(fromid, cset_acc, max_deliver2, trans_id);
 
-    //@TODO: free cset_acc
+    chunkID_set_free(cset_acc);
   }
 }
 

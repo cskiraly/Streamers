@@ -226,6 +226,7 @@ void send_offer(const struct peerset *pset)
       struct chunkID_set *my_bmap = cb_to_bmap(cb);
       dprintf("\t sending offer to %s\n", node_addr(selectedpeers[i]->id));
       res = offerChunks(selectedpeers[i]->id, my_bmap, max_deliver, 0);
+      chunkID_set_free(my_bmap);
     }
   }
 }
