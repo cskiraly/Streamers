@@ -15,6 +15,7 @@ struct input_stream {
   int audio_stream;
   int video_stream;
   int64_t last_ts;
+  int64_t base_ts;
   int frames_since_global_headers;
 };
 
@@ -46,6 +47,7 @@ struct input_stream *input_stream_open(const char *fname, int *period)
   desc->video_stream = -1;
   desc->audio_stream = -1;
   desc->last_ts = 0;
+  desc->base_ts = 0;
   desc->frames_since_global_headers = 0;
   for (i = 0; i < desc->s->nb_streams; i++) {
     if (desc->video_stream == -1 && desc->s->streams[i]->codec->codec_type == CODEC_TYPE_VIDEO) {
@@ -71,6 +73,13 @@ void input_stream_close(struct input_stream *s)
     av_close_input_file(s->s);
     free(s);
 }
+
+void input_stream_rewind(struct input_stream *s)
+{
+    av_seek_frame(s->s,-1,0,0);
+    s->base_ts = s->last_ts;
+}
+
 
 #if 0
 int input_get_1(struct input_stream *s, struct chunk *c)
@@ -149,8 +158,11 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
 
     res = av_read_frame(s->s, &pkt);
     if (res < 0) {
-      fprintf(stderr, "AVPacket read failed: %d!!!\n", res);
-      *size = -1;
+      input_stream_rewind(s);
+      *size = 0;
+      *ts = s->last_ts;
+      //fprintf(stderr, "AVPacket read failed: %d!!!\n", res);
+      //*size = -1;
 
       return NULL;
     }
@@ -184,6 +196,7 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
       memcpy(data, pkt.data, pkt.size);
     }
     *ts = av_rescale_q(pkt.dts, s->s->streams[pkt.stream_index]->time_base, AV_TIME_BASE_Q);
+    *ts += s->base_ts;
     s->last_ts = *ts;
     av_free_packet(&pkt);
 
