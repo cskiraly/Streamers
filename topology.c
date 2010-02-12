@@ -23,6 +23,7 @@ void update_peers(struct peerset *pset, struct nodeID *from, const uint8_t *buff
   dprintf("Update peers: topo_msg:%d, ",len);
   if (from) {
     dprintf("from:%s, ",node_addr(from));
+    topAddNeighbour(from);	//@TODO: this is agressive
     peerset_add_peer(pset,from);
   }
 
