@@ -174,7 +174,7 @@ int _needs(struct chunkID_set *cset, int cb_size, int cid){
 }
 
 double randomPeer(struct peer **p){
-  return 1;
+  return timerisset(&(*p)->bmap_timestamp) ? 1 : 0.1;
 }
 double getChunkTimestamp(struct chunk **c){
   return (double) (*c)->timestamp;
