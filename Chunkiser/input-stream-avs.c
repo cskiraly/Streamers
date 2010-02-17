@@ -6,45 +6,74 @@
 
 #include <libavformat/avformat.h>
 
-#include <chunk.h>
-
-#define input_desc AVFormatContext
-#include "../input.h"
+#include "../input-stream.h"
 #define STATIC_BUFF_SIZE 1000 * 1024
+#define HEADER_REFRESH_PERIOD 50
 
-struct input_desc *input_open(const char *fname)
+struct input_stream {
+  AVFormatContext *s;
+  int audio_stream;
+  int video_stream;
+  int64_t last_ts;
+  int frames_since_global_headers;
+};
+
+struct input_stream *input_stream_open(const char *fname, int *period)
 {
-    AVFormatContext *s;
-    int res;
+  struct input_stream *desc;
+  int i, res;
 
   avcodec_register_all();
   av_register_all();
 
-    res = av_open_input_file(&s, fname, NULL, 0, NULL);
-    if (res < 0) {
-        fprintf(stderr, "Error opening %s: %d\n", fname, res);
+  desc = malloc(sizeof(struct input_stream));
+  if (desc == NULL) {
+    return NULL;
+  }
+  res = av_open_input_file(&desc->s, fname, NULL, 0, NULL);
+  if (res < 0) {
+    fprintf(stderr, "Error opening %s: %d\n", fname, res);
 
-        return NULL;
+    return NULL;
+  }
+
+  res = av_find_stream_info(desc->s);
+  if (res < 0) {
+    fprintf(stderr, "Cannot find codec parameters for %s\n", fname);
+
+    return NULL;
+  }
+  desc->video_stream = -1;
+  desc->audio_stream = -1;
+  desc->last_ts = 0;
+  desc->frames_since_global_headers = 0;
+  for (i = 0; i < desc->s->nb_streams; i++) {
+    if (desc->video_stream == -1 && desc->s->streams[i]->codec->codec_type == CODEC_TYPE_VIDEO) {
+      desc->video_stream = i;
+      fprintf(stderr, "Video Frame Rate = %d/%d --- Period: %lld\n",
+              desc->s->streams[i]->r_frame_rate.num,
+              desc->s->streams[i]->r_frame_rate.den,
+              av_rescale(1000000, desc->s->streams[i]->r_frame_rate.den, desc->s->streams[i]->r_frame_rate.num));
+      *period = av_rescale(1000000, desc->s->streams[i]->r_frame_rate.den, desc->s->streams[i]->r_frame_rate.num);
     }
-
-    res = av_find_stream_info(s);
-    if (res < 0) {
-        fprintf(stderr, "Cannot find codec parameters for %s\n", fname);
-
-        return NULL;
+    if (desc->audio_stream == -1 && desc->s->streams[i]->codec->codec_type == CODEC_TYPE_AUDIO) {
+      desc->audio_stream = i;
     }
+  }
 
-    dump_format(s, 0, fname, 0);
+  dump_format(desc->s, 0, fname, 0);
 
-    return s;
+  return desc;
 }
 
-void input_close(struct input_desc *s)
+void input_stream_close(struct input_stream *s)
 {
-    av_close_input_file(s);
+    av_close_input_file(s->s);
+    free(s);
 }
 
-int input_get_1(struct input_desc *s, struct chunk *c)
+#if 0
+int input_get_1(struct input_stream *s, struct chunk *c)
 {
     static AVPacket pkt;
     static int inited;
@@ -57,7 +86,7 @@ int input_get_1(struct input_desc *s, struct chunk *c)
     p = static_buff;
     if (inited == 0) {
         inited = 1;
-        res = av_read_frame(s, &pkt);
+        res = av_read_frame(s->s, &pkt);
         if (res < 0) {
             fprintf(stderr, "First read failed: %d!!!\n", res);
 
@@ -73,9 +102,9 @@ int input_get_1(struct input_desc *s, struct chunk *c)
     memcpy(p, pkt.data, pkt.size);
     p += pkt.size;
     while (1) {
-        res = av_read_frame(s, &pkt);
+        res = av_read_frame(s->s, &pkt);
         if (res >= 0) {
-            st = s->streams[pkt.stream_index];
+            st = s->s->streams[pkt.stream_index];
             if (pkt.flags & PKT_FLAG_KEY) {
                 c->size = p - static_buff;
                 c->data = malloc(c->size);
@@ -109,33 +138,56 @@ int input_get_1(struct input_desc *s, struct chunk *c)
 
     return 0;
 }
+#endif
 
-int input_get(struct input_desc *s, struct chunk *c)
+uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
 {
     AVPacket pkt;
     int res;
-    static int cid;
+    uint8_t *data;
+    int header_out;
 
-    res = av_read_frame(s, &pkt);
+    res = av_read_frame(s->s, &pkt);
     if (res < 0) {
-      fprintf(stderr, "First read failed: %d!!!\n", res);
+      fprintf(stderr, "AVPacket read failed: %d!!!\n", res);
+      *size = -1;
 
-      return 0;
+      return NULL;
     }
-    
-    c->size = pkt.size;
-    c->data = malloc(c->size);
-    if (c->data == NULL) {
+    if (pkt.stream_index != s->video_stream) {
+      *size = 0;
+      *ts = s->last_ts;
       av_free_packet(&pkt);
-      return 0;
+
+      return NULL;
     }
-    memcpy(c->data, pkt.data, c->size);
-    c->attributes_size = 0;
-    c->attributes = NULL;
-    c->id = cid++; 
-    c->timestamp = pkt.dts;
+    header_out = (pkt.flags & PKT_FLAG_KEY) != 0;
+    if (header_out == 0) {
+      s->frames_since_global_headers++;
+      if (s->frames_since_global_headers == HEADER_REFRESH_PERIOD) {
+        s->frames_since_global_headers = 0;
+        header_out = 1;
+      }
+    }
+    *size = pkt.size + s->s->streams[pkt.stream_index]->codec->extradata_size * header_out;
+    data = malloc(*size);
+    if (data == NULL) {
+      *size = -1;
+      av_free_packet(&pkt);
+
+      return NULL;
+    }
+    if (header_out && s->s->streams[pkt.stream_index]->codec->extradata_size) {
+      memcpy(data, s->s->streams[pkt.stream_index]->codec->extradata, s->s->streams[pkt.stream_index]->codec->extradata_size);
+      memcpy(data + s->s->streams[pkt.stream_index]->codec->extradata_size, pkt.data, pkt.size);
+    } else {
+      memcpy(data, pkt.data, pkt.size);
+    }
+    *ts = av_rescale_q(pkt.dts, s->s->streams[pkt.stream_index]->time_base, AV_TIME_BASE_Q);
+    s->last_ts = *ts;
     av_free_packet(&pkt);
-    return 1;
+
+    return data;
 }
 
 #if 0

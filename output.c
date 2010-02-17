@@ -6,12 +6,12 @@
 
 #include <chunk.h>
 
+#include "out-stream.h"
 #include "dbg.h"
 
 #define SIZE 8
 
 static int next_chunk;
-static int outfd = 1;
 static int buff_size = SIZE;
 
 static struct {
@@ -22,11 +22,8 @@ static struct {
 
 void buffer_free(int i)
 {
-#ifdef DEBUG
-  fprintf(stderr, "\t\tFlush Buf %d: %s\n", i, buff[i].data);
-#else
-  write(outfd, buff[i].data, buff[i].size);
-#endif
+  dprintf(stderr, "\t\tFlush Buf %d: %s\n", i, buff[i].data);
+  chunk_write(i, buff[i].data, buff[i].size);
   free(buff[i].data);
   buff[i].data = NULL;
   dprintf("Next Chunk: %d -> %d\n", next_chunk, buff[i].id + 1);
@@ -72,11 +69,7 @@ void output_deliver(const struct chunk *c)
 
   dprintf("%d == %d?\n", c->id, next_chunk);
   if (c->id == next_chunk) {
-#ifdef DEBUG
-    fprintf(stderr, "\tOut Chunk[%d] - %d: %s\n", c->id, c->id % buff_size, c->data);
-#else
-    write(outfd, c->data, c->size);
-#endif
+    chunk_write(c->id, c->data, c->size);
     next_chunk++;
     buffer_flush(next_chunk);
   } else {
