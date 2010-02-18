@@ -80,7 +80,7 @@ GRAPES:
 	cd GRAPES; git checkout -b for-streamer-0.7.1 origin/for-streamer-0.7.1
 
 ffmpeg:
-	svn checkout svn://svn.ffmpeg.org/ffmpeg/trunk ffmpeg || (wget http://ffmpeg.org/releases/ffmpeg-checkout-snapshot.tar.bz2; tar xjf ffmpeg-checkout-snapshot.tar.bz2; mv ffmpeg-checkout-20* ffmpeg)
+	(wget http://ffmpeg.org/releases/ffmpeg-checkout-snapshot.tar.bz2; tar xjf ffmpeg-checkout-snapshot.tar.bz2; mv ffmpeg-checkout-20* ffmpeg) || svn checkout svn://svn.ffmpeg.org/ffmpeg/trunk ffmpeg
 	cd ffmpeg; ./configure
 
 prepare: $(GRAPES) $(FFSRC)
