@@ -63,7 +63,7 @@ void loop(struct nodeID *s, int csize, int buff_size)
         default:
           fprintf(stderr, "Unknown Message Type %x\n", buff[0]);
       }
-      free(remote);
+      nodeid_free(remote);
     } else {
       const struct nodeID **neighbours;
       int n;
@@ -108,7 +108,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks)
         default:
           fprintf(stderr, "Bad Message Type %x\n", buff[0]);
       }
-      free(remote);
+      nodeid_free(remote);
     } else {
       const struct nodeID **neighbours;
       int i, n, res;
