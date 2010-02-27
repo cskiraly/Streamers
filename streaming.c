@@ -166,7 +166,7 @@ int _needs(struct chunkID_set *cset, int cb_size, int cid){
     }
     missing = cb_size - chunkID_set_size(cset);
     missing = missing < 0 ? 0 : missing;
-    min = chunkID_set_get_chunk(cset,0);
+    min = chunkID_set_get_chunk(cset, chunkID_set_size(cset)-1);
       dprintf("%s ... cid(%d) >= min(%d) - missing(%d) ?\n",(cid >= min - missing)?"YES":"NO",cid, min, missing);
     return (cid >= min - missing);
   }
