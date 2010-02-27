@@ -16,6 +16,7 @@
 #include "input.h"
 #include "dbg.h"
 #include "chunk_signaling.h"
+#include "chunklock.h"
 
 #include "scheduler_la.h"
 
@@ -23,28 +24,8 @@ static struct chunk_buffer *cb;
 static struct input_desc *input;
 static int cb_size;
 static int transid=0;
-struct chunkID_set *lock_set;
 
 int _needs(struct chunkID_set *cset, int cb_size, int cid);
-
-void chunk_lock(int chunkid,struct peer *from){
-  if (!lock_set) lock_set = chunkID_set_init(16);
-
-  chunkID_set_add_chunk(lock_set, chunkid);
-}
-
-void chunk_unlock(int chunkid){
-  if (!lock_set) return;
-  chunkID_set_remove_chunk(lock_set, chunkid);
-}
-
-int chunk_islocked(int chunkid){
-  int r;
-
-  if (!lock_set) return 0;
-  r = chunkID_set_check(lock_set, chunkid);
-  return (r >= 0);
-}
 
 void stream_init(int size, struct nodeID *myID)
 {
