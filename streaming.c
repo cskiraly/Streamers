@@ -23,8 +23,28 @@ static struct chunk_buffer *cb;
 static struct input_desc *input;
 static int cb_size;
 static int transid=0;
+struct chunkID_set *lock_set;
 
 int _needs(struct chunkID_set *cset, int cb_size, int cid);
+
+void chunk_lock(int chunkid,struct peer *from){
+  if (!lock_set) lock_set = chunkID_set_init(16);
+
+  chunkID_set_add_chunk(lock_set, chunkid);
+}
+
+void chunk_unlock(int chunkid){
+  if (!lock_set) return;
+  chunkID_set_remove_chunk(lock_set, chunkid);
+}
+
+int chunk_islocked(int chunkid){
+  int r;
+
+  if (!lock_set) return 0;
+  r = chunkID_set_check(lock_set, chunkid);
+  return (r >= 0);
+}
 
 void stream_init(int size, struct nodeID *myID)
 {
@@ -72,8 +92,9 @@ struct chunkID_set *get_chunks_to_accept(struct peer *from, const struct chunkID
   for (i = 0, d = 0; i < cset_off_size && d < max_deliver; i++) {
     int chunkid = chunkID_set_get_chunk(cset_off, i);
     dprintf("\tdo I need c%d ? :",chunkid);
-    if (_needs(my_bmap, cb_size, chunkid)) {
+    if (!chunk_islocked(chunkid) && _needs(my_bmap, cb_size, chunkid)) {
       chunkID_set_add_chunk(cset_acc, chunkid);
+      chunk_lock(chunkid,from);
       d++;
     }
   }
@@ -97,6 +118,7 @@ void received_chunk(struct peerset *pset, struct nodeID *from, const uint8_t *bu
   struct peer *p;
 
   res = decodeChunk(&c, buff + 1, len - 1);
+  chunk_unlock(c.id);
   if (res > 0) {
     dprintf("Received chunk %d from peer: %s\n", c.id, node_addr(from));
     output_deliver(&c);
