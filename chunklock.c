@@ -4,25 +4,73 @@
  *
  *  This is free software; see gpl-3.0.txt
  */
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdint.h>
+
 #include "chunklock.h"
 
-static struct chunkID_set *lock_set;
+#include "net_helper.h"
+
+struct lock {
+  int chunkid;
+  struct nodeID *peer;
+  struct timeval timestamp;
+};
+
+struct lock *locks;
+static size_t lsize, lcount=0;
+#define LSIZE_INCREMENT 10
+
+void locks_init()
+{
+  if (!locks) {
+    lsize = LSIZE_INCREMENT;
+    locks = malloc(sizeof(struct lock) * lsize);
+    lcount = 0;
+  }
+
+  if (lcount == lsize) {
+    lsize += LSIZE_INCREMENT;
+    locks = realloc(locks , sizeof(struct lock) * lsize);
+  }
+
+  if (!locks) {
+    fprintf(stderr, "Error allocating memory for locks!\n");
+    exit(EXIT_FAILURE);
+  }
+}
+
 
 void chunk_lock(int chunkid,struct peer *from){
-  if (!lock_set) lock_set = chunkID_set_init(16);
-
-  chunkID_set_add_chunk(lock_set, chunkid);
+  locks_init();
+  locks[lcount].chunkid = chunkid;
+  locks[lcount].peer = nodeid_dup(from->id);
+  gettimeofday(&locks[lcount].timestamp,NULL);
+  lcount++;
 }
 
 void chunk_unlock(int chunkid){
-  if (!lock_set) return;
-  chunkID_set_remove_chunk(lock_set, chunkid);
+  int i;
+
+  for (i=0; i<lcount; i++) {
+    if (locks[i].chunkid == chunkid) {
+      nodeID_free(locks[i].peer);
+      memmove(locks+i, locks+i+1, sizeof(struct lock) * (lcount-i-1));
+      lcount--;
+      break;
+    }
+  }
 }
 
 int chunk_islocked(int chunkid){
-  int r;
+  int i;
 
-  if (!lock_set) return 0;
-  r = chunkID_set_check(lock_set, chunkid);
-  return (r >= 0);
+  for (i=0; i<lcount; i++) {
+    if (locks[i].chunkid == chunkid) {
+      return 1;
+    }
+  }
+  return 0;
 }
