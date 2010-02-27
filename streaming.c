@@ -22,6 +22,7 @@
 static struct chunk_buffer *cb;
 static struct input_desc *input;
 static int cb_size;
+static int transid=0;
 
 int _needs(struct chunkID_set *cset, int cb_size, int cid);
 
@@ -228,8 +229,8 @@ void send_offer(const struct peerset *pset)
     for (i=0; i<selectedpeers_len ; i++){
       int max_deliver = 1;
       struct chunkID_set *my_bmap = cb_to_bmap(cb);
-      dprintf("\t sending offer to %s\n", node_addr(selectedpeers[i]->id));
-      res = offerChunks(selectedpeers[i]->id, my_bmap, max_deliver, 0);
+      dprintf("\t sending offer(%d) to %s\n", transid, node_addr(selectedpeers[i]->id));
+      res = offerChunks(selectedpeers[i]->id, my_bmap, max_deliver, transid++);
       chunkID_set_free(my_bmap);
     }
   }
