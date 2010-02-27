@@ -13,6 +13,10 @@
 
 #include "net_helper.h"
 
+static struct timeval toutdiff = {0, 300000};
+
+
+
 struct lock {
   int chunkid;
   struct nodeID *peer;
@@ -42,6 +46,30 @@ void locks_init()
   }
 }
 
+int chunk_lock_timed_out(struct lock *l)
+{
+  struct timeval tnow,tout;
+  gettimeofday(&tnow, NULL);
+  timeradd(&l->timestamp, &toutdiff, &tout);
+
+  return timercmp(&tnow, &tout, >);
+}
+
+void chunk_lock_remove(struct lock *l){
+  nodeID_free(l->peer);
+  memmove(l, l+1, sizeof(struct lock) * (locks+lcount-l-1));
+  lcount--;
+}
+
+void chunk_locks_cleanup(){
+  int i;
+
+  for (i=lcount-1; i>=0; i--) {
+    if (chunk_lock_timed_out(locks+i)) {
+      chunk_lock_remove(locks+i);
+    }
+  }
+}
 
 void chunk_lock(int chunkid,struct peer *from){
   locks_init();
@@ -56,9 +84,7 @@ void chunk_unlock(int chunkid){
 
   for (i=0; i<lcount; i++) {
     if (locks[i].chunkid == chunkid) {
-      nodeID_free(locks[i].peer);
-      memmove(locks+i, locks+i+1, sizeof(struct lock) * (lcount-i-1));
-      lcount--;
+      chunk_lock_remove(locks+i);
       break;
     }
   }
@@ -66,6 +92,8 @@ void chunk_unlock(int chunkid){
 
 int chunk_islocked(int chunkid){
   int i;
+
+  chunk_locks_cleanup();
 
   for (i=0; i<lcount; i++) {
     if (locks[i].chunkid == chunkid) {
