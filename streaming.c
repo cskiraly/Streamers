@@ -179,9 +179,14 @@ int _needs(struct chunkID_set *cset, int cb_size, int cid){
   return 0;
 }
 
-double randomPeer(struct peer **p){
+double peerWeightReceivedfrom(struct peer **p){
   return timerisset(&(*p)->bmap_timestamp) ? 1 : 0.1;
 }
+
+double peerWeightUniform(struct peer **p){
+  return 1;
+}
+
 double getChunkTimestamp(struct chunk **c){
   return (double) (*c)->timestamp;
 }
@@ -227,7 +232,7 @@ void send_offer(const struct peerset *pset)
 
     for (i = 0;i < size; i++) chunkps[i] = buff+i;
     for (i = 0; i<n; i++) peerps[i] = neighbours+i;
-    selectPeersForChunks(SCHED_WEIGHTED, peerps, n, chunkps, size, selectedpeers, &selectedpeers_len, needs, randomPeer);	//select a peer that needs at least one of our chunks
+    selectPeersForChunks(SCHED_WEIGHTED, peerps, n, chunkps, size, selectedpeers, &selectedpeers_len, needs, peerWeightReceivedfrom);	//select a peer that needs at least one of our chunks
 
     for (i=0; i<selectedpeers_len ; i++){
       int max_deliver = 1;
@@ -268,7 +273,7 @@ void send_chunk(const struct peerset *pset)
   
     for (i = 0;i < size; i++) chunkps[i] = buff+i;
     for (i = 0; i<n; i++) peerps[i] = neighbours+i;
-    schedSelectPeerFirst(SCHED_WEIGHTED, peerps, n, chunkps, size, selectedpairs, &selectedpairs_len, needs, randomPeer, getChunkTimestamp);
+    schedSelectPeerFirst(SCHED_WEIGHTED, peerps, n, chunkps, size, selectedpairs, &selectedpairs_len, needs, peerWeightReceivedfrom, getChunkTimestamp);
   /************ /USE SCHEDULER ****************/
 
     for (i=0; i<selectedpairs_len ; i++){
