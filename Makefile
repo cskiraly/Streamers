@@ -20,6 +20,7 @@ CPPFLAGS = -I$(GRAPES)/include
 CPPFLAGS += -I$(GRAPES)/som
 
 ifdef DEBUG
+CFLAGS += -O0
 CPPFLAGS += -DDEBUG
 endif
 
