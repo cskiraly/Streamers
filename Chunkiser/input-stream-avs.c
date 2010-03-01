@@ -74,10 +74,14 @@ void input_stream_close(struct input_stream *s)
     free(s);
 }
 
-void input_stream_rewind(struct input_stream *s)
+int input_stream_rewind(struct input_stream *s)
 {
-    av_seek_frame(s->s,-1,0,0);
+    int ret;
+
+    ret = av_seek_frame(s->s,-1,0,0);
     s->base_ts = s->last_ts;
+
+    return ret;
 }
 
 
@@ -158,11 +162,14 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
 
     res = av_read_frame(s->s, &pkt);
     if (res < 0) {
-      input_stream_rewind(s);
+      if (input_stream_rewind(s) < 0) {
+        fprintf(stderr, "AVPacket read failed: %d!!!\n", res);
+        *size = -1;
+
+        return NULL;
+      }
       *size = 0;
       *ts = s->last_ts;
-      //fprintf(stderr, "AVPacket read failed: %d!!!\n", res);
-      //*size = -1;
 
       return NULL;
     }
