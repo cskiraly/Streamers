@@ -1,3 +1,9 @@
+/*
+ *  Copyright (c) 2010 Luca Abeni
+ *  Copyright (c) 2010 Csaba Kiraly
+ *
+ *  This is free software; see gpl-3.0.txt
+ */
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
