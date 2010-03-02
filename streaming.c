@@ -56,6 +56,8 @@ void received_chunk(const uint8_t *buff, int len)
       free(c.data);
       free(c.attributes);
     }
+  } else {
+    fprintf(stderr,"\tError: can't decode chunk!\n");
   }
 }
 
