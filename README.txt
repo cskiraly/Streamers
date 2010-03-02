@@ -26,9 +26,9 @@ Ok, here we go...
      First, I suggest to test the non-libav-based version. It generates
      "fake" text chunks, which are useful for debugging
 	1) build as above (make prepare; make)
-	2) start a source: ./dumbstreamer
-	3) in a different shell, start a client: ./dumbstreamer -P 5555 -i 127.0.0.1 -p 6666
-	4) start another client: ./dumbstreamer -P 5556 -i 127.0.0.1 -p 6666
+	2) start a source: ./dumbstreamer -I lo
+	3) in a different shell, start a client: ./dumbstreamer -I lo -P 5555 -i 127.0.0.1 -p 6666
+	4) start another client: ./dumbstreamer  -I lo -P 5556 -i 127.0.0.1 -p 6666
 	5) ...
      Explanation: "-P <port>" is the local port used by the client (6666 by
      default). Since I am testing source and multiple clients on the same
@@ -48,11 +48,11 @@ Ok, here we go...
             ln -s test.m4v input.mpg
      Start the source. For the moment, you need to manually specify the rate
      (will be fixed in the future):
-	7) ./dumbstreamer -t 40 -c 50
+	7) ./dumbstreamer -I lo -t 40 -c 50
      create a FIFO for the output, and attach a player to it:
 	8) mkfifo out; ffplay out
      start a client:
-	9) ./dumbstreamer -P 5555 -p 6666 -i 127.0.0.1 > out
+	9) ./dumbstreamer -I lo -P 5555 -p 6666 -i 127.0.0.1 > out
 - Enjoy...  ;-) 
 
 A lot of cleanup is needed, and the input module is still far from being

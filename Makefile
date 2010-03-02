@@ -48,9 +48,11 @@ else
 OBJS += input-stream-dummy.o
 endif
 
-all: dumbstreamer
+EXECTARGET = dumbstreamer
 
-dumbstreamer: $(OBJS) $(GRAPES)/som/net_helper.o
+all: $(EXECTARGET)
+
+$(EXECTARGET): $(OBJS) $(GRAPES)/som/net_helper.o
 
 Chunkiser/input-stream-avs.o: CPPFLAGS += -I$(FFSRC) 
 
@@ -67,5 +69,5 @@ prepare: $(GRAPES) $(FFSRC)
 	$(MAKE) -C $(FFSRC)
 
 clean:
-	rm -f dumbstreamer
+	rm -f $(EXECTARGET)
 	rm -f *.o

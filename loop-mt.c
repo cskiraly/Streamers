@@ -1,3 +1,9 @@
+/*
+ *  Copyright (c) 2010 Luca Abeni
+ *  Copyright (c) 2010 Csaba Kiraly
+ *
+ *  This is free software; see gpl-3.0.txt
+ */
 #include <sys/time.h>
 #include <unistd.h>
 #include <stdint.h>
@@ -57,7 +63,7 @@ static void *source_receive(void *dummy)
       default:
         fprintf(stderr, "Unknown Message Type %x\n", buff[0]);
     }
-    nodeID_free(remote);
+    nodeid_free(remote);
   }
 
   return NULL;
@@ -90,7 +96,7 @@ static void *receive(void *dummy)
       default:
         fprintf(stderr, "Unknown Message Type %x\n", buff[0]);
     }
-    nodeID_free(remote);
+    nodeid_free(remote);
   }
 
   return NULL;

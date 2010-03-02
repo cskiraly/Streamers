@@ -169,7 +169,7 @@ int sigParseData(const struct nodeID *fromid, uint8_t *buff, int buff_len) {
           int dummy;
           struct nodeID *ownerid = nodeid_undump(&(signal->third_peer),&dummy);
           bmap_received(fromid, ownerid, c_set, signal->cb_size, signal->trans_id);
-          nodeID_free(ownerid);
+          nodeid_free(ownerid);
           break;
         }
         default:

@@ -1,6 +1,13 @@
+/*
+ *  Copyright (c) 2010 Luca Abeni
+ *  Copyright (c) 2010 Csaba Kiraly
+ *
+ *  This is free software; see gpl-3.0.txt
+ */
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #include <net_helper.h>
 #include <chunk.h> 
@@ -36,9 +43,9 @@ void stream_init(int size, struct nodeID *myID)
   chunkInit(myID);
 }
 
-int source_init(const char *fname, struct nodeID *myID)
+int source_init(const char *fname, struct nodeID *myID, bool loop)
 {
-  input = input_open(fname);
+  input = input_open(fname, loop ? INPUT_LOOP : 0);
   if (input == NULL) {
     return -1;
   }

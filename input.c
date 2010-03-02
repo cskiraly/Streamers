@@ -18,7 +18,7 @@ struct input_desc {
   uint64_t first_ts;
 };
 
-struct input_desc *input_open(const char *fname)
+struct input_desc *input_open(const char *fname, uint16_t flags)
 {
   struct input_desc *res;
   struct timeval tv;
@@ -31,7 +31,7 @@ struct input_desc *input_open(const char *fname)
   gettimeofday(&tv, NULL);
   res->start_time = tv.tv_usec + tv.tv_sec * 1000000ULL;
   res->first_ts = 0;
-  res->s = input_stream_open(fname, &res->interframe);
+  res->s = input_stream_open(fname, &res->interframe, flags);
   if (res->s == NULL) {
     free(res);
     res = NULL;
