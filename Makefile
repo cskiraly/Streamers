@@ -24,8 +24,18 @@ CFLAGS += -O0
 CPPFLAGS += -DDEBUG
 endif
 
+ifdef DEBUGOUT
+CPPFLAGS += -DDEBUGOUT
+endif
+
+ifdef ML
+LDFLAGS += -L$(GRAPES)/som -L$(GRAPES)/ml -L$(LIBEVENT)/lib -L$(GRAPES)/dclog
+LDLIBS += -lsom -lml -levent -ldclog -lm
+CPPFLAGS += -I$(LIBEVENT)/include
+else
 LDFLAGS = -L$(GRAPES)/som/TopologyManager -L$(GRAPES)/som/ChunkTrading -L$(GRAPES)/som/ChunkBuffer
 LDLIBS = -ltrading -lcb -ltopman
+endif
 
 OBJS = dumbstreamer.o streaming.o output.o net_helpers.o input.o out-stream.o
 ifdef THREADS
@@ -49,10 +59,17 @@ OBJS += input-stream-dummy.o
 endif
 
 EXECTARGET = dumbstreamer
+ifdef ML
+EXECTARGET := $(EXECTARGET)-ml
+endif
 
 all: $(EXECTARGET)
 
+ifndef ML
 $(EXECTARGET): $(OBJS) $(GRAPES)/som/net_helper.o
+else
+$(EXECTARGET): $(OBJS) $(GRAPES)/som/Tests/net_helper-ml.o $(GRAPES)/som/Tests/ml_helpers.o
+endif
 
 Chunkiser/input-stream-avs.o: CPPFLAGS += -I$(FFSRC) 
 
