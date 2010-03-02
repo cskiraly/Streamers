@@ -75,7 +75,7 @@ Chunkiser/input-stream-avs.o: CPPFLAGS += -I$(FFSRC)
 
 GRAPES:
 	git clone http://www.disi.unitn.it/~kiraly/PublicGits/GRAPES.git
-	cd GRAPES; git checkout -b for-streamer origin/for-streamer
+	cd GRAPES; git checkout -b for-streamer-0.7.0 origin/for-streamer-0.7.0
 
 prepare: GRAPES
 	make -C GRAPES/som
