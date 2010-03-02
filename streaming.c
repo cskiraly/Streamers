@@ -70,6 +70,7 @@ struct chunkID_set *get_chunks_to_accept(struct peer *from, const struct chunkID
   cset_acc = chunkID_set_init(0);
   for (i = 0, d = 0; i < cset_off_size && d < max_deliver; i++) {
     int chunkid = chunkID_set_get_chunk(cset_off, i);
+    dprintf("\tdo I need c%d ? :",chunkid);
     if (_needs(my_bmap, cb_size, chunkid)) {
       chunkID_set_add_chunk(cset_acc, chunkid);
       d++;
@@ -106,7 +107,7 @@ void received_chunk(struct peerset *pset, struct nodeID *from, const uint8_t *bu
     }
     p = peerset_get_peer(pset,from);
     if (!p) {
-      fprintf(stderr,"warning: received chunk %d from unknown peer: %s! Adding it to neighbourhood!\n", c.id, node_addr(from));
+      fprintf(stderr,"\twarning: received chunk %d from unknown peer: %s! Adding it to neighbourhood!\n", c.id, node_addr(from));
       peerset_add_peer(pset,from);
       p = peerset_get_peer(pset,from);
     }
@@ -130,6 +131,7 @@ int generated_chunk(suseconds_t *delta)
   if (c.data == NULL) {
     return 0;
   }
+  dprintf("Generated chunk %d of %d bytes\n",c.id, c.size);
   res = cb_add_chunk(cb, &c);
   if (res < 0) {
     free(c.data);
