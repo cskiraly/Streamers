@@ -56,7 +56,7 @@ int chunk_lock_timed_out(struct lock *l)
 }
 
 void chunk_lock_remove(struct lock *l){
-  nodeID_free(l->peer);
+  nodeid_free(l->peer);
   memmove(l, l+1, sizeof(struct lock) * (locks+lcount-l-1));
   lcount--;
 }
