@@ -26,7 +26,7 @@ endif
 LDFLAGS = -L$(GRAPES)/som/TopologyManager -L$(GRAPES)/som/ChunkTrading -L$(GRAPES)/som/ChunkBuffer -L$(GRAPES)/som/Scheduler -L$(GRAPES)/som/PeerSet -L$(GRAPES)/som/ChunkIDSet
 LDLIBS = -ltrading -lcb -ltopman -lsched -lpeerset -lsignalling
 
-OBJS = dumbstreamer.o streaming.o output.o net_helpers.o chunk_signaling.o
+OBJS = dumbstreamer.o streaming.o output.o net_helpers.o chunk_signaling.o input.o out-stream.o
 ifdef THREADS
 OBJS += loop-mt.o
 CFLAGS += -pthread
@@ -37,21 +37,21 @@ endif
 
 ifdef FFDIR
 FFSRC ?= $(FFDIR)
-OBJS += Chunkiser/input-avs.o
+OBJS += Chunkiser/input-stream-avs.o
 LDFLAGS += -L$(FFDIR)/libavcodec -L$(FFDIR)/libavformat -L$(FFDIR)/libavutil
 LDLIBS += -lavformat -lavcodec -lavutil
 LDLIBS += -lm
 LDLIBS += $(call ld-option, -lz)
 LDLIBS += $(call ld-option, -lbz2)
 else
-OBJS += input-dummy.o
+OBJS += input-stream-dummy.o
 endif
 
 all: dumbstreamer
 
 dumbstreamer: $(OBJS) $(GRAPES)/som/net_helper.o
 
-Chunkiser/input-avs.o: CPPFLAGS += -I$(FFSRC) 
+Chunkiser/input-stream-avs.o: CPPFLAGS += -I$(FFSRC) 
 
 GRAPES:
 	git clone http://www.disi.unitn.it/~abeni/PublicGits/GRAPES.git

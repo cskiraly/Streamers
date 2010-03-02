@@ -83,20 +83,26 @@ void received_chunk(struct peerset *pset, struct nodeID *from, const uint8_t *bu
   }
 }
 
-void generated_chunk(void)
+int generated_chunk(suseconds_t *delta)
 {
   int res;
   struct chunk c;
 
-  if (input_get(input, &c) <= 0) {
+  *delta = input_get(input, &c);
+  if (*delta < 0) {
     fprintf(stderr, "Error in input!\n");
     exit(-1);
+  }
+  if (c.data == NULL) {
+    return 0;
   }
   res = cb_add_chunk(cb, &c);
   if (res < 0) {
     free(c.data);
     free(c.attributes);
   }
+
+  return 1;
 }
 
 /**

@@ -21,6 +21,7 @@ static int srv_port;
 static const char *srv_ip = "";
 static int period = 500;
 static int chunks_per_second = 4;
+static int multiply = 1;
 static int buff_size = 8;
 static const char *fname = "input.mpg";
 
@@ -28,7 +29,7 @@ static void cmdline_parse(int argc, char *argv[])
 {
   int o;
 
-  while ((o = getopt(argc, argv, "b:c:t:p:i:P:I:")) != -1) {
+  while ((o = getopt(argc, argv, "b:c:t:p:i:P:I:f:")) != -1) {
     switch(o) {
       case 'b':
         buff_size = atoi(optarg);
@@ -50,6 +51,9 @@ static void cmdline_parse(int argc, char *argv[])
         break;
       case 'I':
         my_iface = strdup(optarg);
+        break;
+      case 'f':
+        fname = strdup(optarg);
         break;
       default:
         fprintf(stderr, "Error: unknown option %c\n", o);
@@ -102,7 +106,7 @@ int main(int argc, char *argv[])
     loop(my_sock, 1000000 / chunks_per_second, buff_size);
   }
 
-  source_loop(fname, my_sock, period * 1000, chunks_per_second * period / 1000);
+  source_loop(fname, my_sock, period * 1000, multiply);
 
   return 0;
 }

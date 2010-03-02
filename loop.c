@@ -14,6 +14,7 @@
 #include "chunk_signaling.h"
 #include "streaming.h"
 #include "loop.h"
+#include "dbg.h"
 
 #define BUFFSIZE 64 * 1024
 static struct timeval period = {0, 500000};
@@ -148,17 +149,19 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks)
       }
       free(remote);
     } else {
-      int i;
-      struct timeval tmp;
+      int i, res;
+      struct timeval tmp, d;
 
-      generated_chunk();
-      for (i = 0; i < chunks; i++) {	// @TODO: why this cycle?
-        send_chunk(pset);
+      res = generated_chunk(&d.tv_usec);
+      if (res) {
+        for (i = 0; i < chunks; i++) {	// @TODO: why this cycle?
+          send_chunk(pset);
+        }
+        if (cnt++ % 10 == 0) {
+            update_peers(pset, NULL, 0);
+        }
       }
-      if (cnt++ % 10 == 0) {
-          update_peers(pset, NULL, 0);
-      }
-      timeradd(&tnext, &period, &tmp);
+      timeradd(&tnext, &d, &tmp);
       tnext = tmp;
     }
   }
