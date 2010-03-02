@@ -62,9 +62,11 @@ void loop(struct nodeID *s, int csize, int buff_size)
       len = recv_from_peer(s, &remote, buff, BUFFSIZE);
       switch (buff[0] /* Message Type */) {
         case MSG_TYPE_TOPOLOGY:
+          dprintf("Topo message received\n");
           topParseData(buff, len);
           break;
         case MSG_TYPE_CHUNK:
+          dprintf("Chunk message received:\n");
           received_chunk(buff, len);
           break;
         default:
