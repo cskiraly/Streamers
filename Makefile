@@ -58,8 +58,13 @@ GRAPES:
 	git clone http://www.disi.unitn.it/~kiraly/PublicGits/GRAPES.git
 	cd GRAPES; git checkout -b for-streamer origin/for-streamer
 
-prepare: GRAPES
-	make -C GRAPES/som
+ffmpeg:
+	svn checkout svn://svn.ffmpeg.org/ffmpeg/trunk ffmpeg || (wget http://ffmpeg.org/releases/ffmpeg-checkout-snapshot.tar.bz2; tar xjf ffmpeg-checkout-snapshot.tar.bz2; mv ffmpeg-checkout-20* ffmpeg)
+	cd ffmpeg; ./configure
+
+prepare: $(GRAPES) $(FFSRC)
+	$(MAKE) -C $(GRAPES)/som
+	$(MAKE) -C $(FFSRC)
 
 clean:
 	rm -f dumbstreamer
