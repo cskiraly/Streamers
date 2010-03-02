@@ -13,7 +13,7 @@
 static struct input_stream {
 } fake_descriptor;
 
-struct input_stream *input_stream_open(const char *fname, int *period)
+struct input_stream *input_stream_open(const char *fname, int *period, uint16_t flags)
 {
   *period = 40000;
   return &fake_descriptor;

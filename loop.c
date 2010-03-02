@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #include <net_helper.h>
 #include <topmanager.h>
@@ -86,13 +87,13 @@ void loop(struct nodeID *s, int csize, int buff_size)
   }
 }
 
-void source_loop(const char *fname, struct nodeID *s, int csize, int chunks)
+void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, bool loop)
 {
   int done = 0;
   static uint8_t buff[BUFFSIZE];
   int cnt = 0;
 
-  source_init(fname, s);
+  source_init(fname, s, loop);
   while (!done) {
     int len, res;
     struct timeval tv;

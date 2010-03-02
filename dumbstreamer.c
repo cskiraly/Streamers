@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 #include <getopt.h>
 
@@ -25,12 +26,13 @@ static int chunks_per_second = 4;
 static int multiply = 1;
 static int buff_size = 8;
 static const char *fname = "input.mpg";
+static bool loop_input = false;
 
 static void cmdline_parse(int argc, char *argv[])
 {
   int o;
 
-  while ((o = getopt(argc, argv, "b:c:t:p:i:P:I:f:m:")) != -1) {
+  while ((o = getopt(argc, argv, "b:c:t:p:i:P:I:f:m:l")) != -1) {
     switch(o) {
       case 'b':
         buff_size = atoi(optarg);
@@ -58,6 +60,9 @@ static void cmdline_parse(int argc, char *argv[])
         break;
       case 'f':
         fname = strdup(optarg);
+        break;
+      case 'l':
+        loop_input = true;
         break;
       default:
         fprintf(stderr, "Error: unknown option %c\n", o);
@@ -116,7 +121,7 @@ int main(int argc, char *argv[])
     loop(my_sock, 1000000 / chunks_per_second, buff_size);
   }
 
-  source_loop(fname, my_sock, period * 1000, multiply);
+  source_loop(fname, my_sock, period * 1000, multiply, loop_input);
 
   return 0;
 }
