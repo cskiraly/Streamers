@@ -54,7 +54,7 @@ struct chunkID_set *cb_to_bmap(struct chunk_buffer *chbuf)
   struct chunkID_set *my_bmap = chunkID_set_init(0);
   chunks = cb_get_chunks(chbuf, &num_chunks);
 
-  for(i=0; i<num_chunks; i++) {
+  for(i=num_chunks-1; i>=0; i--) {
     chunkID_set_add_chunk(my_bmap, chunks[i].id);
   }
   return my_bmap;
