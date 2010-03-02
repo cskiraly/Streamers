@@ -10,7 +10,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <getopt.h>
-
+#include <msg_types.h>
 #include <net_helper.h>
 #include <topmanager.h>
 
@@ -27,6 +27,7 @@ static int multiply = 1;
 static int buff_size = 8;
 static const char *fname = "input.mpg";
 static bool loop_input = false;
+unsigned char msgTypes[] = {MSG_TYPE_TOPOLOGY,MSG_TYPE_CHUNK,MSG_TYPE_SIGNALLING};
 
 static void cmdline_parse(int argc, char *argv[])
 {
@@ -74,6 +75,7 @@ static void cmdline_parse(int argc, char *argv[])
 
 static struct nodeID *init(void)
 {
+  int i;
   struct nodeID *myID;
   char *my_addr = iface_addr(my_iface);
 
@@ -82,7 +84,8 @@ static struct nodeID *init(void)
 
     return NULL;
   }
-
+  for (i=0;i<3;i++)
+	  bind_msg_type(msgTypes[i]);
   myID = net_helper_init(my_addr, port);
   if (myID == NULL) {
     fprintf(stderr, "Error creating my socket (%s:%d)!\n", my_addr, port);
