@@ -193,6 +193,8 @@ void send_accepted_chunks(struct peer *to, struct chunkID_set *cset_acc, int max
       if (res >= 0) {
         chunkID_set_add_chunk(to->bmap, c->id); //don't send twice ... assuming that it will actually arrive
         d++;
+      } else {
+        fprintf(stderr,"ERROR sending chunk %d\n",c->id);
       }
     }
   }
@@ -274,6 +276,8 @@ void send_chunk(const struct peerset *pset)
       dprintf("\tResult: %d\n", res);
       if (res>=0) {
         chunkID_set_add_chunk(p->bmap,c->id); //don't send twice ... assuming that it will actually arrive
+      } else {
+        fprintf(stderr,"ERROR sending chunk %d\n",c->id);
       }
     }
   }
