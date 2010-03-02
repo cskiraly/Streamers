@@ -5,13 +5,16 @@
  */
 
 #include <libavformat/avformat.h>
+#include <stdbool.h>
 
 #include "../input-stream.h"
+#include "../input.h"		//TODO: for flags. Check if we can do something smarter
 #define STATIC_BUFF_SIZE 1000 * 1024
 #define HEADER_REFRESH_PERIOD 50
 
 struct input_stream {
   AVFormatContext *s;
+  bool loop;	//loop on input file infinitely
   int audio_stream;
   int video_stream;
   int64_t last_ts;
@@ -19,7 +22,7 @@ struct input_stream {
   int frames_since_global_headers;
 };
 
-struct input_stream *input_stream_open(const char *fname, int *period)
+struct input_stream *input_stream_open(const char *fname, int *period, uint16_t flags)
 {
   struct input_stream *desc;
   int i, res;
@@ -49,6 +52,7 @@ struct input_stream *input_stream_open(const char *fname, int *period)
   desc->last_ts = 0;
   desc->base_ts = 0;
   desc->frames_since_global_headers = 0;
+  desc->loop = flags & INPUT_LOOP;
   for (i = 0; i < desc->s->nb_streams; i++) {
     if (desc->video_stream == -1 && desc->s->streams[i]->codec->codec_type == CODEC_TYPE_VIDEO) {
       desc->video_stream = i;
@@ -162,14 +166,16 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
 
     res = av_read_frame(s->s, &pkt);
     if (res < 0) {
-      if (input_stream_rewind(s) < 0) {
-        fprintf(stderr, "AVPacket read failed: %d!!!\n", res);
-        *size = -1;
+      if (s->loop) {
+        if (input_stream_rewind(s) >= 0) {
+          *size = 0;
+          *ts = s->last_ts;
 
-        return NULL;
+          return NULL;
+        }
       }
-      *size = 0;
-      *ts = s->last_ts;
+      fprintf(stderr, "AVPacket read failed: %d!!!\n", res);
+      *size = -1;
 
       return NULL;
     }
