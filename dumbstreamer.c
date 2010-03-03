@@ -1,14 +1,16 @@
 /*
- *  Copyright (c) 2009 Luca Abeni
+ *  Copyright (c) 2010 Luca Abeni
+ *  Copyright (c) 2010 Csaba Kiraly
  *
- *  This is free software; see GPL.txt
+ *  This is free software; see gpl-3.0.txt
  */
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 #include <getopt.h>
-
+#include <msg_types.h>
 #include <net_helper.h>
 #include <topmanager.h>
 
@@ -24,12 +26,14 @@ static int chunks_per_second = 4;
 static int multiply = 1;
 static int buff_size = 8;
 static const char *fname = "input.mpg";
+static bool loop_input = false;
+unsigned char msgTypes[] = {MSG_TYPE_TOPOLOGY,MSG_TYPE_CHUNK,MSG_TYPE_SIGNALLING};
 
 static void cmdline_parse(int argc, char *argv[])
 {
   int o;
 
-  while ((o = getopt(argc, argv, "b:c:t:p:i:P:I:f:m:")) != -1) {
+  while ((o = getopt(argc, argv, "b:c:t:p:i:P:I:f:m:l")) != -1) {
     switch(o) {
       case 'b':
         buff_size = atoi(optarg);
@@ -58,6 +62,9 @@ static void cmdline_parse(int argc, char *argv[])
       case 'f':
         fname = strdup(optarg);
         break;
+      case 'l':
+        loop_input = true;
+        break;
       default:
         fprintf(stderr, "Error: unknown option %c\n", o);
 
@@ -68,9 +75,17 @@ static void cmdline_parse(int argc, char *argv[])
 
 static struct nodeID *init(void)
 {
+  int i;
   struct nodeID *myID;
   char *my_addr = iface_addr(my_iface);
 
+  if (my_addr == NULL) {
+    fprintf(stderr, "Cannot find network interface %s\n", my_iface);
+
+    return NULL;
+  }
+  for (i=0;i<3;i++)
+	  bind_msg_type(msgTypes[i]);
   myID = net_helper_init(my_addr, port);
   if (myID == NULL) {
     fprintf(stderr, "Error creating my socket (%s:%d)!\n", my_addr, port);
@@ -109,7 +124,7 @@ int main(int argc, char *argv[])
     loop(my_sock, 1000000 / chunks_per_second, buff_size);
   }
 
-  source_loop(fname, my_sock, period * 1000, multiply);
+  source_loop(fname, my_sock, period * 1000, multiply, loop_input);
 
   return 0;
 }

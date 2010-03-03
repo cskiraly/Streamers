@@ -20,11 +20,22 @@ CPPFLAGS = -I$(GRAPES)/include
 CPPFLAGS += -I$(GRAPES)/som
 
 ifdef DEBUG
+CFLAGS += -O0
 CPPFLAGS += -DDEBUG
 endif
 
-LDFLAGS = -L$(GRAPES)/som/TopologyManager -L$(GRAPES)/som/ChunkTrading -L$(GRAPES)/som/ChunkBuffer -L$(GRAPES)/som/Scheduler -L$(GRAPES)/som/PeerSet -L$(GRAPES)/som/ChunkIDSet
+ifdef DEBUGOUT
+CPPFLAGS += -DDEBUGOUT
+endif
+
+ifdef ML
+LDFLAGS += -L$(GRAPES)/som -L$(GRAPES)/ml -L$(LIBEVENT)/lib -L$(GRAPES)/dclog
+LDLIBS += -lsom -lml -levent -ldclog -lm
+CPPFLAGS += -I$(LIBEVENT)/include
+else
+LDFLAGS = -L$(GRAPES)/som/TopologyManager -L$(GRAPES)/som/ChunkTrading -L$(GRAPES)/som/ChunkBuffer  -L$(GRAPES)/som/Scheduler -L$(GRAPES)/som/PeerSet -L$(GRAPES)/som/ChunkIDSet
 LDLIBS = -ltrading -lcb -ltopman -lsched -lpeerset -lsignalling
+endif
 
 OBJS = dumbstreamer.o streaming.o topology.o output.o net_helpers.o input.o chunk_signaling.o out-stream.o chunklock.o
 ifdef THREADS
@@ -48,9 +59,18 @@ else
 OBJS += input-stream-dummy.o
 endif
 
-all: dumbstreamer
+EXECTARGET = dumbstreamer
+ifdef ML
+EXECTARGET := $(EXECTARGET)-ml
+endif
 
-dumbstreamer: $(OBJS) $(GRAPES)/som/net_helper.o
+all: $(EXECTARGET)
+
+ifndef ML
+$(EXECTARGET): $(OBJS) $(GRAPES)/som/net_helper.o
+else
+$(EXECTARGET): $(OBJS) $(GRAPES)/som/Tests/net_helper-ml.o $(GRAPES)/som/Tests/ml_helpers.o
+endif
 
 Chunkiser/input-stream-avs.o: CPPFLAGS += -I$(FFSRC) 
 
@@ -59,7 +79,7 @@ GRAPES:
 	cd GRAPES; git checkout -b for-streamer origin/for-streamer
 
 ffmpeg:
-	svn checkout svn://svn.ffmpeg.org/ffmpeg/trunk ffmpeg || (wget http://ffmpeg.org/releases/ffmpeg-checkout-snapshot.tar.bz2; tar xjf ffmpeg-checkout-snapshot.tar.bz2; mv ffmpeg-checkout-20* ffmpeg)
+	(wget http://ffmpeg.org/releases/ffmpeg-checkout-snapshot.tar.bz2; tar xjf ffmpeg-checkout-snapshot.tar.bz2; mv ffmpeg-checkout-20* ffmpeg) || svn checkout svn://svn.ffmpeg.org/ffmpeg/trunk ffmpeg
 	cd ffmpeg; ./configure
 
 prepare: $(GRAPES) $(FFSRC)
@@ -67,5 +87,5 @@ prepare: $(GRAPES) $(FFSRC)
 	$(MAKE) -C $(FFSRC)
 
 clean:
-	rm -f dumbstreamer
+	rm -f $(EXECTARGET)
 	rm -f *.o

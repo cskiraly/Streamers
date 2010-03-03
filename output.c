@@ -1,3 +1,9 @@
+/*
+ *  Copyright (c) 2010 Luca Abeni
+ *  Copyright (c) 2010 Csaba Kiraly
+ *
+ *  This is free software; see gpl-3.0.txt
+ */
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,7 +28,7 @@ static struct {
 
 void buffer_free(int i)
 {
-  dprintf(stderr, "\t\tFlush Buf %d: %s\n", i, (char *)buff[i].data);
+  dprintf("\t\tFlush Buf %d: %s\n", i, buff[i].data);
   chunk_write(buff[i].id, buff[i].data, buff[i].size);
   free(buff[i].data);
   buff[i].data = NULL;
@@ -69,6 +75,7 @@ void output_deliver(const struct chunk *c)
 
   dprintf("%d == %d?\n", c->id, next_chunk);
   if (c->id == next_chunk) {
+    dprintf("\tOut Chunk[%d] - %d: %s\n", c->id, c->id % buff_size, c->data);
     chunk_write(c->id, c->data, c->size);
     next_chunk++;
     buffer_flush(next_chunk);
