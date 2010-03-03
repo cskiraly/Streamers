@@ -102,6 +102,8 @@ void received_chunk(struct peerset *pset, struct nodeID *from, const uint8_t *bu
       chunkID_set_add_chunk(p->bmap,c.id);	//don't send it back
       send_bmap(p);	//send explicit ack
     }
+  } else {
+    fprintf(stderr,"\tError: can't decode chunk!\n");
   }
 }
 

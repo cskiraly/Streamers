@@ -60,7 +60,7 @@ void loop(struct nodeID *s, int csize, int buff_size)
     struct timeval tv;
 
     tout_init(&tv);
-    res = wait4data(s, tv);
+    res = wait4data(s, &tv);
     if (res > 0) {
       struct nodeID *remote;
 
@@ -70,6 +70,7 @@ void loop(struct nodeID *s, int csize, int buff_size)
           update_peers(pset, buff, len);
           break;
         case MSG_TYPE_CHUNK:
+          dprintf("Chunk message received:\n");
           received_chunk(pset, remote, buff, len);
           break;
         case MSG_TYPE_SIGNALLING:
@@ -109,7 +110,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
     struct timeval tv;
 
     tout_init(&tv);
-    res = wait4data(s, tv);
+    res = wait4data(s, &tv);
     if (res > 0) {
       struct nodeID *remote;
 
