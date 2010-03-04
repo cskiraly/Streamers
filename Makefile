@@ -37,7 +37,7 @@ LDFLAGS = -L$(GRAPES)/som/TopologyManager -L$(GRAPES)/som/ChunkTrading -L$(GRAPE
 LDLIBS = -ltrading -lcb -ltopman
 endif
 
-OBJS = dumbstreamer.o streaming.o output.o net_helpers.o input.o out-stream.o
+OBJS = streamer.o streaming.o output.o net_helpers.o input.o out-stream.o
 ifdef THREADS
 OBJS += loop-mt.o
 CFLAGS += -pthread
@@ -70,6 +70,7 @@ $(EXECTARGET): $(OBJS) $(GRAPES)/som/net_helper.o
 else
 $(EXECTARGET): $(OBJS) $(GRAPES)/som/Tests/net_helper-ml.o $(GRAPES)/som/Tests/ml_helpers.o
 endif
+	$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 Chunkiser/input-stream-avs.o: CPPFLAGS += -I$(FFSRC) 
 
