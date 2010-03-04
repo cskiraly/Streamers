@@ -79,12 +79,17 @@ GRAPES:
 	git clone http://www.disi.unitn.it/~kiraly/PublicGits/GRAPES.git
 	cd GRAPES; git checkout -b for-streamer-0.7.1 origin/for-streamer-0.7.1
 
-prepare: GRAPES
+ffmpeg:
+	svn checkout svn://svn.ffmpeg.org/ffmpeg/trunk ffmpeg || (wget http://ffmpeg.org/releases/ffmpeg-checkout-snapshot.tar.bz2; tar xjf ffmpeg-checkout-snapshot.tar.bz2; mv ffmpeg-checkout-20* ffmpeg)
+	cd ffmpeg; ./configure
+
+prepare: $(GRAPES) $(FFSRC)
 ifndef ML
 	$(MAKE) -C GRAPES/som -f Makefile.som
 else
 	cd GRAPES; ./autogen.sh; $(MAKE)
 endif
+	$(MAKE) -C $(FFSRC)
 
 clean:
 	rm -f $(EXECTARGET)
