@@ -80,9 +80,9 @@ GRAPES:
 
 prepare: GRAPES
 ifndef ML
-	make -C GRAPES/som -f Makefile.som
+	$(MAKE) -C GRAPES/som -f Makefile.som
 else
-	cd GRAPES; ./autogen.sh; make
+	cd GRAPES; ./autogen.sh; $(MAKE)
 endif
 
 clean:
