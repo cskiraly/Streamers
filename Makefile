@@ -85,9 +85,9 @@ ffmpeg:
 
 prepare: $(GRAPES) $(FFSRC)
 ifndef ML
-	$(MAKE) -C GRAPES/som -f Makefile.som
+	$(MAKE) -C $(GRAPES)/som -f Makefile.som
 else
-	cd GRAPES; ./autogen.sh; $(MAKE)
+	cd $(GRAPES); ./autogen.sh; $(MAKE)
 endif
 	$(MAKE) -C $(FFSRC)
 
