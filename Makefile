@@ -47,18 +47,21 @@ else
 OBJS += input-stream-dummy.o
 endif
 
-all: dumbstreamer
+EXECTARGET = dumbstreamer
 
-dumbstreamer: $(OBJS) $(GRAPES)/som/net_helper.o
+all: $(EXECTARGET)
+
+$(EXECTARGET): $(OBJS) $(GRAPES)/som/net_helper.o
 
 Chunkiser/input-stream-avs.o: CPPFLAGS += -I$(FFSRC) 
 
 GRAPES:
-	git clone http://www.disi.unitn.it/~abeni/PublicGits/GRAPES.git
+	git clone http://www.disi.unitn.it/~kiraly/PublicGits/GRAPES.git
+	cd GRAPES; git checkout -b for-streamer origin/for-streamer
 
 prepare: GRAPES
 	make -C GRAPES/som
 
 clean:
-	rm -f dumbstreamer
+	rm -f $(EXECTARGET)
 	rm -f *.o
