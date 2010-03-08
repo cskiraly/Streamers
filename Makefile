@@ -37,7 +37,7 @@ LDFLAGS = -L$(GRAPES)/som/TopologyManager -L$(GRAPES)/som/ChunkTrading -L$(GRAPE
 LDLIBS = -ltrading -lcb -ltopman -lsched -lpeerset -lsignalling
 endif
 
-OBJS = dumbstreamer.o streaming.o topology.o output.o net_helpers.o input.o chunk_signaling.o out-stream.o chunklock.o
+OBJS = streaming.o topology.o output.o net_helpers.o input.o chunk_signaling.o out-stream.o chunklock.o
 ifdef THREADS
 OBJS += loop-mt.o
 CFLAGS += -pthread
@@ -59,9 +59,14 @@ else
 OBJS += input-stream-dummy.o
 endif
 
-EXECTARGET = dumbstreamer
+EXECTARGET = rockstreamer
 ifdef ML
 EXECTARGET := $(EXECTARGET)-ml
+endif
+
+ifdef STATIC
+LDFLAGS += -static
+EXECTARGET := $(EXECTARGET)-static
 endif
 
 all: $(EXECTARGET)
@@ -72,18 +77,25 @@ else
 $(EXECTARGET): $(OBJS) $(GRAPES)/som/Tests/net_helper-ml.o $(GRAPES)/som/Tests/ml_helpers.o
 endif
 
+$(EXECTARGET).o: streamer.o
+	ln -s streamer.o $(EXECTARGET).o
+
 Chunkiser/input-stream-avs.o: CPPFLAGS += -I$(FFSRC) 
 
 GRAPES:
 	git clone http://www.disi.unitn.it/~kiraly/PublicGits/GRAPES.git
-	cd GRAPES; git checkout -b for-streamer origin/for-streamer
+	cd GRAPES; git checkout -b for-streamer-0.7.1 origin/for-streamer-0.7.1
 
 ffmpeg:
 	(wget http://ffmpeg.org/releases/ffmpeg-checkout-snapshot.tar.bz2; tar xjf ffmpeg-checkout-snapshot.tar.bz2; mv ffmpeg-checkout-20* ffmpeg) || svn checkout svn://svn.ffmpeg.org/ffmpeg/trunk ffmpeg
 	cd ffmpeg; ./configure
 
 prepare: $(GRAPES) $(FFSRC)
-	$(MAKE) -C $(GRAPES)/som
+ifndef ML
+	$(MAKE) -C $(GRAPES)/som -f Makefile.som
+else
+	cd $(GRAPES); ./autogen.sh; $(MAKE)
+endif
 	$(MAKE) -C $(FFSRC)
 
 clean:

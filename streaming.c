@@ -12,6 +12,7 @@
 #include <net_helper.h>
 #include <chunk.h> 
 #include <chunkbuffer.h> 
+#include "chunkbuffer_helper.h"
 #include <trade_msg_la.h>
 #include <trade_msg_ha.h>
 #include <peerset.h>
@@ -42,7 +43,7 @@ void stream_init(int size, struct nodeID *myID)
 
   sprintf(conf, "size=%d", cb_size);
   cb = cb_init(conf);
-  chunkInit(myID);
+  chunkDeliveryInit(myID);
 }
 
 int source_init(const char *fname, struct nodeID *myID, bool loop)

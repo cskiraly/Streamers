@@ -136,6 +136,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
       int i, res;
       struct timeval tmp, d;
 
+      d.tv_sec = 0;
       res = generated_chunk(&d.tv_usec);
       if (res) {
         for (i = 0; i < chunks; i++) {	// @TODO: why this cycle?
