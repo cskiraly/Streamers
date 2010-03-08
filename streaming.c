@@ -24,6 +24,30 @@
 static struct chunk_buffer *cb;
 static struct input_desc *input;
 
+void cb_print()
+{
+  struct chunk *chunks;
+  int num_chunks, i, id;
+  chunks = cb_get_chunks(cb, &num_chunks);
+
+  dprintf("\tchbuf :");
+  i = 0;
+  if(num_chunks) {
+    id = chunks[0].id;
+    dprintf(" %d-> ",id);
+    while (i < num_chunks) {
+      if (id == chunks[i].id) {
+        dprintf("%d",id % 10);
+        i++;
+      } else {
+        dprintf(".");
+      }
+      id++;
+    }
+  }
+  dprintf("\n");
+}
+
 void stream_init(int size, struct nodeID *myID)
 {
   char conf[32];
