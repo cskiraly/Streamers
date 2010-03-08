@@ -15,7 +15,7 @@
 #include "out-stream.h"
 #include "dbg.h"
 
-#define SIZE 8
+#define SIZE 25
 
 static int next_chunk;
 static int buff_size = SIZE;
