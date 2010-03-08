@@ -64,6 +64,11 @@ ifdef ML
 EXECTARGET := $(EXECTARGET)-ml
 endif
 
+ifdef STATIC
+LDFLAGS += -static
+EXECTARGET := $(EXECTARGET)-static
+endif
+
 all: $(EXECTARGET)
 
 ifndef ML
