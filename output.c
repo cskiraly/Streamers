@@ -93,6 +93,7 @@ void output_deliver(const struct chunk *c)
   }
 
   dprintf("Chunk %d delivered\n", c->id);
+  buffer_print();
   if (c->id < next_chunk) {
     return;
   }
