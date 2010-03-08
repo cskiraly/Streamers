@@ -59,7 +59,7 @@ else
 OBJS += input-stream-dummy.o
 endif
 
-EXECTARGET = dumbstreamer
+EXECTARGET = rockstreamer
 ifdef ML
 EXECTARGET := $(EXECTARGET)-ml
 endif
