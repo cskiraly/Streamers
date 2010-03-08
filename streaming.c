@@ -79,6 +79,7 @@ void received_chunk(const uint8_t *buff, int len)
   if (res > 0) {
     output_deliver(&c);
     res = cb_add_chunk(cb, &c);
+    cb_print();
     if (res < 0) {
       free(c.data);
       free(c.attributes);
