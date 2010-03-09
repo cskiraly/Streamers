@@ -69,6 +69,10 @@ LDFLAGS += -static
 EXECTARGET := $(EXECTARGET)-static
 endif
 
+ifdef RELEASE
+EXECTARGET := $(EXECTARGET)-$(RELEASE)
+endif
+
 all: $(EXECTARGET)
 
 ifndef ML
