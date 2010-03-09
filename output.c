@@ -15,16 +15,30 @@
 #include "out-stream.h"
 #include "dbg.h"
 
-#define SIZE 8
-
 static int next_chunk;
-static int buff_size = SIZE;
+static int buff_size;
 
-static struct {
+struct outbuf {
   void *data;
   int size;
   int id;
-} buff[SIZE];
+};
+static struct outbuf *buff;
+
+void output_init(int bufsize)
+{
+  if (!buff) {
+    buff_size = bufsize;
+    buff = malloc(sizeof(struct outbuf) * buff_size);
+    if (!buff) {
+     fprintf(stderr, "Error: can't allocate output buffer\n");
+     exit(1);
+    }
+  } else {
+   fprintf(stderr, "Error: output buffer re-init not allowed!\n");
+   exit(1);
+  }
+}
 
 void buffer_free(int i)
 {
@@ -51,6 +65,11 @@ void buffer_flush(int id)
 
 void output_deliver(const struct chunk *c)
 {
+  if (!buff) {
+    fprintf(stderr, "Warning: code should use output_init!!! Setting output buffer to 8\n");
+    output_init(8);
+  }
+
   dprintf("Chunk %d delivered\n", c->id);
   if (c->id < next_chunk) {
     return;
