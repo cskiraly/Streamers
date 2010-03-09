@@ -16,6 +16,7 @@
 
 #include "net_helpers.h"
 #include "loop.h"
+#include "output.h"
 
 static const char *my_iface = "eth0";
 static int port = 6666;
@@ -25,6 +26,7 @@ static int period = 40;
 static int chunks_per_second = 25;
 static int multiply = 1;
 static int buff_size = 50;
+static int outbuff_size = 25;
 static const char *fname = "input.mpg";
 static bool loop_input = false;
 unsigned char msgTypes[] = {MSG_TYPE_TOPOLOGY,MSG_TYPE_CHUNK,MSG_TYPE_SIGNALLING};
@@ -33,10 +35,13 @@ static void cmdline_parse(int argc, char *argv[])
 {
   int o;
 
-  while ((o = getopt(argc, argv, "b:c:t:p:i:P:I:f:m:l")) != -1) {
+  while ((o = getopt(argc, argv, "b:o:c:t:p:i:P:I:f:m:l")) != -1) {
     switch(o) {
       case 'b':
         buff_size = atoi(optarg);
+        break;
+      case 'o':
+        outbuff_size = atoi(optarg);
         break;
       case 'c':
         chunks_per_second = atoi(optarg);
@@ -95,6 +100,8 @@ static struct nodeID *init(void)
   }
   free(my_addr);
   topInit(myID);
+
+  output_init(outbuff_size);
 
   return myID;
 }
