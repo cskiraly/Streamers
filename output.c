@@ -28,11 +28,16 @@ static struct outbuf *buff;
 void output_init(int bufsize)
 {
   if (!buff) {
+    int i;
+
     buff_size = bufsize;
     buff = malloc(sizeof(struct outbuf) * buff_size);
     if (!buff) {
      fprintf(stderr, "Error: can't allocate output buffer\n");
      exit(1);
+    }
+    for (i = 0; i < buff_size; i++) {
+      buff[i].data = NULL;
     }
   } else {
    fprintf(stderr, "Error: output buffer re-init not allowed!\n");
