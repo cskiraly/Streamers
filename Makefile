@@ -88,7 +88,7 @@ Chunkiser/input-stream-avs.o: CPPFLAGS += -I$(FFSRC)
 
 GRAPES:
 	git clone http://www.disi.unitn.it/~kiraly/PublicGits/GRAPES.git
-	cd GRAPES; git checkout -b for-streamer-0.7.1 origin/for-streamer-0.7.1
+	cd GRAPES; git checkout -b for-streamer-0.7.4 origin/for-streamer-0.7.4
 
 ffmpeg:
 	(wget http://ffmpeg.org/releases/ffmpeg-checkout-snapshot.tar.bz2; tar xjf ffmpeg-checkout-snapshot.tar.bz2; mv ffmpeg-checkout-20* ffmpeg) || svn checkout svn://svn.ffmpeg.org/ffmpeg/trunk ffmpeg
