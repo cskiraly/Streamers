@@ -47,6 +47,7 @@ void output_init(int bufsize)
 
 void buffer_print()
 {
+#ifdef DEBUG
   int i;
 
   dprintf("\toutbuf: %d-> ",next_chunk);
@@ -58,6 +59,7 @@ void buffer_print()
     }
   }
   dprintf("\n");
+#endif
 }
 
 void buffer_free(int i)
