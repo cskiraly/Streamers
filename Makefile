@@ -29,8 +29,8 @@ CPPFLAGS += -DDEBUGOUT
 endif
 
 ifdef ML
-LDFLAGS += -L$(GRAPES)/som -L$(GRAPES)/ml -L$(LIBEVENT)/lib -L$(GRAPES)/dclog
-LDLIBS += -lsom -lml -levent -ldclog -lm
+LDFLAGS += -L$(GRAPES)/som -L$(GRAPES)/ml -L$(LIBEVENT)/lib
+LDLIBS += -lsom -lml -levent -lm
 CPPFLAGS += -I$(LIBEVENT)/include
 else
 LDFLAGS = -L$(GRAPES)/som/TopologyManager -L$(GRAPES)/som/ChunkTrading -L$(GRAPES)/som/ChunkBuffer
