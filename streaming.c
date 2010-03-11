@@ -26,6 +26,7 @@ static struct input_desc *input;
 
 void cb_print()
 {
+#ifdef DEBUG
   struct chunk *chunks;
   int num_chunks, i, id;
   chunks = cb_get_chunks(cb, &num_chunks);
@@ -46,6 +47,7 @@ void cb_print()
     }
   }
   dprintf("\n");
+#endif
 }
 
 void stream_init(int size, struct nodeID *myID)
