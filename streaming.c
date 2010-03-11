@@ -33,6 +33,32 @@ static int cb_size;
 
 int _needs(struct chunkID_set *cset, int cb_size, int cid);
 
+void cb_print()
+{
+#ifdef DEBUG
+  struct chunk *chunks;
+  int num_chunks, i, id;
+  chunks = cb_get_chunks(cb, &num_chunks);
+
+  dprintf("\tchbuf :");
+  i = 0;
+  if(num_chunks) {
+    id = chunks[0].id;
+    dprintf(" %d-> ",id);
+    while (i < num_chunks) {
+      if (id == chunks[i].id) {
+        dprintf("%d",id % 10);
+        i++;
+      } else {
+        dprintf(".");
+      }
+      id++;
+    }
+  }
+  dprintf("\n");
+#endif
+}
+
 void stream_init(int size, struct nodeID *myID)
 {
   char conf[32];
@@ -88,6 +114,7 @@ void received_chunk(struct peerset *pset, struct nodeID *from, const uint8_t *bu
     dprintf("Received chunk %d from peer: %s\n", c.id, node_addr(from));
     output_deliver(&c);
     res = cb_add_chunk(cb, &c);
+    cb_print();
     if (res < 0) {
       dprintf("\tchunk too old, buffer full with newer chunks\n");
       free(c.data);
