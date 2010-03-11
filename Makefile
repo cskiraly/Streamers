@@ -29,8 +29,8 @@ CPPFLAGS += -DDEBUGOUT
 endif
 
 ifdef ML
-LDFLAGS += -L$(GRAPES)/som -L$(GRAPES)/ml -L$(LIBEVENT)/lib -L$(GRAPES)/dclog
-LDLIBS += -lsom -lml -levent -ldclog -lm
+LDFLAGS += -L$(GRAPES)/som -L$(GRAPES)/ml -L$(LIBEVENT)/lib
+LDLIBS += -lsom -lml -levent -lm
 CPPFLAGS += -I$(LIBEVENT)/include
 else
 LDFLAGS = -L$(GRAPES)/som/TopologyManager -L$(GRAPES)/som/ChunkTrading -L$(GRAPES)/som/ChunkBuffer  -L$(GRAPES)/som/Scheduler -L$(GRAPES)/som/PeerSet -L$(GRAPES)/som/ChunkIDSet
@@ -88,7 +88,7 @@ Chunkiser/input-stream-avs.o: CPPFLAGS += -I$(FFSRC)
 
 GRAPES:
 	git clone http://www.disi.unitn.it/~kiraly/PublicGits/GRAPES.git
-	cd GRAPES; git checkout -b for-streamer-0.7.4 origin/for-streamer-0.7.4
+	cd GRAPES; git checkout -b for-streamer-0.7.5 origin/for-streamer-0.7.5
 
 ffmpeg:
 	(wget http://ffmpeg.org/releases/ffmpeg-checkout-snapshot.tar.bz2; tar xjf ffmpeg-checkout-snapshot.tar.bz2; mv ffmpeg-checkout-20* ffmpeg) || svn checkout svn://svn.ffmpeg.org/ffmpeg/trunk ffmpeg

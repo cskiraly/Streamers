@@ -45,6 +45,23 @@ void output_init(int bufsize)
   }
 }
 
+void buffer_print()
+{
+#ifdef DEBUG
+  int i;
+
+  dprintf("\toutbuf: %d-> ",next_chunk);
+  for (i = next_chunk; i < next_chunk + buff_size; i++) {
+    if (buff[i % buff_size].data) {
+      dprintf("%d",i % 10);
+    } else {
+      dprintf(".");
+    }
+  }
+  dprintf("\n");
+#endif
+}
+
 void buffer_free(int i)
 {
   dprintf("\t\tFlush Buf %d: %s\n", i, buff[i].data);
@@ -76,6 +93,7 @@ void output_deliver(const struct chunk *c)
   }
 
   dprintf("Chunk %d delivered\n", c->id);
+  buffer_print();
   if (c->id < next_chunk) {
     return;
   }
