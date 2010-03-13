@@ -18,7 +18,7 @@
 #include "loop.h"
 #include "output.h"
 
-static const char *my_iface = "eth0";
+static const char *my_iface = NULL;
 static int port = 6666;
 static int srv_port;
 static const char *srv_ip = "";
@@ -82,7 +82,13 @@ static struct nodeID *init(void)
 {
   int i;
   struct nodeID *myID;
-  char *my_addr = iface_addr(my_iface);
+  char *my_addr;
+
+  if (my_iface) {
+    my_addr = iface_addr(my_iface);
+  } else {
+    my_addr = default_ip_addr(my_iface);
+  }
 
   if (my_addr == NULL) {
     fprintf(stderr, "Cannot find network interface %s\n", my_iface);
