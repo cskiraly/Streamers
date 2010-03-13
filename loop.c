@@ -20,7 +20,7 @@
 #include "loop.h"
 #include "dbg.h"
 
-#define BUFFSIZE 64 * 1024
+#define BUFFSIZE 256 * 1024
 static struct timeval period = {0, 500000};
 static struct timeval tnext;
 
