@@ -82,7 +82,7 @@ $(EXECTARGET): $(OBJS) $(GRAPES)/som/Tests/net_helper-ml.o $(GRAPES)/som/Tests/m
 endif
 
 $(EXECTARGET).o: streamer.o
-	ln -s streamer.o $(EXECTARGET).o
+	ln -sf streamer.o $(EXECTARGET).o
 
 Chunkiser/input-stream-avs.o: CPPFLAGS += -I$(FFSRC) 
 
