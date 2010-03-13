@@ -159,7 +159,7 @@ char *default_ip_addr()
   if (!ip) {
     ip = autodetect_ip_address();
   }
-  fprintf(stderr, "IP is: %s ...", ip);
+  fprintf(stderr, "IP is: %s ...\n", ip);
 
   return strdup(ip);
 }
