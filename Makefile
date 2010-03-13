@@ -82,13 +82,13 @@ $(EXECTARGET): $(OBJS) $(GRAPES)/som/Tests/net_helper-ml.o $(GRAPES)/som/Tests/m
 endif
 
 $(EXECTARGET).o: streamer.o
-	ln -s streamer.o $(EXECTARGET).o
+	ln -sf streamer.o $(EXECTARGET).o
 
 Chunkiser/input-stream-avs.o: CPPFLAGS += -I$(FFSRC) 
 
 GRAPES:
 	git clone http://www.disi.unitn.it/~kiraly/PublicGits/GRAPES.git
-	cd GRAPES; git checkout -b for-streamer-0.7.5 origin/for-streamer-0.7.5
+	cd GRAPES; git checkout -b for-streamer-0.7.6 origin/for-streamer-0.7.6
 
 ffmpeg:
 	(wget http://ffmpeg.org/releases/ffmpeg-checkout-snapshot.tar.bz2; tar xjf ffmpeg-checkout-snapshot.tar.bz2; mv ffmpeg-checkout-20* ffmpeg) || svn checkout svn://svn.ffmpeg.org/ffmpeg/trunk ffmpeg
