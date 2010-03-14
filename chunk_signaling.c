@@ -148,7 +148,8 @@ void offer_received(const struct nodeID *fromid, struct chunkID_set *cset, int m
     struct chunkID_set *cset_acc;
     int max_deliver2;
 
-    //register these chunks in the buffermap
+    //register these chunks in the buffermap. Warning: this should be changed when offers become selective.
+    chunkID_set_clear(from->bmap,0);	//TODO: some better solution might be needed to keep info about chunks we sent in flight.
     chunkID_set_union(from->bmap,cset);
     gettimeofday(&from->bmap_timestamp, NULL);
 
