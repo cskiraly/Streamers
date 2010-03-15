@@ -37,7 +37,7 @@ LDFLAGS = -L$(GRAPES)/som/TopologyManager -L$(GRAPES)/som/ChunkTrading -L$(GRAPE
 LDLIBS = -ltrading -lcb -ltopman
 endif
 
-OBJS = streaming.o output.o net_helpers.o input.o out-stream.o
+OBJS = streaming.o output.o net_helpers.o input.o
 ifdef THREADS
 OBJS += loop-mt.o
 CFLAGS += -pthread
@@ -49,14 +49,14 @@ endif
 ifndef DUMMY
 FFDIR ?= ffmpeg
 FFSRC ?= $(FFDIR)
-OBJS += Chunkiser/input-stream-avs.o
+OBJS += Chunkiser/input-stream-avs.o out-stream-avf.o
 LDFLAGS += -L$(FFDIR)/libavcodec -L$(FFDIR)/libavformat -L$(FFDIR)/libavutil
 LDLIBS += -lavformat -lavcodec -lavutil
 LDLIBS += -lm
 LDLIBS += $(call ld-option, -lz)
 LDLIBS += $(call ld-option, -lbz2)
 else
-OBJS += input-stream-dummy.o
+OBJS += input-stream-dummy.o out-stream.o
 endif
 
 EXECTARGET = dumbstreamer
@@ -84,7 +84,7 @@ endif
 $(EXECTARGET).o: streamer.o
 	ln -sf streamer.o $(EXECTARGET).o
 
-Chunkiser/input-stream-avs.o: CPPFLAGS += -I$(FFSRC) 
+out-stream-avf.o Chunkiser/input-stream-avs.o: CPPFLAGS += -I$(FFSRC) 
 
 GRAPES:
 	git clone http://www.disi.unitn.it/~kiraly/PublicGits/GRAPES.git

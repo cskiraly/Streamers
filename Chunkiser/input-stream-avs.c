@@ -162,7 +162,7 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
     AVPacket pkt;
     int res;
     uint8_t *data;
-    int header_out;
+    int header_out, header_size;
 
     res = av_read_frame(s->s, &pkt);
     if (res < 0) {
@@ -186,6 +186,10 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
 
       return NULL;
     }
+
+    if (s->s->streams[pkt.stream_index]->codec->codec_type == CODEC_TYPE_VIDEO) {
+      header_size = 1 + 2 + 2 + 2 + 2 + 1; // 1 Frame type + 2 width + 2 height + 2 frame rate num + 2 frame rate den + 1 number of frames
+    }
     header_out = (pkt.flags & PKT_FLAG_KEY) != 0;
     if (header_out == 0) {
       s->frames_since_global_headers++;
@@ -194,7 +198,7 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
         header_out = 1;
       }
     }
-    *size = pkt.size + s->s->streams[pkt.stream_index]->codec->extradata_size * header_out;
+    *size = pkt.size + s->s->streams[pkt.stream_index]->codec->extradata_size * header_out + header_size + 2;
     data = malloc(*size);
     if (data == NULL) {
       *size = -1;
@@ -202,11 +206,38 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
 
       return NULL;
     }
+    if (s->s->streams[pkt.stream_index]->codec->codec_type == CODEC_TYPE_VIDEO) {
+      int num, den;
+
+      data[0] = 1;
+      data[1] = s->s->streams[pkt.stream_index]->codec->width >> 8;
+      data[2] = s->s->streams[pkt.stream_index]->codec->width & 0xFF;
+      data[3] = s->s->streams[pkt.stream_index]->codec->height >> 8;
+      data[4] = s->s->streams[pkt.stream_index]->codec->height & 0xFF;
+      num = s->s->streams[pkt.stream_index]->avg_frame_rate.num;
+      den = s->s->streams[pkt.stream_index]->avg_frame_rate.den;
+//fprintf(stderr, "Rate: %d/%d\n", num, den);
+      if (num == 0) {
+        num = s->s->streams[pkt.stream_index]->r_frame_rate.num;
+        den = s->s->streams[pkt.stream_index]->r_frame_rate.den;
+      }
+      if (num > (1 << 16)) {
+        num /= 1000;
+        den /= 1000;
+      }
+      data[5] = num >> 8;
+      data[6] = num & 0xFF;
+      data[7] = den >> 8;
+      data[8] = den & 0xFF;
+      data[9] = 1;
+      data[10] = (*size - header_size - 2) >> 8;
+      data[11] = (*size - header_size - 2) & 0xFF;
+    }
     if (header_out && s->s->streams[pkt.stream_index]->codec->extradata_size) {
-      memcpy(data, s->s->streams[pkt.stream_index]->codec->extradata, s->s->streams[pkt.stream_index]->codec->extradata_size);
-      memcpy(data + s->s->streams[pkt.stream_index]->codec->extradata_size, pkt.data, pkt.size);
+      memcpy(data + header_size + 2, s->s->streams[pkt.stream_index]->codec->extradata, s->s->streams[pkt.stream_index]->codec->extradata_size);
+      memcpy(data + header_size + 2 + s->s->streams[pkt.stream_index]->codec->extradata_size, pkt.data, pkt.size);
     } else {
-      memcpy(data, pkt.data, pkt.size);
+      memcpy(data + header_size + 2, pkt.data, pkt.size);
     }
     *ts = av_rescale_q(pkt.dts, s->s->streams[pkt.stream_index]->time_base, AV_TIME_BASE_Q);
     *ts += s->base_ts;
