@@ -24,11 +24,49 @@ struct input_stream {
 
 #define VIDEO_PAYLOAD_HEADER_SIZE 1 + 2 + 2 + 2 + 2 + 1; // 1 Frame type + 2 width + 2 height + 2 frame rate num + 2 frame rate den + 1 number of frames
 
+static uint8_t codec_type(enum CodecID cid)
+{
+  switch (cid) {
+    case CODEC_ID_MPEG1VIDEO:
+    case CODEC_ID_MPEG2VIDEO:
+      return 1;
+    case CODEC_ID_H261:
+      return 2;
+    case CODEC_ID_H263P:
+    case CODEC_ID_H263:
+      return 3;
+    case CODEC_ID_MJPEG:
+      return 4;
+    case CODEC_ID_MPEG4:
+      return 5;
+    case CODEC_ID_FLV1:
+      return 6;
+    case CODEC_ID_SVQ3:
+      return 7;
+    case CODEC_ID_DVVIDEO:
+      return 8;
+    case CODEC_ID_H264:
+      return 9;
+    case CODEC_ID_THEORA:
+    case CODEC_ID_VP3:
+      return 10;
+    case CODEC_ID_SNOW:
+      return 11;
+    case CODEC_ID_VP6:
+      return 12;
+    case CODEC_ID_DIRAC:
+      return 13;
+    default:
+      fprintf(stderr, "Unknown codec ID %d\n", cid);
+      return 0;
+  }
+}
+
 static void video_header_fill(uint8_t *data, AVStream *st)
 {
   int num, den;
 
-  data[0] = 1;
+  data[0] = codec_type(st->codec->codec_id);
   data[1] = st->codec->width >> 8;
   data[2] = st->codec->width & 0xFF;
   data[3] = st->codec->height >> 8;

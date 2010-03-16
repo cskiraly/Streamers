@@ -10,6 +10,41 @@
 #include "out-stream.h"
 #include "dbg.h"
 
+static enum CodecID libav_codec_id(uint8_t mytype)
+{
+  switch (mytype) {
+    case 1:
+      return CODEC_ID_MPEG2VIDEO;
+    case 2:
+      return CODEC_ID_H261;
+    case 3:
+      return CODEC_ID_H263P;
+    case 4:
+      return CODEC_ID_MJPEG;
+    case 5:
+      return CODEC_ID_MPEG4;
+    case 6:
+      return CODEC_ID_FLV1;
+    case 7:
+      return CODEC_ID_SVQ3;
+    case 8:
+      return CODEC_ID_DVVIDEO;
+    case 9:
+      return CODEC_ID_H264;
+    case 10:
+      return CODEC_ID_THEORA;
+    case 11:
+      return CODEC_ID_SNOW;
+    case 12:
+      return CODEC_ID_VP6;
+    case 13:
+      return CODEC_ID_DIRAC;
+    default:
+      fprintf(stderr, "Unknown codec %d\n", mytype);
+      return 0;
+  }
+}
+
 static AVFormatContext *format_init(const uint8_t *data)
 {
   AVFormatContext *of;
@@ -33,7 +68,7 @@ static AVFormatContext *format_init(const uint8_t *data)
   of->oformat = outfmt;
   av_new_stream(of, 0);
   c = of->streams[0]->codec;
-  c->codec_id = CODEC_ID_MPEG4;	// FIXME!!!
+  c->codec_id = libav_codec_id(data[0]);
   c->codec_type = CODEC_TYPE_VIDEO;
   c->width = width;
   c->height= height;
@@ -52,7 +87,7 @@ void chunk_write(int id, const uint8_t *data, int size)
   const int header_size = 1 + 2 + 2 + 2 + 2 + 1; // 1 Frame type + 2 width + 2 height + 2 frame rate num + 2 frame rate den + 1 number of frames
   int frames, i;
 
-  if (data[0] != 1) {
+  if (data[0] > 127) {
     fprintf(stderr, "Error! Non video chunk: %x!!!\n", data[0]);
     return;
   }
