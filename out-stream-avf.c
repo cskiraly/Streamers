@@ -10,6 +10,42 @@
 #include "out-stream.h"
 #include "dbg.h"
 
+static AVFormatContext *format_init(const uint8_t *data)
+{
+  AVFormatContext *of;
+  AVCodecContext *c;
+  AVOutputFormat *outfmt;
+  int width, height, frame_rate_n, frame_rate_d;
+
+  av_register_all();
+
+  width = data[1] << 8 | data[2];
+  height = data[3] << 8 | data[4];
+  frame_rate_n = data[5] << 8 | data[6];
+  frame_rate_d = data[7] << 8 | data[8];
+  dprintf("Frame size: %dx%d -- Frame rate: %d / %d\n", width, height, frame_rate_n, frame_rate_d);
+
+  outfmt = av_guess_format("nut", NULL, NULL);
+  of = avformat_alloc_context();
+  if (of == NULL) {
+    return NULL;
+  }
+  of->oformat = outfmt;
+  av_new_stream(of, 0);
+  c = of->streams[0]->codec;
+  c->codec_id = CODEC_ID_MPEG4;	// FIXME!!!
+  c->codec_type = CODEC_TYPE_VIDEO;
+  c->width = width;
+  c->height= height;
+  c->time_base.den = frame_rate_n;
+  c->time_base.num = frame_rate_d;
+  of->streams[0]->avg_frame_rate.num = frame_rate_n;
+  of->streams[0]->avg_frame_rate.den = frame_rate_d;
+  c->pix_fmt = PIX_FMT_YUV420P;
+
+  return of;
+}
+
 void chunk_write(int id, const uint8_t *data, int size)
 {
   static AVFormatContext *outctx;
@@ -21,37 +57,14 @@ void chunk_write(int id, const uint8_t *data, int size)
     return;
   }
   if (outctx == NULL) {
-    int width, height, frame_rate_n, frame_rate_d;
-    AVOutputFormat *outfmt;
-    AVCodecContext *c;
-
-    av_register_all();
-
-    width = data[1] << 8 | data[2];
-    height = data[3] << 8 | data[4];
-    frame_rate_n = data[5] << 8 | data[6];
-    frame_rate_d = data[7] << 8 | data[8];
-    dprintf("Frame size: %dx%d -- Frame rate: %d / %d\n", width, height, frame_rate_n, frame_rate_d);
-
-    outfmt = av_guess_format("nut", NULL, NULL);
-    outctx = avformat_alloc_context();
+    outctx = format_init(data);
     if (outctx == NULL) {
+      fprintf(stderr, "Format init failed\n");
+
       return;
     }
-    outctx->oformat = outfmt;
-    snprintf(outctx->filename, sizeof(outctx->filename), "%s", "out.nut");
-    av_new_stream(outctx, 0);
-    c = outctx->streams[0]->codec;
-    c->codec_id = CODEC_ID_MPEG4;	// FIXME!!!
-    c->codec_type = CODEC_TYPE_VIDEO;
-    c->width = width;
-    c->height= height;
-    c->time_base.den = frame_rate_n;
-    c->time_base.num = frame_rate_d;
-    outctx->streams[0]->avg_frame_rate.num = frame_rate_n;
-    outctx->streams[0]->avg_frame_rate.den = frame_rate_d;
-    c->pix_fmt = PIX_FMT_YUV420P;
     av_set_parameters(outctx, NULL);
+    snprintf(outctx->filename, sizeof(outctx->filename), "%s", "out.nut");
     dump_format(outctx, 0, "out.nut", 1);
     url_fopen(&outctx->pb, "out.nut", URL_WRONLY);
     av_write_header(outctx);
