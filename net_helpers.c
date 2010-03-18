@@ -95,6 +95,7 @@ const char *autodetect_ip_address() {
 		char dst[32];
 		char ifc[IFNAMSIZ];
 
+		fgets(line, 127, r);
 		if (feof(r)) break;
 		if ((sscanf(line, "%s\t%s", iface, dst) == 2) && !strcpy(dst, "00000000")) {
 			strcpy(iface, ifc);
