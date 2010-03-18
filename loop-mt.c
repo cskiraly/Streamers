@@ -18,7 +18,7 @@
 #include "streaming.h"
 #include "loop.h"
 
-#define BUFFSIZE 64 * 1024
+#define BUFFSIZE 512 * 1024
 static int chunks_per_period = 1;
 static int period = 500000;
 static int done;
