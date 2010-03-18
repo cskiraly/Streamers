@@ -15,6 +15,7 @@
 #include <topmanager.h>
 #include <msg_types.h>
 
+#include "dbg.h"
 #include "streaming.h"
 #include "loop.h"
 
@@ -74,6 +75,7 @@ static void *receive(void *dummy)
   static uint8_t buff[BUFFSIZE];
 
     len = recv_from_peer(s, &remote, buff, BUFFSIZE);
+    dprintf("Received message (%c) from %s\n", buff[0], node_addr(remote));
     switch (buff[0] /* Message Type */) {
       case MSG_TYPE_TOPOLOGY:
         pthread_mutex_lock(&topology_mutex);
@@ -81,6 +83,7 @@ static void *receive(void *dummy)
         pthread_mutex_unlock(&topology_mutex);
         break;
       case MSG_TYPE_CHUNK:
+        dprintf("Chunk message received:\n");
         pthread_mutex_lock(&cb_mutex);
         received_chunk(buff, len);
         pthread_mutex_unlock(&cb_mutex);
