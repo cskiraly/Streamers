@@ -63,6 +63,9 @@ EXECTARGET = dumbstreamer
 ifdef ML
 EXECTARGET := $(EXECTARGET)-ml
 endif
+ifdef THREADS
+EXECTARGET := $(EXECTARGET)-threads
+endif
 
 ifdef STATIC
 LDFLAGS += -static
