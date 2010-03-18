@@ -150,7 +150,7 @@ void loop(struct nodeID *s1, int csize, int buff_size)
   pthread_join(distributing_thread, NULL);
 }
 
-void source_loop(const char *fname, struct nodeID *s1, int csize, int chunks)
+void source_loop(const char *fname, struct nodeID *s1, int csize, int chunks, bool loop)
 {
   pthread_t generate_thread, receive_thread, gossiping_thread, distributing_thread;
   
@@ -158,7 +158,7 @@ void source_loop(const char *fname, struct nodeID *s1, int csize, int chunks)
   chunks_per_period = chunks;
   s = s1;
  
-  source_init(fname, s);
+  source_init(fname, s, loop);
   pthread_mutex_init(&cb_mutex, NULL);
   pthread_mutex_init(&topology_mutex, NULL);
   pthread_create(&receive_thread, NULL, source_receive, NULL); 
