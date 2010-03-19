@@ -7,6 +7,7 @@
 #include <libavformat/avformat.h>
 #include <stdbool.h>
 
+#include "../dbg.h"
 #include "../input-stream.h"
 #include "../input.h"		//TODO: for flags. Check if we can do something smarter
 #define STATIC_BUFF_SIZE 1000 * 1024
@@ -101,8 +102,10 @@ static void frame_header_fill(uint8_t *data, int size, AVPacket *pkt, AVStream *
   }
   pts = av_rescale_q(pkt->pts, st->time_base, (AVRational){fps.den, fps.num}),
   pts += av_rescale_q(base_ts, AV_TIME_BASE_Q, (AVRational){fps.den, fps.num});
+  dprintf("pkt->pts=%ld PTS=%d",pkt->pts, pts);
   dts = av_rescale_q(pkt->dts, st->time_base, (AVRational){fps.den, fps.num});
   dts += av_rescale_q(base_ts, AV_TIME_BASE_Q, (AVRational){fps.den, fps.num});
+  dprintf(" DTS=%d\n",dts);
   data[2] = pts >> 8;
   data[3] = pts & 0xFF;
   data[4] = dts >> 8;
@@ -306,7 +309,9 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
       memcpy(data + header_size + 2 + 2 + 2, pkt.data, pkt.size);
     }
     *ts = av_rescale_q(pkt.dts, s->s->streams[pkt.stream_index]->time_base, AV_TIME_BASE_Q);
+    dprintf("pkt.dts=%ld TS1=%lu" , pkt.dts, *ts);
     *ts += s->base_ts;
+    dprintf(" TS2=%lu\n",*ts);
     s->last_ts = *ts;
     av_free_packet(&pkt);
 
