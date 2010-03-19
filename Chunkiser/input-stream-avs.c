@@ -7,6 +7,7 @@
 #include <libavformat/avformat.h>
 #include <stdbool.h>
 
+#include "../dbg.h"
 #include "../input-stream.h"
 #include "../input.h"		//TODO: for flags. Check if we can do something smarter
 #define STATIC_BUFF_SIZE 1000 * 1024
@@ -21,6 +22,95 @@ struct input_stream {
   int64_t base_ts;
   int frames_since_global_headers;
 };
+
+#define VIDEO_PAYLOAD_HEADER_SIZE 1 + 2 + 2 + 2 + 2 + 1; // 1 Frame type + 2 width + 2 height + 2 frame rate num + 2 frame rate den + 1 number of frames
+
+static uint8_t codec_type(enum CodecID cid)
+{
+  switch (cid) {
+    case CODEC_ID_MPEG1VIDEO:
+    case CODEC_ID_MPEG2VIDEO:
+      return 1;
+    case CODEC_ID_H261:
+      return 2;
+    case CODEC_ID_H263P:
+    case CODEC_ID_H263:
+      return 3;
+    case CODEC_ID_MJPEG:
+      return 4;
+    case CODEC_ID_MPEG4:
+      return 5;
+    case CODEC_ID_FLV1:
+      return 6;
+    case CODEC_ID_SVQ3:
+      return 7;
+    case CODEC_ID_DVVIDEO:
+      return 8;
+    case CODEC_ID_H264:
+      return 9;
+    case CODEC_ID_THEORA:
+    case CODEC_ID_VP3:
+      return 10;
+    case CODEC_ID_SNOW:
+      return 11;
+    case CODEC_ID_VP6:
+      return 12;
+    case CODEC_ID_DIRAC:
+      return 13;
+    default:
+      fprintf(stderr, "Unknown codec ID %d\n", cid);
+      return 0;
+  }
+}
+
+static void video_header_fill(uint8_t *data, AVStream *st)
+{
+  int num, den;
+
+  data[0] = codec_type(st->codec->codec_id);
+  data[1] = st->codec->width >> 8;
+  data[2] = st->codec->width & 0xFF;
+  data[3] = st->codec->height >> 8;
+  data[4] = st->codec->height & 0xFF;
+  num = st->avg_frame_rate.num;
+  den = st->avg_frame_rate.den;
+//fprintf(stderr, "Rate: %d/%d\n", num, den);
+  if (num == 0) {
+    num = st->r_frame_rate.num;
+    den = st->r_frame_rate.den;
+  }
+  if (num > (1 << 16)) {
+    num /= 1000;
+    den /= 1000;
+  }
+  data[5] = num >> 8;
+  data[6] = num & 0xFF;
+  data[7] = den >> 8;
+  data[8] = den & 0xFF;
+}
+
+static void frame_header_fill(uint8_t *data, int size, AVPacket *pkt, AVStream *st, int64_t base_ts)
+{
+  AVRational fps;
+  int32_t pts, dts;
+
+  data[0] = size >> 8;
+  data[1] = size & 0xFF;
+  fps = st->avg_frame_rate;
+  if (fps.num == 0) {
+    fps = st->r_frame_rate;
+  }
+  pts = av_rescale_q(pkt->pts, st->time_base, (AVRational){fps.den, fps.num}),
+  pts += av_rescale_q(base_ts, AV_TIME_BASE_Q, (AVRational){fps.den, fps.num});
+  dprintf("pkt->pts=%ld PTS=%d",pkt->pts, pts);
+  dts = av_rescale_q(pkt->dts, st->time_base, (AVRational){fps.den, fps.num});
+  dts += av_rescale_q(base_ts, AV_TIME_BASE_Q, (AVRational){fps.den, fps.num});
+  dprintf(" DTS=%d\n",dts);
+  data[2] = pts >> 8;
+  data[3] = pts & 0xFF;
+  data[4] = dts >> 8;
+  data[5] = dts & 0xFF;
+}
 
 struct input_stream *input_stream_open(const char *fname, int *period, uint16_t flags)
 {
@@ -162,7 +252,7 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
     AVPacket pkt;
     int res;
     uint8_t *data;
-    int header_out;
+    int header_out, header_size;
 
     res = av_read_frame(s->s, &pkt);
     if (res < 0) {
@@ -186,6 +276,10 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
 
       return NULL;
     }
+
+    if (s->s->streams[pkt.stream_index]->codec->codec_type == CODEC_TYPE_VIDEO) {
+      header_size = VIDEO_PAYLOAD_HEADER_SIZE;
+    }
     header_out = (pkt.flags & PKT_FLAG_KEY) != 0;
     if (header_out == 0) {
       s->frames_since_global_headers++;
@@ -194,7 +288,7 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
         header_out = 1;
       }
     }
-    *size = pkt.size + s->s->streams[pkt.stream_index]->codec->extradata_size * header_out;
+    *size = pkt.size + s->s->streams[pkt.stream_index]->codec->extradata_size * header_out + header_size + 2 + 2 + 2;
     data = malloc(*size);
     if (data == NULL) {
       *size = -1;
@@ -202,14 +296,22 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
 
       return NULL;
     }
+    if (s->s->streams[pkt.stream_index]->codec->codec_type == CODEC_TYPE_VIDEO) {
+      video_header_fill(data, s->s->streams[pkt.stream_index]);
+    }
+    data[9] = 1;
+    frame_header_fill(data + 10, *size - header_size - 2 - 2 - 2, &pkt, s->s->streams[pkt.stream_index], s->base_ts);
+
     if (header_out && s->s->streams[pkt.stream_index]->codec->extradata_size) {
-      memcpy(data, s->s->streams[pkt.stream_index]->codec->extradata, s->s->streams[pkt.stream_index]->codec->extradata_size);
-      memcpy(data + s->s->streams[pkt.stream_index]->codec->extradata_size, pkt.data, pkt.size);
+      memcpy(data + header_size + 2 + 2 + 2, s->s->streams[pkt.stream_index]->codec->extradata, s->s->streams[pkt.stream_index]->codec->extradata_size);
+      memcpy(data + header_size + 2 + 2 + 2 + s->s->streams[pkt.stream_index]->codec->extradata_size, pkt.data, pkt.size);
     } else {
-      memcpy(data, pkt.data, pkt.size);
+      memcpy(data + header_size + 2 + 2 + 2, pkt.data, pkt.size);
     }
     *ts = av_rescale_q(pkt.dts, s->s->streams[pkt.stream_index]->time_base, AV_TIME_BASE_Q);
+    dprintf("pkt.dts=%ld TS1=%lu" , pkt.dts, *ts);
     *ts += s->base_ts;
+    dprintf(" TS2=%lu\n",*ts);
     s->last_ts = *ts;
     av_free_packet(&pkt);
 
