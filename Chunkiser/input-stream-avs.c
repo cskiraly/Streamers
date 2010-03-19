@@ -86,7 +86,26 @@ static void video_header_fill(uint8_t *data, AVStream *st)
   data[6] = num & 0xFF;
   data[7] = den >> 8;
   data[8] = den & 0xFF;
-} 
+}
+
+static void frame_header_fill(uint8_t *data, int size, AVPacket *pkt, AVStream *st)
+{
+  AVRational fps;
+  int32_t pts, dts;
+
+  data[0] = size >> 8;
+  data[1] = size & 0xFF;
+  fps = st->avg_frame_rate;
+  if (fps.num == 0) {
+    fps = st->r_frame_rate;
+  }
+  pts = av_rescale_q(pkt->pts, st->time_base, (AVRational){fps.den, fps.num}),
+  dts = av_rescale_q(pkt->dts, st->time_base, (AVRational){fps.den, fps.num});
+  data[2] = pts >> 8;
+  data[3] = pts & 0xFF;
+  data[4] = dts >> 8;
+  data[5] = dts & 0xFF;
+}
 
 struct input_stream *input_stream_open(const char *fname, int *period, uint16_t flags)
 {
@@ -264,7 +283,7 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
         header_out = 1;
       }
     }
-    *size = pkt.size + s->s->streams[pkt.stream_index]->codec->extradata_size * header_out + header_size + 2;
+    *size = pkt.size + s->s->streams[pkt.stream_index]->codec->extradata_size * header_out + header_size + 2 + 2 + 2;
     data = malloc(*size);
     if (data == NULL) {
       *size = -1;
@@ -276,14 +295,13 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
       video_header_fill(data, s->s->streams[pkt.stream_index]);
     }
     data[9] = 1;
-    data[10] = (*size - header_size - 2) >> 8;
-    data[11] = (*size - header_size - 2) & 0xFF;
+    frame_header_fill(data + 10, *size - header_size - 2 - 2 - 2, &pkt, s->s->streams[pkt.stream_index]);
 
     if (header_out && s->s->streams[pkt.stream_index]->codec->extradata_size) {
-      memcpy(data + header_size + 2, s->s->streams[pkt.stream_index]->codec->extradata, s->s->streams[pkt.stream_index]->codec->extradata_size);
-      memcpy(data + header_size + 2 + s->s->streams[pkt.stream_index]->codec->extradata_size, pkt.data, pkt.size);
+      memcpy(data + header_size + 2 + 2 + 2, s->s->streams[pkt.stream_index]->codec->extradata, s->s->streams[pkt.stream_index]->codec->extradata_size);
+      memcpy(data + header_size + 2 + 2 + 2 + s->s->streams[pkt.stream_index]->codec->extradata_size, pkt.data, pkt.size);
     } else {
-      memcpy(data + header_size + 2, pkt.data, pkt.size);
+      memcpy(data + header_size + 2 + 2 + 2, pkt.data, pkt.size);
     }
     *ts = av_rescale_q(pkt.dts, s->s->streams[pkt.stream_index]->time_base, AV_TIME_BASE_Q);
     *ts += s->base_ts;

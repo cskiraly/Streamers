@@ -32,7 +32,7 @@ uint8_t *chunkise(struct input_stream *dummy, int id, int *size, uint64_t *ts)
 
   sprintf(buff, "Chunk %d", id);
   *ts = 40 * id * 1000;
-  *size = strlen(buff) + 1 + header_size + 2;
+  *size = strlen(buff) + 1 + header_size + 2 + 2 + 2;
   res = malloc(*size);
   res[0] = 1;
   res[1] = 352 >> 8;
@@ -44,9 +44,13 @@ uint8_t *chunkise(struct input_stream *dummy, int id, int *size, uint64_t *ts)
   res[7] = 0;
   res[8] = 25;
   res[9] = 1;
-  res[10] = (*size - header_size - 2) >> 8;
-  res[11] = (*size - header_size - 2) & 0xFF;
-  memcpy(res + header_size + 2, buff, *size - header_size - 2);
+  res[10] = (*size - header_size - 2 - 2 - 2) >> 8;
+  res[11] = (*size - header_size - 2 - 2 - 2) & 0xFF;
+  res[12] = *ts >> 8;
+  res[13] = *ts & 0xFF;
+  res[14] = *ts >> 8;
+  res[15] = *ts & 0xFF;
+  memcpy(res + header_size + 2 + 2 + 2, buff, *size - header_size - 2 - 2 - 2);
 
   return res;
 }
