@@ -11,7 +11,7 @@
 #include "dbg.h"
 
 static const char *output_format = "nut";
-static const char *output_file = "out.nut";
+static const char *output_file = "/dev/stdout";
 
 static enum CodecID libav_codec_id(uint8_t mytype)
 {
