@@ -13,6 +13,8 @@
 static const char *output_format = "nut";
 static const char *output_file = "/dev/stdout";
 
+static int64_t prev_pts, prev_dts;
+
 static enum CodecID libav_codec_id(uint8_t mytype)
 {
   switch (mytype) {
@@ -81,6 +83,9 @@ static AVFormatContext *format_init(const uint8_t *data)
   of->streams[0]->avg_frame_rate.den = frame_rate_d;
   c->pix_fmt = PIX_FMT_YUV420P;
 
+  prev_pts = 0;
+  prev_dts = 0;
+
   return of;
 }
 
@@ -116,7 +121,11 @@ void chunk_write(int id, const uint8_t *data, int size)
 
     frame_size = data[10 + (2 + 2 + 2) * i] << 8 | data[11 + (2 + 2 + 2) * i];
     pts = data[12 + (2 + 2 + 2) * i] << 8 | data[13 + (2 + 2 + 2) * i];
+    pts += (pts < prev_pts - (1 << 15)) ? ((prev_pts >> 16) + 1) << 16 : (prev_pts >> 16) << 16;
+    prev_pts = pts;
     dts = data[14 + (2 + 2 + 2) * i] << 8 | data[15 + (2 + 2 + 2) * i];
+    dts += (dts < prev_dts - (1 << 15)) ? ((prev_dts >> 16) + 1) << 16 : (prev_dts >> 16) << 16;
+    prev_dts = dts;
     dprintf("Frame %d has size %d --- PTS: %lld DTS: %lld\n", i, frame_size,
                                              av_rescale_q(pts, outctx->streams[0]->codec->time_base, AV_TIME_BASE_Q),
                                              av_rescale_q(dts, outctx->streams[0]->codec->time_base, AV_TIME_BASE_Q));
