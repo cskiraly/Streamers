@@ -66,6 +66,11 @@ static void *source_receive(void *dummy)
       case MSG_TYPE_CHUNK:
         fprintf(stderr, "Some dumb peer pushed a chunk to me!\n");
         break;
+      case MSG_TYPE_SIGNALLING:
+        pthread_mutex_lock(&topology_mutex);
+        sigParseData(remote, buff, len);
+        pthread_mutex_unlock(&topology_mutex);
+        break;
       default:
         fprintf(stderr, "Unknown Message Type %x\n", buff[0]);
     }
