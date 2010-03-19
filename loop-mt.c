@@ -15,12 +15,13 @@
 #include <peerset.h>
 #include <peer.h>
 
+#include "dbg.h"
 #include "chunk_signaling.h"
 #include "streaming.h"
 #include "topology.h"
 #include "loop.h"
 
-#define BUFFSIZE 64 * 1024
+#define BUFFSIZE 512 * 1024
 static int chunks_per_period = 1;
 static int period = 500000;
 static int done;
@@ -51,6 +52,11 @@ static void *source_receive(void *dummy)
   static uint8_t buff[BUFFSIZE];
 
     len = recv_from_peer(s, &remote, buff, BUFFSIZE);
+    if (len < 0) {
+      fprintf(stderr,"Error receiving message. Maybe larger than %d bytes\n", BUFFSIZE);
+      nodeid_free(remote);
+      continue;
+    }
     switch (buff[0] /* Message Type */) {
       case MSG_TYPE_TOPOLOGY:
         pthread_mutex_lock(&topology_mutex);
@@ -77,6 +83,12 @@ static void *receive(void *dummy)
   static uint8_t buff[BUFFSIZE];
 
     len = recv_from_peer(s, &remote, buff, BUFFSIZE);
+    if (len < 0) {
+      fprintf(stderr,"Error receiving message. Maybe larger than %d bytes\n", BUFFSIZE);
+      nodeid_free(remote);
+      continue;
+    }
+    dprintf("Received message (%c) from %s\n", buff[0], node_addr(remote));
     switch (buff[0] /* Message Type */) {
       case MSG_TYPE_TOPOLOGY:
         pthread_mutex_lock(&topology_mutex);
@@ -84,6 +96,7 @@ static void *receive(void *dummy)
         pthread_mutex_unlock(&topology_mutex);
         break;
       case MSG_TYPE_CHUNK:
+        dprintf("Chunk message received:\n");
         pthread_mutex_lock(&cb_mutex);
         received_chunk(pset, remote, buff, len);
         pthread_mutex_unlock(&cb_mutex);
@@ -156,7 +169,7 @@ void loop(struct nodeID *s1, int csize, int buff_size)
   pthread_join(distributing_thread, NULL);
 }
 
-void source_loop(const char *fname, struct nodeID *s1, int csize, int chunks)
+void source_loop(const char *fname, struct nodeID *s1, int csize, int chunks, bool loop)
 {
   pthread_t generate_thread, receive_thread, gossiping_thread, distributing_thread;
   
@@ -166,7 +179,7 @@ void source_loop(const char *fname, struct nodeID *s1, int csize, int chunks)
  
   pset = peerset_init(0);
   sigInit(s,pset);
-  source_init(fname, s);
+  source_init(fname, s, loop);
   pthread_mutex_init(&cb_mutex, NULL);
   pthread_mutex_init(&topology_mutex, NULL);
   pthread_create(&receive_thread, NULL, source_receive, NULL); 

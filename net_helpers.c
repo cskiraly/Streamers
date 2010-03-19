@@ -84,17 +84,18 @@ const char *autodetect_ip_address() {
 #endif
 
 	static char addr[128] = "";
+	char iface[IFNAMSIZ] = "";
+	char line[128] = "x";
+	struct ifaddrs *ifAddrStruct = NULL;
 
 	FILE *r = fopen("/proc/net/route", "r");
 	if (!r) return NULL;
 
-	char iface[IFNAMSIZ] = "";
-	char line[128] = "x";
 	while (1) {
 		char dst[32];
 		char ifc[IFNAMSIZ];
 
-		char *dummy = fgets(line, 127, r);
+		fgets(line, 127, r);
 		if (feof(r)) break;
 		if ((sscanf(line, "%s\t%s", iface, dst) == 2) && !strcpy(dst, "00000000")) {
 			strcpy(iface, ifc);
@@ -103,8 +104,7 @@ const char *autodetect_ip_address() {
 	}
 	if (iface[0] == 0) return NULL;
 
-	struct ifaddrs *ifAddrStruct=NULL;
-	if (getifaddrs(&ifAddrStruct)) return NULL;
+	if (getifaddrs(&ifAddrStruct) < 0) return NULL;
 
 	while (ifAddrStruct) {
 		if (ifAddrStruct->ifa_addr && ifAddrStruct->ifa_addr->sa_family == AF_INET && 
@@ -122,7 +122,7 @@ const char *autodetect_ip_address() {
 char *default_ip_addr()
 {
   char hostname[256];
-  char *ip;
+  const char *ip;
   struct addrinfo * result;
   struct addrinfo * res;
   int error;
