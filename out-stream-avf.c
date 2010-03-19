@@ -111,13 +111,21 @@ void chunk_write(int id, const uint8_t *data, int size)
   frames = data[9];
   for (i = 0; i < frames; i++) {
     AVPacket pkt;
+    int32_t pts, dts;
+    int frame_size;
 
-    dprintf("Frame %d has size %d\n", i, data[10 + 2 * i] << 8 | data[11 + 2 * i]);
+    frame_size = data[10 + (2 + 2 + 2) * i] << 8 | data[11 + (2 + 2 + 2) * i];
+    pts = data[12 + (2 + 2 + 2) * i] << 8 | data[13 + (2 + 2 + 2) * i];
+    dts = data[14 + (2 + 2 + 2) * i] << 8 | data[15 + (2 + 2 + 2) * i];
+    dprintf("Frame %d has size %d --- PTS: %lld DTS: %lld\n", i, frame_size,
+                                             av_rescale_q(pts, outctx->streams[0]->codec->time_base, AV_TIME_BASE_Q),
+                                             av_rescale_q(dts, outctx->streams[0]->codec->time_base, AV_TIME_BASE_Q));
     av_init_packet(&pkt);
     pkt.stream_index = 0;	// FIXME!
-    pkt.pts = AV_NOPTS_VALUE;	// FIXME!
-    pkt.data = data + header_size + frames * 2;
-    pkt.size = data[10 + 2 * i] << 8 | data[11 + 2 * i];
+    pkt.pts = av_rescale_q(pts, outctx->streams[0]->codec->time_base, outctx->streams[0]->time_base);
+    pkt.dts = av_rescale_q(dts, outctx->streams[0]->codec->time_base, outctx->streams[0]->time_base);
+    pkt.data = data + header_size + (i + 1) * (2 + 2 + 2);
+    pkt.size = frame_size;
     av_interleaved_write_frame(outctx, &pkt);
   }
 }

@@ -28,8 +28,8 @@ void chunk_write(int id, const uint8_t *data, int size)
   }
 #ifdef DEBUG
 #define buff_size 8 // HACK!
-  fprintf(stderr, "\tOut Chunk[%d] - %d: %s\n", id, id % buff_size, data + header_size + frames * 2);
+  fprintf(stderr, "\tOut Chunk[%d] - %d: %s\n", id, id % buff_size, data + header_size + frames * 6);
 #else
-  write(outfd, data + header_size + frames * 2, size - header_size - frames * 2);
+  write(outfd, data + header_size + frames * 6, size - header_size - frames * 6);
 #endif
 }
