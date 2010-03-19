@@ -10,6 +10,9 @@
 #include "out-stream.h"
 #include "dbg.h"
 
+static const char *output_format = "nut";
+static const char *output_file = "out.nut";
+
 static enum CodecID libav_codec_id(uint8_t mytype)
 {
   switch (mytype) {
@@ -60,7 +63,7 @@ static AVFormatContext *format_init(const uint8_t *data)
   frame_rate_d = data[7] << 8 | data[8];
   dprintf("Frame size: %dx%d -- Frame rate: %d / %d\n", width, height, frame_rate_n, frame_rate_d);
 
-  outfmt = av_guess_format("nut", NULL, NULL);
+  outfmt = av_guess_format(output_format, NULL, NULL);
   of = avformat_alloc_context();
   if (of == NULL) {
     return NULL;
@@ -99,9 +102,9 @@ void chunk_write(int id, const uint8_t *data, int size)
       return;
     }
     av_set_parameters(outctx, NULL);
-    snprintf(outctx->filename, sizeof(outctx->filename), "%s", "out.nut");
-    dump_format(outctx, 0, "out.nut", 1);
-    url_fopen(&outctx->pb, "out.nut", URL_WRONLY);
+    snprintf(outctx->filename, sizeof(outctx->filename), "%s", output_file);
+    dump_format(outctx, 0, output_file, 1);
+    url_fopen(&outctx->pb, output_file, URL_WRONLY);
     av_write_header(outctx);
   }
 
