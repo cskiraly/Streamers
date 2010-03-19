@@ -88,7 +88,7 @@ static void video_header_fill(uint8_t *data, AVStream *st)
   data[8] = den & 0xFF;
 }
 
-static void frame_header_fill(uint8_t *data, int size, AVPacket *pkt, AVStream *st)
+static void frame_header_fill(uint8_t *data, int size, AVPacket *pkt, AVStream *st, int64_t base_ts)
 {
   AVRational fps;
   int32_t pts, dts;
@@ -100,7 +100,9 @@ static void frame_header_fill(uint8_t *data, int size, AVPacket *pkt, AVStream *
     fps = st->r_frame_rate;
   }
   pts = av_rescale_q(pkt->pts, st->time_base, (AVRational){fps.den, fps.num}),
+  pts += av_rescale_q(base_ts, AV_TIME_BASE_Q, (AVRational){fps.den, fps.num});
   dts = av_rescale_q(pkt->dts, st->time_base, (AVRational){fps.den, fps.num});
+  dts += av_rescale_q(base_ts, AV_TIME_BASE_Q, (AVRational){fps.den, fps.num});
   data[2] = pts >> 8;
   data[3] = pts & 0xFF;
   data[4] = dts >> 8;
@@ -295,7 +297,7 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
       video_header_fill(data, s->s->streams[pkt.stream_index]);
     }
     data[9] = 1;
-    frame_header_fill(data + 10, *size - header_size - 2 - 2 - 2, &pkt, s->s->streams[pkt.stream_index]);
+    frame_header_fill(data + 10, *size - header_size - 2 - 2 - 2, &pkt, s->s->streams[pkt.stream_index], s->base_ts);
 
     if (header_out && s->s->streams[pkt.stream_index]->codec->extradata_size) {
       memcpy(data + header_size + 2 + 2 + 2, s->s->streams[pkt.stream_index]->codec->extradata, s->s->streams[pkt.stream_index]->codec->extradata_size);
