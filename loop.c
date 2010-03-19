@@ -23,7 +23,7 @@
 #include "loop.h"
 #include "dbg.h"
 
-#define BUFFSIZE 256 * 1024
+#define BUFFSIZE 512 * 1024
 static struct timeval period = {0, 500000};
 static struct timeval tnext;
 
@@ -65,6 +65,11 @@ void loop(struct nodeID *s, int csize, int buff_size)
       struct nodeID *remote;
 
       len = recv_from_peer(s, &remote, buff, BUFFSIZE);
+      if (len < 0) {
+        fprintf(stderr,"Error receiving message. Maybe larger than %d bytes\n", BUFFSIZE);
+        nodeid_free(remote);
+        continue;
+      }
       switch (buff[0] /* Message Type */) {
         case MSG_TYPE_TOPOLOGY:
           update_peers(pset, remote, buff, len);
@@ -116,6 +121,11 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
       struct nodeID *remote;
 
       len = recv_from_peer(s, &remote, buff, BUFFSIZE);
+      if (len < 0) {
+        fprintf(stderr,"Error receiving message. Maybe larger than %d bytes\n", BUFFSIZE);
+        nodeid_free(remote);
+        continue;
+      }
       dprintf("Received message (%c) from %s\n", buff[0], node_addr(remote));
       switch (buff[0] /* Message Type */) {
         case MSG_TYPE_TOPOLOGY:
