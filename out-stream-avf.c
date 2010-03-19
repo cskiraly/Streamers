@@ -121,7 +121,9 @@ void chunk_write(int id, const uint8_t *data, int size)
 
     frame_size = data[10 + (2 + 2 + 2) * i] << 8 | data[11 + (2 + 2 + 2) * i];
     pts = data[12 + (2 + 2 + 2) * i] << 8 | data[13 + (2 + 2 + 2) * i];
+    dprintf("Frame %d PTS1: %d\n", i, pts);
     pts += (pts < prev_pts - (1 << 15)) ? ((prev_pts >> 16) + 1) << 16 : (prev_pts >> 16) << 16;
+    dprintf(" PTS2: %d\n", pts);
     prev_pts = pts;
     dts = data[14 + (2 + 2 + 2) * i] << 8 | data[15 + (2 + 2 + 2) * i];
     dts += (dts < prev_dts - (1 << 15)) ? ((prev_dts >> 16) + 1) << 16 : (prev_dts >> 16) << 16;
