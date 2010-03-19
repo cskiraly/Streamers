@@ -37,7 +37,10 @@ LDFLAGS = -L$(GRAPES)/som/TopologyManager -L$(GRAPES)/som/ChunkTrading -L$(GRAPE
 LDLIBS = -ltrading -lcb -ltopman
 endif
 
-OBJS = streaming.o output.o net_helpers.o input.o
+OBJS = streaming.o 
+OBJS += input.o
+OBJS += output.o 
+OBJS += net_helpers.o 
 ifdef THREADS
 OBJS += loop-mt.o
 CFLAGS += -pthread
