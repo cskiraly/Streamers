@@ -111,6 +111,11 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
       struct nodeID *remote;
 
       len = recv_from_peer(s, &remote, buff, BUFFSIZE);
+      if (len < 0) {
+        fprintf(stderr,"Error receiving message. Maybe larger than %d bytes\n", BUFFSIZE);
+        nodeid_free(remote);
+        continue;
+      }
       switch (buff[0] /* Message Type */) {
         case MSG_TYPE_TOPOLOGY:
           fprintf(stderr, "Top Parse\n");

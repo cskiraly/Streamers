@@ -49,6 +49,11 @@ static void *source_receive(void *dummy)
   static uint8_t buff[BUFFSIZE];
 
     len = recv_from_peer(s, &remote, buff, BUFFSIZE);
+    if (len < 0) {
+      fprintf(stderr,"Error receiving message. Maybe larger than %d bytes\n", BUFFSIZE);
+      nodeid_free(remote);
+      continue;
+    }
     switch (buff[0] /* Message Type */) {
       case MSG_TYPE_TOPOLOGY:
         pthread_mutex_lock(&topology_mutex);
@@ -75,6 +80,11 @@ static void *receive(void *dummy)
   static uint8_t buff[BUFFSIZE];
 
     len = recv_from_peer(s, &remote, buff, BUFFSIZE);
+    if (len < 0) {
+      fprintf(stderr,"Error receiving message. Maybe larger than %d bytes\n", BUFFSIZE);
+      nodeid_free(remote);
+      continue;
+    }
     dprintf("Received message (%c) from %s\n", buff[0], node_addr(remote));
     switch (buff[0] /* Message Type */) {
       case MSG_TYPE_TOPOLOGY:
