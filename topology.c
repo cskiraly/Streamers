@@ -10,7 +10,7 @@
 #include "topology.h"
 #include "dbg.h"
 
-static struct timeval tout_bmap = {3, 0};
+static struct timeval tout_bmap = {5, 0};
 
 // currently it just makes the peerset grow
 void update_peers(struct peerset *pset, struct nodeID *from, const uint8_t *buff, int len)
