@@ -11,6 +11,8 @@
 
 #include "input-stream.h"
 
+#define FRAME_HEADER_SIZE (3 + 4 + 1)
+
 static struct input_stream {
 } fake_descriptor;
 
@@ -32,7 +34,7 @@ uint8_t *chunkise(struct input_stream *dummy, int id, int *size, uint64_t *ts)
 
   sprintf(buff, "Chunk %d", id);
   *ts = 40 * id * 1000;
-  *size = strlen(buff) + 1 + header_size + 2 + 2 + 2;
+  *size = strlen(buff) + 1 + header_size + FRAME_HEADER_SIZE;
   res = malloc(*size);
   res[0] = 1;
   res[1] = 352 >> 8;
@@ -44,13 +46,15 @@ uint8_t *chunkise(struct input_stream *dummy, int id, int *size, uint64_t *ts)
   res[7] = 0;
   res[8] = 25;
   res[9] = 1;
-  res[10] = (*size - header_size - 2 - 2 - 2) >> 8;
-  res[11] = (*size - header_size - 2 - 2 - 2) & 0xFF;
-  res[12] = *ts >> 8;
-  res[13] = *ts & 0xFF;
-  res[14] = *ts >> 8;
-  res[15] = *ts & 0xFF;
-  memcpy(res + header_size + 2 + 2 + 2, buff, *size - header_size - 2 - 2 - 2);
+  res[10] = ((*size - header_size - FRAME_HEADER_SIZE)) >> 16 & 0xFF;
+  res[11] = ((*size - header_size - FRAME_HEADER_SIZE)) >> 8 & 0xFF;
+  res[12] = (*size - header_size - FRAME_HEADER_SIZE) & 0xFF;
+  res[13] = *ts >> 24;
+  res[14] = *ts >> 16;
+  res[15] = *ts >> 8;
+  res[16] = *ts & 0xFF;
+  res[17] = 0;
+  memcpy(res + header_size + FRAME_HEADER_SIZE, buff, *size - header_size - FRAME_HEADER_SIZE);
 
   return res;
 }

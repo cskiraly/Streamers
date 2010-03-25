@@ -23,7 +23,8 @@ struct input_stream {
   int frames_since_global_headers;
 };
 
-#define VIDEO_PAYLOAD_HEADER_SIZE 1 + 2 + 2 + 2 + 2 + 1; // 1 Frame type + 2 width + 2 height + 2 frame rate num + 2 frame rate den + 1 number of frames
+#define VIDEO_PAYLOAD_HEADER_SIZE 1 + 2 + 2 + 2 + 2 + 1 // 1 Frame type + 2 width + 2 height + 2 frame rate num + 2 frame rate den + 1 number of frames
+#define FRAME_HEADER_SIZE (3 + 4 + 1)	// 3 Frame size + 4 PTS + 1 DeltaTS
 
 static uint8_t codec_type(enum CodecID cid)
 {
@@ -94,8 +95,9 @@ static void frame_header_fill(uint8_t *data, int size, AVPacket *pkt, AVStream *
   AVRational fps;
   int32_t pts, dts;
 
-  data[0] = size >> 8;
-  data[1] = size & 0xFF;
+  data[0] = size >> 16;
+  data[1] = size >> 8;
+  data[2] = size & 0xFF;
   fps = st->avg_frame_rate;
   if (fps.num == 0) {
     fps = st->r_frame_rate;
@@ -106,10 +108,11 @@ static void frame_header_fill(uint8_t *data, int size, AVPacket *pkt, AVStream *
   dts = av_rescale_q(pkt->dts, st->time_base, (AVRational){fps.den, fps.num});
   dts += av_rescale_q(base_ts, AV_TIME_BASE_Q, (AVRational){fps.den, fps.num});
   dprintf(" DTS=%d\n",dts);
-  data[2] = pts >> 8;
-  data[3] = pts & 0xFF;
-  data[4] = dts >> 8;
-  data[5] = dts & 0xFF;
+  data[3] = pts >> 24;
+  data[4] = pts >> 16;
+  data[5] = pts >> 8;
+  data[6] = pts & 0xFF;
+  data[7] = (pts - dts) & 0xFF;
 }
 
 struct input_stream *input_stream_open(const char *fname, int *period, uint16_t flags)
@@ -288,7 +291,7 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
         header_out = 1;
       }
     }
-    *size = pkt.size + s->s->streams[pkt.stream_index]->codec->extradata_size * header_out + header_size + 2 + 2 + 2;
+    *size = pkt.size + s->s->streams[pkt.stream_index]->codec->extradata_size * header_out + header_size + FRAME_HEADER_SIZE;
     data = malloc(*size);
     if (data == NULL) {
       *size = -1;
@@ -299,14 +302,14 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
     if (s->s->streams[pkt.stream_index]->codec->codec_type == CODEC_TYPE_VIDEO) {
       video_header_fill(data, s->s->streams[pkt.stream_index]);
     }
-    data[9] = 1;
-    frame_header_fill(data + 10, *size - header_size - 2 - 2 - 2, &pkt, s->s->streams[pkt.stream_index], s->base_ts);
+    data[VIDEO_PAYLOAD_HEADER_SIZE - 1] = 1;
+    frame_header_fill(data + VIDEO_PAYLOAD_HEADER_SIZE, *size - header_size - FRAME_HEADER_SIZE, &pkt, s->s->streams[pkt.stream_index], s->base_ts);
 
     if (header_out && s->s->streams[pkt.stream_index]->codec->extradata_size) {
-      memcpy(data + header_size + 2 + 2 + 2, s->s->streams[pkt.stream_index]->codec->extradata, s->s->streams[pkt.stream_index]->codec->extradata_size);
-      memcpy(data + header_size + 2 + 2 + 2 + s->s->streams[pkt.stream_index]->codec->extradata_size, pkt.data, pkt.size);
+      memcpy(data + header_size + FRAME_HEADER_SIZE, s->s->streams[pkt.stream_index]->codec->extradata, s->s->streams[pkt.stream_index]->codec->extradata_size);
+      memcpy(data + header_size + FRAME_HEADER_SIZE + s->s->streams[pkt.stream_index]->codec->extradata_size, pkt.data, pkt.size);
     } else {
-      memcpy(data + header_size + 2 + 2 + 2, pkt.data, pkt.size);
+      memcpy(data + header_size + FRAME_HEADER_SIZE, pkt.data, pkt.size);
     }
     *ts = av_rescale_q(pkt.dts, s->s->streams[pkt.stream_index]->time_base, AV_TIME_BASE_Q);
     dprintf("pkt.dts=%ld TS1=%lu" , pkt.dts, *ts);

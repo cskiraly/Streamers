@@ -15,6 +15,26 @@ static const char *output_file = "/dev/stdout";
 
 static int64_t prev_pts, prev_dts;
 
+#define VIDEO_PAYLOAD_HEADER_SIZE 1 + 2 + 2 + 2 + 2 + 1 // 1 Frame type + 2 width + 2 height + 2 frame rate num + 2 frame rate den + 1 number of frames
+#define FRAME_HEADER_SIZE (3 + 4 + 1)
+
+static void frame_header_parse(const uint8_t *data, int *size, int32_t *pts, int32_t *dts)
+{
+  int i;
+
+  *size = 0;
+  for (i = 0; i < 3; i++) {
+    *size = *size << 8;
+    *size |= data[i];
+  }
+  *pts = 0;
+  for (i = 0; i < 4; i++) {
+    *pts = *pts << 8;
+    *pts |= data[3 + i];
+  }
+  *dts = *pts - data[7];
+}
+
 static enum CodecID libav_codec_id(uint8_t mytype)
 {
   switch (mytype) {
@@ -92,8 +112,9 @@ static AVFormatContext *format_init(const uint8_t *data)
 void chunk_write(int id, const uint8_t *data, int size)
 {
   static AVFormatContext *outctx;
-  const int header_size = 1 + 2 + 2 + 2 + 2 + 1; // 1 Frame type + 2 width + 2 height + 2 frame rate num + 2 frame rate den + 1 number of frames
+  const int header_size = VIDEO_PAYLOAD_HEADER_SIZE; 
   int frames, i;
+  const uint8_t *p;
 
   if (data[0] > 127) {
     fprintf(stderr, "Error! Non video chunk: %x!!!\n", data[0]);
@@ -113,19 +134,19 @@ void chunk_write(int id, const uint8_t *data, int size)
     av_write_header(outctx);
   }
 
-  frames = data[9];
+  frames = data[header_size - 1];
+  p = data + header_size + FRAME_HEADER_SIZE * frames;
   for (i = 0; i < frames; i++) {
     AVPacket pkt;
     int32_t pts, dts;
     int frame_size;
 
-    frame_size = data[10 + (2 + 2 + 2) * i] << 8 | data[11 + (2 + 2 + 2) * i];
-    pts = data[12 + (2 + 2 + 2) * i] << 8 | data[13 + (2 + 2 + 2) * i];
+    frame_header_parse(data + header_size + FRAME_HEADER_SIZE * i,
+                       &frame_size, &pts, &dts);
     dprintf("Frame %d PTS1: %d\n", i, pts);
     pts += (pts < prev_pts - (1 << 15)) ? ((prev_pts >> 16) + 1) << 16 : (prev_pts >> 16) << 16;
     dprintf(" PTS2: %d\n", pts);
     prev_pts = pts;
-    dts = data[14 + (2 + 2 + 2) * i] << 8 | data[15 + (2 + 2 + 2) * i];
     dts += (dts < prev_dts - (1 << 15)) ? ((prev_dts >> 16) + 1) << 16 : (prev_dts >> 16) << 16;
     prev_dts = dts;
     dprintf("Frame %d has size %d --- PTS: %lld DTS: %lld\n", i, frame_size,
@@ -135,7 +156,8 @@ void chunk_write(int id, const uint8_t *data, int size)
     pkt.stream_index = 0;	// FIXME!
     pkt.pts = av_rescale_q(pts, outctx->streams[0]->codec->time_base, outctx->streams[0]->time_base);
     pkt.dts = av_rescale_q(dts, outctx->streams[0]->codec->time_base, outctx->streams[0]->time_base);
-    pkt.data = data + header_size + (i + 1) * (2 + 2 + 2);
+    pkt.data = p;
+    p += frame_size;
     pkt.size = frame_size;
     av_interleaved_write_frame(outctx, &pkt);
   }
