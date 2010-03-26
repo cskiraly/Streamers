@@ -67,11 +67,6 @@ static void video_header_fill(uint8_t *data, AVStream *st)
 {
   int num, den;
 
-  data[0] = codec_type(st->codec->codec_id);
-  data[1] = st->codec->width >> 8;
-  data[2] = st->codec->width & 0xFF;
-  data[3] = st->codec->height >> 8;
-  data[4] = st->codec->height & 0xFF;
   num = st->avg_frame_rate.num;
   den = st->avg_frame_rate.den;
 //fprintf(stderr, "Rate: %d/%d\n", num, den);
@@ -83,10 +78,7 @@ static void video_header_fill(uint8_t *data, AVStream *st)
     num /= 1000;
     den /= 1000;
   }
-  data[5] = num >> 8;
-  data[6] = num & 0xFF;
-  data[7] = den >> 8;
-  data[8] = den & 0xFF;
+  payload_header_write(data, codec_type(st->codec->codec_id), st->codec->width, st->codec->height, num, den);
 }
 
 static void frame_header_fill(uint8_t *data, int size, AVPacket *pkt, AVStream *st, int64_t base_ts)
@@ -94,9 +86,6 @@ static void frame_header_fill(uint8_t *data, int size, AVPacket *pkt, AVStream *
   AVRational fps;
   int32_t pts, dts;
 
-  data[0] = size >> 16;
-  data[1] = size >> 8;
-  data[2] = size & 0xFF;
   fps = st->avg_frame_rate;
   if (fps.num == 0) {
     fps = st->r_frame_rate;
@@ -107,11 +96,7 @@ static void frame_header_fill(uint8_t *data, int size, AVPacket *pkt, AVStream *
   dts = av_rescale_q(pkt->dts, st->time_base, (AVRational){fps.den, fps.num});
   dts += av_rescale_q(base_ts, AV_TIME_BASE_Q, (AVRational){fps.den, fps.num});
   dprintf(" DTS=%d\n",dts);
-  data[3] = pts >> 24;
-  data[4] = pts >> 16;
-  data[5] = pts >> 8;
-  data[6] = pts & 0xFF;
-  data[7] = (pts - dts) & 0xFF;
+  frame_header_write(data, size, pts, dts);
 }
 
 struct input_stream *input_stream_open(const char *fname, int *period, uint16_t flags)

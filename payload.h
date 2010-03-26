@@ -26,3 +26,28 @@ static inline void payload_header_parse(const uint8_t *data, uint8_t *codec, int
   *frame_rate_n = data[5] << 8 | data[6];
   *frame_rate_d = data[7] << 8 | data[8];
 }
+
+static inline void payload_header_write(uint8_t *data, uint8_t codec, int width, int height, int num, int den)
+{
+  data[0] = codec;
+  data[1] = width >> 8;
+  data[2] = width & 0xFF;
+  data[3] = height >> 8;
+  data[4] = height & 0xFF;
+  data[5] = num >> 8;
+  data[6] = num & 0xFF;
+  data[7] = den >> 8;
+  data[8] = den & 0xFF;
+}
+
+static inline void frame_header_write(uint8_t *data, int size, int32_t pts, int32_t dts)
+{
+  data[0] = size >> 16;
+  data[1] = size >> 8;
+  data[2] = size & 0xFF;
+  data[3] = pts >> 24;
+  data[4] = pts >> 16;
+  data[5] = pts >> 8;
+  data[6] = pts & 0xFF;
+  data[7] = (pts - dts) & 0xFF;
+}
