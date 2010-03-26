@@ -9,31 +9,12 @@
 
 #include "out-stream.h"
 #include "dbg.h"
+#include "payload.h"
 
 static const char *output_format = "nut";
 static const char *output_file = "/dev/stdout";
 
 static int64_t prev_pts, prev_dts;
-
-#define VIDEO_PAYLOAD_HEADER_SIZE 1 + 2 + 2 + 2 + 2 + 1 // 1 Frame type + 2 width + 2 height + 2 frame rate num + 2 frame rate den + 1 number of frames
-#define FRAME_HEADER_SIZE (3 + 4 + 1)
-
-static void frame_header_parse(const uint8_t *data, int *size, int32_t *pts, int32_t *dts)
-{
-  int i;
-
-  *size = 0;
-  for (i = 0; i < 3; i++) {
-    *size = *size << 8;
-    *size |= data[i];
-  }
-  *pts = 0;
-  for (i = 0; i < 4; i++) {
-    *pts = *pts << 8;
-    *pts |= data[3 + i];
-  }
-  *dts = *pts - data[7];
-}
 
 static enum CodecID libav_codec_id(uint8_t mytype)
 {
@@ -76,15 +57,12 @@ static AVFormatContext *format_init(const uint8_t *data)
   AVCodecContext *c;
   AVOutputFormat *outfmt;
   int width, height, frame_rate_n, frame_rate_d;
+  uint8_t codec;
 
   av_register_all();
 
-  width = data[1] << 8 | data[2];
-  height = data[3] << 8 | data[4];
-  frame_rate_n = data[5] << 8 | data[6];
-  frame_rate_d = data[7] << 8 | data[8];
+  payload_header_parse(data, &codec, &width, &height, &frame_rate_n, &frame_rate_d);
   dprintf("Frame size: %dx%d -- Frame rate: %d / %d\n", width, height, frame_rate_n, frame_rate_d);
-
   outfmt = av_guess_format(output_format, NULL, NULL);
   of = avformat_alloc_context();
   if (of == NULL) {
@@ -93,7 +71,7 @@ static AVFormatContext *format_init(const uint8_t *data)
   of->oformat = outfmt;
   av_new_stream(of, 0);
   c = of->streams[0]->codec;
-  c->codec_id = libav_codec_id(data[0]);
+  c->codec_id = libav_codec_id(codec);
   c->codec_type = CODEC_TYPE_VIDEO;
   c->width = width;
   c->height= height;

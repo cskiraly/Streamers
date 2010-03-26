@@ -10,8 +10,7 @@
 #include <string.h>
 
 #include "input-stream.h"
-
-#define FRAME_HEADER_SIZE (3 + 4 + 1)
+#include "payload.h"
 
 static struct input_stream {
 } fake_descriptor;

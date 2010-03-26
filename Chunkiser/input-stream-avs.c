@@ -9,7 +9,9 @@
 
 #include "../dbg.h"
 #include "../input-stream.h"
+#include "../payload.h"
 #include "../input.h"		//TODO: for flags. Check if we can do something smarter
+
 #define STATIC_BUFF_SIZE 1000 * 1024
 #define HEADER_REFRESH_PERIOD 50
 
@@ -22,9 +24,6 @@ struct input_stream {
   int64_t base_ts;
   int frames_since_global_headers;
 };
-
-#define VIDEO_PAYLOAD_HEADER_SIZE 1 + 2 + 2 + 2 + 2 + 1 // 1 Frame type + 2 width + 2 height + 2 frame rate num + 2 frame rate den + 1 number of frames
-#define FRAME_HEADER_SIZE (3 + 4 + 1)	// 3 Frame size + 4 PTS + 1 DeltaTS
 
 static uint8_t codec_type(enum CodecID cid)
 {

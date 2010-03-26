@@ -4,10 +4,9 @@
 
 #include "out-stream.h"
 #include "dbg.h"
+#include "payload.h"
 
 static int outfd = 1;
-
-#define FRAME_HEADER_SIZE (3 + 4 + 1)
 
 void chunk_write(int id, const uint8_t *data, int size)
 {
