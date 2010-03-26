@@ -10,28 +10,23 @@ static int outfd = 1;
 
 void chunk_write(int id, const uint8_t *data, int size)
 {
-  const int header_size = 1 + 2 + 2 + 2 + 2 + 1; // 1 Frame type + 2 width + 2 height + 2 frame rate num + 2 frame rate den + 1 number of frames
+  const int header_size = VIDEO_PAYLOAD_HEADER_SIZE;
   int width, height, frame_rate_n, frame_rate_d, frames;
   int i;
+  uint8_t codec;
 
-  if (data[0] != 1) {
-    fprintf(stderr, "Error! Non video chunk: %x!!!\n", data[0]);
+  payload_header_parse(data, &codec, &width, &height, &frame_rate_n, &frame_rate_d);
+  if (codec != 1) {
+    fprintf(stderr, "Error! Non video chunk: %x!!!\n", codec);
     return;
   }
-  width = data[1] << 8 | data[2];
-  height = data[3] << 8 | data[4];
-  frame_rate_n = data[5] << 8 | data[6];
-  frame_rate_d = data[7] << 8 | data[8];
   dprintf("Frame size: %dx%d -- Frame rate: %d / %d\n", width, height, frame_rate_n, frame_rate_d);
   frames = data[9];
   for (i = 0; i < frames; i++) {
     int frame_size;
+    int32_t pts, dts;
 
-    frame_size = data[header_size + FRAME_HEADER_SIZE * i];
-    frame_size = frame_size << 8;
-    frame_size |= data[header_size + FRAME_HEADER_SIZE * i + 1];
-    frame_size = frame_size << 8;
-    frame_size |= data[header_size + FRAME_HEADER_SIZE * i + 2];
+    frame_header_parse(data, &frame_size, &pts, &dts);
     dprintf("Frame %d has size %d\n", i, frame_size);
   }
 #ifdef DEBUGOUT
