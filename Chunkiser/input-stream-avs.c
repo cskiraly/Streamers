@@ -90,11 +90,20 @@ static void frame_header_fill(uint8_t *data, int size, AVPacket *pkt, AVStream *
   if (fps.num == 0) {
     fps = st->r_frame_rate;
   }
-  pts = av_rescale_q(pkt->pts, st->time_base, (AVRational){fps.den, fps.num}),
-  pts += av_rescale_q(base_ts, AV_TIME_BASE_Q, (AVRational){fps.den, fps.num});
+  if (pkt->pts != AV_NOPTS_VALUE) {
+    pts = av_rescale_q(pkt->pts, st->time_base, (AVRational){fps.den, fps.num}),
+    pts += av_rescale_q(base_ts, AV_TIME_BASE_Q, (AVRational){fps.den, fps.num});
+  } else {
+    pts = -1;
+  }
   dprintf("pkt->pts=%ld PTS=%d",pkt->pts, pts);
-  dts = av_rescale_q(pkt->dts, st->time_base, (AVRational){fps.den, fps.num});
-  dts += av_rescale_q(base_ts, AV_TIME_BASE_Q, (AVRational){fps.den, fps.num});
+  if (pkt->dts != AV_NOPTS_VALUE) {
+    dts = av_rescale_q(pkt->dts, st->time_base, (AVRational){fps.den, fps.num});
+    dts += av_rescale_q(base_ts, AV_TIME_BASE_Q, (AVRational){fps.den, fps.num});
+  } else {
+    fprintf(stderr, "No DTS???\n");
+    dts = 0;
+  }
   dprintf(" DTS=%d\n",dts);
   frame_header_write(data, size, pts, dts);
 }

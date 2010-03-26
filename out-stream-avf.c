@@ -122,17 +122,21 @@ void chunk_write(int id, const uint8_t *data, int size)
     frame_header_parse(data + header_size + FRAME_HEADER_SIZE * i,
                        &frame_size, &pts, &dts);
     dprintf("Frame %d PTS1: %d\n", i, pts);
-    pts += (pts < prev_pts - (1 << 15)) ? ((prev_pts >> 16) + 1) << 16 : (prev_pts >> 16) << 16;
-    dprintf(" PTS2: %d\n", pts);
-    prev_pts = pts;
-    dts += (dts < prev_dts - (1 << 15)) ? ((prev_dts >> 16) + 1) << 16 : (prev_dts >> 16) << 16;
-    prev_dts = dts;
-    dprintf("Frame %d has size %d --- PTS: %lld DTS: %lld\n", i, frame_size,
-                                             av_rescale_q(pts, outctx->streams[0]->codec->time_base, AV_TIME_BASE_Q),
-                                             av_rescale_q(dts, outctx->streams[0]->codec->time_base, AV_TIME_BASE_Q));
     av_init_packet(&pkt);
     pkt.stream_index = 0;	// FIXME!
-    pkt.pts = av_rescale_q(pts, outctx->streams[0]->codec->time_base, outctx->streams[0]->time_base);
+    if (pts != -1) {
+      pts += (pts < prev_pts - (1 << 15)) ? ((prev_pts >> 16) + 1) << 16 : (prev_pts >> 16) << 16;
+      dprintf(" PTS2: %d\n", pts);
+      prev_pts = pts;
+      dts += (dts < prev_dts - (1 << 15)) ? ((prev_dts >> 16) + 1) << 16 : (prev_dts >> 16) << 16;
+      prev_dts = dts;
+      dprintf("Frame %d has size %d --- PTS: %lld DTS: %lld\n", i, frame_size,
+                                             av_rescale_q(pts, outctx->streams[0]->codec->time_base, AV_TIME_BASE_Q),
+                                             av_rescale_q(dts, outctx->streams[0]->codec->time_base, AV_TIME_BASE_Q));
+      pkt.pts = av_rescale_q(pts, outctx->streams[0]->codec->time_base, outctx->streams[0]->time_base);
+    } else {
+      pkt.pts = AV_NOPTS_VALUE;
+    }
     pkt.dts = av_rescale_q(dts, outctx->streams[0]->codec->time_base, outctx->streams[0]->time_base);
     pkt.data = p;
     p += frame_size;

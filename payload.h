@@ -10,12 +10,16 @@ static inline void frame_header_parse(const uint8_t *data, int *size, int32_t *p
     *size = *size << 8;
     *size |= data[i];
   }
-  *pts = 0;
+  *dts = 0;
   for (i = 0; i < 4; i++) {
-    *pts = *pts << 8;
-    *pts |= data[3 + i];
+    *dts = *dts << 8;
+    *dts |= data[3 + i];
   }
-  *dts = *pts - data[7];
+  if (data[7] != 255) {
+    *pts = *dts + data[7];
+  } else {
+    *pts = -1;
+  }
 }
 
 static inline void payload_header_parse(const uint8_t *data, uint8_t *codec, int *width, int *height, int *frame_rate_n, int *frame_rate_d)
@@ -45,9 +49,13 @@ static inline void frame_header_write(uint8_t *data, int size, int32_t pts, int3
   data[0] = size >> 16;
   data[1] = size >> 8;
   data[2] = size & 0xFF;
-  data[3] = pts >> 24;
-  data[4] = pts >> 16;
-  data[5] = pts >> 8;
-  data[6] = pts & 0xFF;
-  data[7] = (pts - dts) & 0xFF;
+  data[3] = dts >> 24;
+  data[4] = dts >> 16;
+  data[5] = dts >> 8;
+  data[6] = dts & 0xFF;
+  if (pts != -1) {
+    data[7] = (pts - dts) & 0xFF;
+  } else {
+    data[7] = 255;
+  }
 }
