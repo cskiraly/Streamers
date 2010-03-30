@@ -1,7 +1,7 @@
 #define VIDEO_PAYLOAD_HEADER_SIZE 1 + 2 + 2 + 2 + 2 + 1 // 1 Frame type + 2 width + 2 height + 2 frame rate num + 2 frame rate den + 1 number of frames
 #define FRAME_HEADER_SIZE (3 + 4 + 1)	// 3 Frame size + 4 PTS + 1 DeltaTS
 
-static inline void frame_header_parse(const uint8_t *data, int *size, int32_t *pts, int32_t *dts)
+static inline void frame_header_parse(const uint8_t *data, int *size, int64_t *pts, int64_t *dts)
 {
   int i;
 

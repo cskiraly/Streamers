@@ -116,7 +116,7 @@ void chunk_write(int id, const uint8_t *data, int size)
   p = data + header_size + FRAME_HEADER_SIZE * frames;
   for (i = 0; i < frames; i++) {
     AVPacket pkt;
-    int32_t pts, dts;
+    int64_t pts, dts;
     int frame_size;
 
     frame_header_parse(data + header_size + FRAME_HEADER_SIZE * i,
