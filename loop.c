@@ -110,7 +110,10 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
   period.tv_usec = csize % 1000000;
   
   sigInit(s,pset);
-  source_init(fname, s, loop);
+  if (source_init(fname, s, loop) < 0) {
+    fprintf(stderr,"Cannot initialize source, exiting");
+    return;
+  }
   while (!done) {
     int len, res;
     struct timeval tv;

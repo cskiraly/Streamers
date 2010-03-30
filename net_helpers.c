@@ -119,16 +119,14 @@ const char *autodetect_ip_address() {
 }
 
 
-char *default_ip_addr()
+const char *hostname_ip_addr()
 {
-  char hostname[256];
   const char *ip;
+  char hostname[256];
   struct addrinfo * result;
   struct addrinfo * res;
   int error;
 
-
-  fprintf(stderr, "Trying to guess IP ...");
   if (gethostname(hostname, sizeof hostname) < 0) {
     fprintf(stderr, "can't get hostname\n");
     return NULL;
@@ -155,6 +153,17 @@ char *default_ip_addr()
     }
   }
   freeaddrinfo(result);
+
+  return ip;
+}
+
+char *default_ip_addr()
+{
+  const char *ip = NULL;
+
+  fprintf(stderr, "Trying to guess IP ...");
+
+  //ip = hostname_ip_addr();
 
   if (!ip) {
     ip = autodetect_ip_address();
