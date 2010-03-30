@@ -125,10 +125,10 @@ void chunk_write(int id, const uint8_t *data, int size)
     av_init_packet(&pkt);
     pkt.stream_index = 0;	// FIXME!
     if (pts != -1) {
-      pts += (pts < prev_pts - (1 << 15)) ? ((prev_pts >> 16) + 1) << 16 : (prev_pts >> 16) << 16;
+      pts += (pts < prev_pts - (1 << 31)) ? ((prev_pts >> 32) + 1) << 32 : (prev_pts >> 32) << 32;
       dprintf(" PTS2: %d\n", pts);
       prev_pts = pts;
-      dts += (dts < prev_dts - (1 << 15)) ? ((prev_dts >> 16) + 1) << 16 : (prev_dts >> 16) << 16;
+      dts += (dts < prev_dts - (1 << 31)) ? ((prev_dts >> 32) + 1) << 32 : (prev_dts >> 32) << 32;
       prev_dts = dts;
       dprintf("Frame %d has size %d --- PTS: %lld DTS: %lld\n", i, frame_size,
                                              av_rescale_q(pts, outctx->streams[0]->codec->time_base, AV_TIME_BASE_Q),
