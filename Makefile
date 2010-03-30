@@ -61,7 +61,7 @@ LDLIBS += -lm
 LDLIBS += $(call ld-option, -lz)
 LDLIBS += $(call ld-option, -lbz2)
 else
-OBJS += input-stream-dummy.o out-stream.o
+OBJS += input-stream-dummy.o out-stream-dummy.o
 endif
 
 EXECTARGET = rockstreamer
