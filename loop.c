@@ -100,7 +100,10 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
   static uint8_t buff[BUFFSIZE];
   int cnt = 0;
 
-  source_init(fname, s, loop);
+  if (source_init(fname, s, loop) < 0) {
+    fprintf(stderr,"Cannot initialize source, exiting");
+    return;
+  }
   while (!done) {
     int len, res;
     struct timeval tv;

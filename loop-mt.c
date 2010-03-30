@@ -171,7 +171,10 @@ void source_loop(const char *fname, struct nodeID *s1, int csize, int chunks, bo
   chunks_per_period = chunks;
   s = s1;
  
-  source_init(fname, s, loop);
+  if (source_init(fname, s, loop) < 0) {
+    fprintf(stderr,"Cannot initialize source, exiting");
+    return;
+  }
   pthread_mutex_init(&cb_mutex, NULL);
   pthread_mutex_init(&topology_mutex, NULL);
   pthread_create(&receive_thread, NULL, source_receive, NULL); 
