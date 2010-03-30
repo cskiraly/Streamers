@@ -9,6 +9,7 @@
 
 #include "out-stream.h"
 #include "dbg.h"
+#include "payload.h"
 
 static const char *output_format = "nut";
 static const char *output_file = "/dev/stdout";
@@ -56,15 +57,12 @@ static AVFormatContext *format_init(const uint8_t *data)
   AVCodecContext *c;
   AVOutputFormat *outfmt;
   int width, height, frame_rate_n, frame_rate_d;
+  uint8_t codec;
 
   av_register_all();
 
-  width = data[1] << 8 | data[2];
-  height = data[3] << 8 | data[4];
-  frame_rate_n = data[5] << 8 | data[6];
-  frame_rate_d = data[7] << 8 | data[8];
+  payload_header_parse(data, &codec, &width, &height, &frame_rate_n, &frame_rate_d);
   dprintf("Frame size: %dx%d -- Frame rate: %d / %d\n", width, height, frame_rate_n, frame_rate_d);
-
   outfmt = av_guess_format(output_format, NULL, NULL);
   of = avformat_alloc_context();
   if (of == NULL) {
@@ -73,7 +71,7 @@ static AVFormatContext *format_init(const uint8_t *data)
   of->oformat = outfmt;
   av_new_stream(of, 0);
   c = of->streams[0]->codec;
-  c->codec_id = libav_codec_id(data[0]);
+  c->codec_id = libav_codec_id(codec);
   c->codec_type = CODEC_TYPE_VIDEO;
   c->width = width;
   c->height= height;
@@ -92,8 +90,9 @@ static AVFormatContext *format_init(const uint8_t *data)
 void chunk_write(int id, const uint8_t *data, int size)
 {
   static AVFormatContext *outctx;
-  const int header_size = 1 + 2 + 2 + 2 + 2 + 1; // 1 Frame type + 2 width + 2 height + 2 frame rate num + 2 frame rate den + 1 number of frames
+  const int header_size = VIDEO_PAYLOAD_HEADER_SIZE; 
   int frames, i;
+  const uint8_t *p;
 
   if (data[0] > 127) {
     fprintf(stderr, "Error! Non video chunk: %x!!!\n", data[0]);
@@ -113,29 +112,34 @@ void chunk_write(int id, const uint8_t *data, int size)
     av_write_header(outctx);
   }
 
-  frames = data[9];
+  frames = data[header_size - 1];
+  p = data + header_size + FRAME_HEADER_SIZE * frames;
   for (i = 0; i < frames; i++) {
     AVPacket pkt;
-    int32_t pts, dts;
+    int64_t pts, dts;
     int frame_size;
 
-    frame_size = data[10 + (2 + 2 + 2) * i] << 8 | data[11 + (2 + 2 + 2) * i];
-    pts = data[12 + (2 + 2 + 2) * i] << 8 | data[13 + (2 + 2 + 2) * i];
+    frame_header_parse(data + header_size + FRAME_HEADER_SIZE * i,
+                       &frame_size, &pts, &dts);
     dprintf("Frame %d PTS1: %d\n", i, pts);
-    pts += (pts < prev_pts - (1 << 15)) ? ((prev_pts >> 16) + 1) << 16 : (prev_pts >> 16) << 16;
-    dprintf(" PTS2: %d\n", pts);
-    prev_pts = pts;
-    dts = data[14 + (2 + 2 + 2) * i] << 8 | data[15 + (2 + 2 + 2) * i];
-    dts += (dts < prev_dts - (1 << 15)) ? ((prev_dts >> 16) + 1) << 16 : (prev_dts >> 16) << 16;
-    prev_dts = dts;
-    dprintf("Frame %d has size %d --- PTS: %lld DTS: %lld\n", i, frame_size,
-                                             av_rescale_q(pts, outctx->streams[0]->codec->time_base, AV_TIME_BASE_Q),
-                                             av_rescale_q(dts, outctx->streams[0]->codec->time_base, AV_TIME_BASE_Q));
     av_init_packet(&pkt);
     pkt.stream_index = 0;	// FIXME!
-    pkt.pts = av_rescale_q(pts, outctx->streams[0]->codec->time_base, outctx->streams[0]->time_base);
+    if (pts != -1) {
+      pts += (pts < prev_pts - (1 << 31)) ? ((prev_pts >> 32) + 1) << 32 : (prev_pts >> 32) << 32;
+      dprintf(" PTS2: %d\n", pts);
+      prev_pts = pts;
+      dts += (dts < prev_dts - (1 << 31)) ? ((prev_dts >> 32) + 1) << 32 : (prev_dts >> 32) << 32;
+      prev_dts = dts;
+      dprintf("Frame %d has size %d --- PTS: %lld DTS: %lld\n", i, frame_size,
+                                             av_rescale_q(pts, outctx->streams[0]->codec->time_base, AV_TIME_BASE_Q),
+                                             av_rescale_q(dts, outctx->streams[0]->codec->time_base, AV_TIME_BASE_Q));
+      pkt.pts = av_rescale_q(pts, outctx->streams[0]->codec->time_base, outctx->streams[0]->time_base);
+    } else {
+      pkt.pts = AV_NOPTS_VALUE;
+    }
     pkt.dts = av_rescale_q(dts, outctx->streams[0]->codec->time_base, outctx->streams[0]->time_base);
-    pkt.data = data + header_size + (i + 1) * (2 + 2 + 2);
+    pkt.data = p;
+    p += frame_size;
     pkt.size = frame_size;
     av_interleaved_write_frame(outctx, &pkt);
   }
