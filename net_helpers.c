@@ -163,7 +163,7 @@ char *default_ip_addr()
 
   fprintf(stderr, "Trying to guess IP ...");
 
-  ip = hostname_ip_addr();
+  //ip = hostname_ip_addr();
 
   if (!ip) {
     ip = autodetect_ip_address();
