@@ -84,7 +84,7 @@ all: $(EXECTARGET)
 ifndef ML
 $(EXECTARGET): $(OBJS) $(GRAPES)/som/net_helper.o
 else
-$(EXECTARGET): $(OBJS) $(GRAPES)/som/Tests/net_helper-ml.o $(GRAPES)/som/Tests/ml_helpers.o
+$(EXECTARGET): $(OBJS) $(GRAPES)/som/net_helper-ml.o
 endif
 
 $(EXECTARGET).o: streamer.o
