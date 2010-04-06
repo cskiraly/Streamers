@@ -110,4 +110,6 @@ endif
 
 clean:
 	rm -f $(EXECTARGET)
+	rm -f $(GRAPES)/som/net_helper-ml.o
+	rm -f $(GRAPES)/som/net_helper.o
 	rm -f *.o
