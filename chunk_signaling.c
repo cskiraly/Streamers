@@ -27,26 +27,10 @@
 #include "net_helper.h"
 
 #include "streaming.h"
+#include "topology.h"
 #include "dbg.h"
 
 static struct nodeID *localID;
-static struct peerset *pset;
-
-
-struct peer *nodeid_to_peer(const struct nodeID* id, int reg)
-{
-  struct peer *p = peerset_get_peer(pset, id);
-  if (!p) {
-    fprintf(stderr,"warning: received message from unknown peer: %s!\n",node_addr(id));
-    if (reg) {
-      fprintf(stderr,"Adding %s to neighbourhood!\n", node_addr(id));
-      peerset_add_peer(pset,id);
-      p = peerset_get_peer(pset,id);
-    }
-  }
-
-  return p;
-}
 
 int sendSignalling(int type, const struct nodeID *to_id, const struct nodeID *owner_id, struct chunkID_set *cset, int max_deliver, int cb_size, int trans_id)
 {
@@ -235,9 +219,8 @@ int sigParseData(const struct nodeID *fromid, uint8_t *buff, int buff_len) {
 ///          INIT        ///
 /// ==================== ///
 
-int sigInit(struct nodeID *myID, struct peerset *ps)
+int sigInit(struct nodeID *myID)
 {
   localID = myID;
-  pset = ps;
   return 1;
 }

@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 #include <sys/time.h>
 #include <time.h>
 
@@ -10,10 +11,24 @@
 #include "topology.h"
 #include "dbg.h"
 
+static struct peerset *pset;
 static struct timeval tout_bmap = {5, 0};
 
+
+void add_peer(struct nodeID *id)
+{
+      dprintf("Adding %s to neighbourhood!\n", node_addr(id));
+      peerset_add_peer(pset, id);
+}
+
+void remove_peer(struct nodeID *id)
+{
+      dprintf("Removing %s from neighbourhood!\n", node_addr(id));
+      peerset_remove_peer(pset, id);
+}
+
 // currently it just makes the peerset grow
-void update_peers(struct peerset *pset, struct nodeID *from, const uint8_t *buff, int len)
+void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 {
   int n_ids, i;
   const struct nodeID **ids;
@@ -23,14 +38,20 @@ void update_peers(struct peerset *pset, struct nodeID *from, const uint8_t *buff
   dprintf("Update peers: topo_msg:%d, ",len);
   if (from) {
     dprintf("from:%s, ",node_addr(from));
-    topAddNeighbour(from);	//@TODO: this is agressive
-    peerset_add_peer(pset,from);
+    if (peerset_check(pset, from) < 0) {
+      topAddNeighbour(from);	//@TODO: this is agressive
+      add_peer(from);
+    }
   }
 
   dprintf("before:%d, ",peerset_size(pset));
   topParseData(buff, len);
   ids = topGetNeighbourhood(&n_ids);
-  peerset_add_peers(pset,ids,n_ids);
+  for(i = 0; i < n_ids; i++) {
+    if(peerset_check(pset, ids[i]) < 0) {
+      add_peer(ids[i]);
+    }
+  }
   dprintf("after:%d, ",peerset_size(pset));
 
   gettimeofday(&tnow, NULL);
@@ -40,8 +61,35 @@ void update_peers(struct peerset *pset, struct nodeID *from, const uint8_t *buff
     if ( (!timerisset(&peers[i].bmap_timestamp) && timercmp(&peers[i].creation_timestamp, &told, <) ) ||
          ( timerisset(&peers[i].bmap_timestamp) && timercmp(&peers[i].bmap_timestamp, &told, <)     )   ) {
       topRemoveNeighbour(peers[i].id);
-      peerset_remove_peer(pset, peers[i--].id);
+      remove_peer(peers[i--].id);
     }
   }
   dprintf("after timer check:%d\n",peerset_size(pset));
+}
+
+struct peer *nodeid_to_peer(const struct nodeID* id, int reg)
+{
+  struct peer *p = peerset_get_peer(pset, id);
+  if (!p) {
+    fprintf(stderr,"warning: received message from unknown peer: %s!\n",node_addr(id));
+    if (reg) {
+      topAddNeighbour(id);	//@TODO: this is agressive
+      add_peer(id);
+      p = peerset_get_peer(pset,id);
+    }
+  }
+
+  return p;
+}
+
+int peers_init()
+{
+  fprintf(stderr,"peers_init\n");
+  pset = peerset_init(0);
+  return (int) pset;
+}
+
+struct peerset *get_peers()
+{
+  return pset;
 }

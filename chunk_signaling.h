@@ -42,9 +42,8 @@ int acceptChunks(const struct nodeID *to_id, struct chunkID_set *cset, int max_d
   *
   *
   * @param myID address of this peer
-  * @param pset the peerset to use
   * @return >= 0 on success, <0 on error
   */
-int sigInit(struct nodeID *myID, struct peerset *pset);
+int sigInit(struct nodeID *myID);
 
 #endif

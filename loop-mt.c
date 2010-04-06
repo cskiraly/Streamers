@@ -28,7 +28,6 @@ static int done;
 static pthread_mutex_t cb_mutex;
 static pthread_mutex_t topology_mutex;
 static struct nodeID *s;
-static struct peerset *pset;
 
 static void *chunk_forging(void *dummy)
 {
@@ -60,7 +59,7 @@ static void *source_receive(void *dummy)
     switch (buff[0] /* Message Type */) {
       case MSG_TYPE_TOPOLOGY:
         pthread_mutex_lock(&topology_mutex);
-        update_peers(pset, remote, buff, len);
+        update_peers(remote, buff, len);
         pthread_mutex_unlock(&topology_mutex);
         break;
       case MSG_TYPE_CHUNK:
@@ -97,13 +96,13 @@ static void *receive(void *dummy)
     switch (buff[0] /* Message Type */) {
       case MSG_TYPE_TOPOLOGY:
         pthread_mutex_lock(&topology_mutex);
-        update_peers(pset, remote, buff, len);
+        update_peers(remote, buff, len);
         pthread_mutex_unlock(&topology_mutex);
         break;
       case MSG_TYPE_CHUNK:
         dprintf("Chunk message received:\n");
         pthread_mutex_lock(&cb_mutex);
-        received_chunk(pset, remote, buff, len);
+        received_chunk(remote, buff, len);
         pthread_mutex_unlock(&cb_mutex);
         break;
       case MSG_TYPE_SIGNALLING:
@@ -125,11 +124,11 @@ static void *topology_sending(void *dummy)
   int gossiping_period = period * 10;
 
   pthread_mutex_lock(&topology_mutex);
-  update_peers(pset, NULL, NULL, 0);
+  update_peers(NULL, NULL, 0);
   pthread_mutex_unlock(&topology_mutex);
   while(!done) {
     pthread_mutex_lock(&topology_mutex);
-    update_peers(pset, NULL, NULL, 0);
+    update_peers(NULL, NULL, 0);
     pthread_mutex_unlock(&topology_mutex);
     usleep(gossiping_period);
   }
@@ -144,7 +143,7 @@ static void *chunk_sending(void *dummy)
   while(!done) {
     pthread_mutex_lock(&topology_mutex);
     pthread_mutex_lock(&cb_mutex);
-    send_chunk(pset);
+    send_chunk();
     pthread_mutex_unlock(&cb_mutex);
     pthread_mutex_unlock(&topology_mutex);
     usleep(chunk_period);
@@ -160,8 +159,7 @@ void loop(struct nodeID *s1, int csize, int buff_size)
   period = csize;
   s = s1;
  
-  pset = peerset_init(0);
-  sigInit(s,pset);
+  sigInit(s);
   stream_init(buff_size, s);
   pthread_mutex_init(&cb_mutex, NULL);
   pthread_mutex_init(&topology_mutex, NULL);
@@ -182,8 +180,7 @@ void source_loop(const char *fname, struct nodeID *s1, int csize, int chunks, bo
   chunks_per_period = chunks;
   s = s1;
  
-  pset = peerset_init(0);
-  sigInit(s,pset);
+  sigInit(s);
   if (source_init(fname, s, loop) < 0) {
     fprintf(stderr,"Cannot initialize source, exiting");
     return;

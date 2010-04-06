@@ -25,6 +25,7 @@
 #include "dbg.h"
 #include "chunk_signaling.h"
 #include "chunklock.h"
+#include "topology.h"
 
 #include "scheduler_la.h"
 
@@ -126,7 +127,7 @@ void send_bmap(struct peer *to)
   chunkID_set_free(my_bmap);
 }
 
-void received_chunk(struct peerset *pset, struct nodeID *from, const uint8_t *buff, int len)
+void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
 {
   int res;
   static struct chunk c;
@@ -144,12 +145,7 @@ void received_chunk(struct peerset *pset, struct nodeID *from, const uint8_t *bu
       free(c.data);
       free(c.attributes);
     }
-    p = peerset_get_peer(pset,from);
-    if (!p) {
-      fprintf(stderr,"\twarning: received chunk %d from unknown peer: %s! Adding it to neighbourhood!\n", c.id, node_addr(from));
-      peerset_add_peer(pset,from);
-      p = peerset_get_peer(pset,from);
-    }
+    p = nodeid_to_peer(from,1);
     if (p) {	//now we have it almost sure
       chunkID_set_add_chunk(p->bmap,c.id);	//don't send it back
       send_bmap(p);	//send explicit ack
@@ -248,12 +244,14 @@ void send_accepted_chunks(struct peer *to, struct chunkID_set *cset_acc, int max
   }
 }
 
-void send_offer(const struct peerset *pset)
+void send_offer()
 {
   struct chunk *buff;
   int size, res, i, n;
   struct peer *neighbours;
+  struct peerset *pset;
 
+  pset = get_peers();
   n = peerset_size(pset);
   neighbours = peerset_get_peers(pset);
   dprintf("Send Offer: %d neighbours\n", n);
@@ -282,12 +280,14 @@ void send_offer(const struct peerset *pset)
 }
 
 
-void send_chunk(const struct peerset *pset)
+void send_chunk()
 {
   struct chunk *buff;
   int size, res, i, n;
   struct peer *neighbours;
+  struct peerset *pset;
 
+  pset = get_peers();
   n = peerset_size(pset);
   neighbours = peerset_get_peers(pset);
   dprintf("Send Chunk: %d neighbours\n", n);

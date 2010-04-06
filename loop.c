@@ -47,13 +47,13 @@ void loop(struct nodeID *s, int csize, int buff_size)
   int done = 0;
   static uint8_t buff[BUFFSIZE];
   int cnt = 0;
-  struct peerset *pset = peerset_init(0);
   
   period.tv_sec = csize / 1000000;
   period.tv_usec = csize % 1000000;
   
-  sigInit(s,pset);
-  update_peers(pset, NULL, NULL, 0);
+  sigInit(s);
+  peers_init();
+  update_peers(NULL, NULL, 0);
   stream_init(buff_size, s);
   while (!done) {
     int len, res;
@@ -72,11 +72,11 @@ void loop(struct nodeID *s, int csize, int buff_size)
       }
       switch (buff[0] /* Message Type */) {
         case MSG_TYPE_TOPOLOGY:
-          update_peers(pset, remote, buff, len);
+          update_peers(remote, buff, len);
           break;
         case MSG_TYPE_CHUNK:
           dprintf("Chunk message received:\n");
-          received_chunk(pset, remote, buff, len);
+          received_chunk(remote, buff, len);
           break;
         case MSG_TYPE_SIGNALLING:
           sigParseData(remote, buff, len);
@@ -88,10 +88,10 @@ void loop(struct nodeID *s, int csize, int buff_size)
     } else {
       struct timeval tmp;
 
-      //send_chunk(pset);
-      send_offer(pset);
+      //send_chunk();
+      send_offer();
       if (cnt++ % 10 == 0) {
-        update_peers(pset, NULL, NULL, 0);
+        update_peers(NULL, NULL, 0);
       }
       timeradd(&tnext, &period, &tmp);
       tnext = tmp;
@@ -104,12 +104,12 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
   int done = 0;
   static uint8_t buff[BUFFSIZE];
   int cnt = 0;
-  struct peerset *pset = peerset_init(0);
 
   period.tv_sec = csize  / 1000000;
   period.tv_usec = csize % 1000000;
   
-  sigInit(s,pset);
+  sigInit(s);
+  peers_init();
   if (source_init(fname, s, loop) < 0) {
     fprintf(stderr,"Cannot initialize source, exiting");
     return;
@@ -133,7 +133,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
       switch (buff[0] /* Message Type */) {
         case MSG_TYPE_TOPOLOGY:
           fprintf(stderr, "Top Parse\n");
-          update_peers(pset, remote, buff, len);
+          update_peers(remote, buff, len);
           break;
         case MSG_TYPE_CHUNK:
           fprintf(stderr, "Some dumb peer pushed a chunk to me!\n");
@@ -153,10 +153,10 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
       res = generated_chunk(&d.tv_usec);
       if (res) {
         for (i = 0; i < chunks; i++) {	// @TODO: why this cycle?
-          send_chunk(pset);
+          send_chunk();
         }
         if (cnt++ % 10 == 0) {
-            update_peers(pset, NULL, NULL, 0);
+            update_peers(NULL, NULL, 0);
         }
       }
       timeradd(&tnext, &d, &tmp);
