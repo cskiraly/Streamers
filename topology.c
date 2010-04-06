@@ -11,6 +11,11 @@
 #include "topology.h"
 #include "dbg.h"
 
+#ifdef MONL
+#include "measures.h"
+
+#endif
+
 static struct peerset *pset;
 static struct timeval tout_bmap = {5, 0};
 
@@ -19,11 +24,19 @@ void add_peer(struct nodeID *id)
 {
       dprintf("Adding %s to neighbourhood!\n", node_addr(id));
       peerset_add_peer(pset, id);
+#ifdef MONL
+      /* add measures here */
+      add_measures(id);
+#endif
 }
 
 void remove_peer(struct nodeID *id)
 {
       dprintf("Removing %s from neighbourhood!\n", node_addr(id));
+#ifdef MONL
+      /* add measures here */
+      delete_measures(id);
+#endif
       peerset_remove_peer(pset, id);
 }
 
