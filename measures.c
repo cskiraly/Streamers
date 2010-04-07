@@ -42,6 +42,13 @@ void add_measures(struct nodeID *id)
 	//monPublishStatisticalType(id->mhs[j], NULL, st , sizeof(st)/sizeof(enum stat_types), NULL);
 	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
 	j++;
+	/* Round Trip Time */
+	id->mhs[j] = monCreateMeasure(RTT, TXRXBI | PACKET | IN_BAND);
+	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
+	//Uncomment the following line to publish results
+	//monPublishStatisticalType(id->mhs[j], NULL, st , sizeof(st)/sizeof(enum stat_types), NULL);
+	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
+	j++;
 	// for static must not be more then 10 or whatever size is in net_helper-ml.c
 	id->n_mhs = j;
 }
@@ -53,4 +60,14 @@ void delete_measures(struct nodeID *id)
 	for(j = 0; j < id->n_mhs; j++) {
 		monDestroyMeasure(id->mhs[j]);
 	}
+}
+
+double get_measure(struct nodeID *id, int j, enum stat_types st)
+{
+	return monRetrieveResult(id->mhs[j], st);
+}
+
+//in seconds
+double get_rtt(struct nodeID *id){
+	return get_measure(id, 3, WIN_AVG);
 }
