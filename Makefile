@@ -30,13 +30,14 @@ endif
 
 ifdef ML
 LDFLAGS += -L$(GRAPES)/som -L$(GRAPES)/ml -L$(LIBEVENT)/lib
-LDLIBS += -lsom -lml -levent -lm
+LDLIBS += -lsom -lml -lm
 CPPFLAGS += -I$(LIBEVENT)/include
 ifdef MONL
 LDFLAGS += -L$(GRAPES)/dclog -L$(GRAPES)/rep -L$(GRAPES)/monl -L$(GRAPES)/common
 LDLIBS += -lstdc++ -lmon -lrep -ldclog -lcommon
 CPPFLAGS += -DMONL
 endif
+LDLIBS += -levent
 else
 LDFLAGS = -L$(GRAPES)/som/TopologyManager -L$(GRAPES)/som/ChunkTrading -L$(GRAPES)/som/ChunkBuffer  -L$(GRAPES)/som/Scheduler -L$(GRAPES)/som/PeerSet -L$(GRAPES)/som/ChunkIDSet
 LDLIBS = -ltrading -lcb -ltopman -lsched -lpeerset -lsignalling
