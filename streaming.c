@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <math.h>
 
 #include <net_helper.h>
 #include <chunk.h> 
@@ -26,6 +27,7 @@
 #include "chunk_signaling.h"
 #include "chunklock.h"
 #include "topology.h"
+#include "measures.h"
 
 #include "scheduler_la.h"
 
@@ -218,6 +220,12 @@ double peerWeightReceivedfrom(struct peer **p){
 
 double peerWeightUniform(struct peer **p){
   return 1;
+}
+
+double peerWeightRtt(struct peer **p){
+  double rtt = get_rtt((*p)->id);
+  fprintf(stderr, "RTT to %s: %f\n", node_addr((*p)->id), rtt);
+  return finite(rtt) ? 1 / rtt : 0.5;
 }
 
 double getChunkTimestamp(struct chunk **c){
