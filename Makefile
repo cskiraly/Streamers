@@ -36,6 +36,9 @@ ifdef MONL
 LDFLAGS += -L$(GRAPES)/dclog -L$(GRAPES)/rep -L$(GRAPES)/monl -L$(GRAPES)/common
 LDLIBS += -lstdc++ -lmon -lrep -ldclog -lcommon
 CPPFLAGS += -DMONL
+ifdef STATIC
+CC=g++
+endif
 endif
 LDLIBS += -levent
 else
