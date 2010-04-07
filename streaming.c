@@ -224,7 +224,7 @@ double peerWeightUniform(struct peer **p){
 
 double peerWeightRtt(struct peer **p){
   double rtt = get_rtt((*p)->id);
-  fprintf(stderr, "RTT to %s: %f\n", node_addr((*p)->id), rtt);
+  //dprintf("RTT to %s: %f\n", node_addr((*p)->id), rtt);
   return finite(rtt) ? 1 / rtt : 0.5;
 }
 
