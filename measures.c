@@ -22,28 +22,35 @@ void add_measures(struct nodeID *id)
 
 	dprintf("adding measures to %s\n",node_addr(id));
 	// RX bytes
-	id->mhs[j] = monCreateMeasure(BYTE, RXONLY | PACKET | IN_BAND);
-	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
+//	id->mhs[j] = monCreateMeasure(BYTE, RXONLY | PACKET | IN_BAND);
+//	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
 	//Uncomment the following line to publish results
 	//monPublishStatisticalType(id->mhs[j], NULL, st , sizeof(st)/sizeof(enum stat_types), NULL);
-	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
-	j++;
+//	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
+//	j++;
 	// TX bytes
-	id->mhs[j] = monCreateMeasure(BYTE, TXONLY | PACKET | IN_BAND);
-	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
+//	id->mhs[j] = monCreateMeasure(BYTE, TXONLY | PACKET | IN_BAND);
+//	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
 	//Uncomment the following line to publish results
 	//monPublishStatisticalType(id->mhs[j], NULL, st , sizeof(st)/sizeof(enum stat_types), NULL);
-	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
-	j++;
+//	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
+//	j++;
 	/* HopCount */
-	id->mhs[j] = monCreateMeasure(HOPCOUNT, TXRXUNI | PACKET | IN_BAND);
-	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
+//	id->mhs[j] = monCreateMeasure(HOPCOUNT, TXRXUNI | PACKET | IN_BAND);
+//	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
 	//Uncomment the following line to publish results
 	//monPublishStatisticalType(id->mhs[j], NULL, st , sizeof(st)/sizeof(enum stat_types), NULL);
-	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
-	j++;
+//	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
+//	j++;
 	/* Round Trip Time */
 	id->mhs[j] = monCreateMeasure(RTT, TXRXBI | PACKET | IN_BAND);
+	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
+	//Uncomment the following line to publish results
+	//monPublishStatisticalType(id->mhs[j], NULL, st , sizeof(st)/sizeof(enum stat_types), NULL);
+	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
+	j++;
+	/* Loss */
+	id->mhs[j] = monCreateMeasure(LOSS, TXRXUNI | DATA | IN_BAND);
 	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
 	//Uncomment the following line to publish results
 	//monPublishStatisticalType(id->mhs[j], NULL, st , sizeof(st)/sizeof(enum stat_types), NULL);
@@ -69,5 +76,9 @@ double get_measure(struct nodeID *id, int j, enum stat_types st)
 
 //in seconds
 double get_rtt(struct nodeID *id){
-	return get_measure(id, 3, WIN_AVG);
+	return get_measure(id, 0, WIN_AVG);
+}
+
+double get_lossrate(struct nodeID *id){
+	return get_measure(id, 1, WIN_AVG);
 }
