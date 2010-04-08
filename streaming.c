@@ -103,21 +103,28 @@ struct chunkID_set *cb_to_bmap(struct chunk_buffer *chbuf)
 struct chunkID_set *get_chunks_to_accept(struct peer *from, const struct chunkID_set *cset_off, int max_deliver){
   struct chunkID_set *cset_acc, *my_bmap;
   int i, d, cset_off_size;
+  double lossrate;
 
-  my_bmap = cb_to_bmap(cb);
-  cset_off_size = chunkID_set_size(cset_off);
   cset_acc = chunkID_set_init(0);
-  for (i = 0, d = 0; i < cset_off_size && d < max_deliver; i++) {
-    int chunkid = chunkID_set_get_chunk(cset_off, i);
-    dprintf("\tdo I need c%d ? :",chunkid);
-    if (!chunk_islocked(chunkid) && _needs(my_bmap, cb_size, chunkid)) {
-      chunkID_set_add_chunk(cset_acc, chunkid);
-      chunk_lock(chunkid,from);
-      d++;
+
+  //reduce load a little bit if there are losses on the path from this guy
+  lossrate = get_lossrate(from->id);
+  lossrate = finite(lossrate) ? lossrate : 0;	//start agressively, assuming 0 loss
+  if (rand()/((double)RAND_MAX + 1) >= lossrate ) {
+    my_bmap = cb_to_bmap(cb);
+    cset_off_size = chunkID_set_size(cset_off);
+    for (i = 0, d = 0; i < cset_off_size && d < max_deliver; i++) {
+      int chunkid = chunkID_set_get_chunk(cset_off, i);
+      dprintf("\tdo I need c%d ? :",chunkid);
+      if (!chunk_islocked(chunkid) && _needs(my_bmap, cb_size, chunkid)) {
+        chunkID_set_add_chunk(cset_acc, chunkid);
+        chunk_lock(chunkid,from);
+        d++;
+      }
     }
+    chunkID_set_free(my_bmap);
   }
 
-  chunkID_set_free(my_bmap);
   return cset_acc;
 }
 
@@ -224,7 +231,7 @@ double peerWeightUniform(struct peer **p){
 
 double peerWeightRtt(struct peer **p){
   double rtt = get_rtt((*p)->id);
-  //dprintf("RTT to %s: %f\n", node_addr((*p)->id), rtt);
+  dprintf("RTT to %s: %f\n", node_addr((*p)->id), rtt);
   return finite(rtt) ? 1 / rtt : 0.5;
 }
 
