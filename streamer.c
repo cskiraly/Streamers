@@ -87,7 +87,7 @@ static struct nodeID *init(void)
   if (my_iface) {
     my_addr = iface_addr(my_iface);
   } else {
-    my_addr = default_ip_addr(my_iface);
+    my_addr = default_ip_addr();
   }
 
   if (my_addr == NULL) {
