@@ -232,7 +232,7 @@ double peerWeightUniform(struct peer **p){
 double peerWeightRtt(struct peer **p){
   double rtt = get_rtt((*p)->id);
   dprintf("RTT to %s: %f\n", node_addr((*p)->id), rtt);
-  return finite(rtt) ? 1 / rtt : 0.5;
+  return finite(rtt) ? 1 / (rtt + 0.01) : 1 / 1;
 }
 
 double getChunkTimestamp(struct chunk **c){
