@@ -47,7 +47,7 @@ void add_measures(struct nodeID *id)
 	//monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
 	//Uncomment the following line to publish results
 	monPublishStatisticalType(id->mhs[j], NULL, st , sizeof(st)/sizeof(enum stat_types), NULL);
-	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
+	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_ANY);
 	j++;
 	/* Loss */
 	id->mhs[j] = monCreateMeasure(LOSS, TXRXUNI | PACKET | IN_BAND);
