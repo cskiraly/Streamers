@@ -110,7 +110,7 @@ struct chunkID_set *get_chunks_to_accept(struct peer *from, const struct chunkID
   //reduce load a little bit if there are losses on the path from this guy
   lossrate = get_lossrate(from->id);
   lossrate = finite(lossrate) ? lossrate : 0;	//start agressively, assuming 0 loss
-  if (rand()/((double)RAND_MAX + 1) >= lossrate ) {
+  if (rand()/((double)RAND_MAX + 1) >= 10 * lossrate ) {
     my_bmap = cb_to_bmap(cb);
     cset_off_size = chunkID_set_size(cset_off);
     for (i = 0, d = 0; i < cset_off_size && d < max_deliver; i++) {
