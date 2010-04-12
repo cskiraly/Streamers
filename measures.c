@@ -50,7 +50,7 @@ void add_measures(struct nodeID *id)
 	//monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
 	//Uncomment the following line to publish results
 	monPublishStatisticalType(id->mhs[j], "RoundTripDelay", "OfferStreamer", st , sizeof(st)/sizeof(enum stat_types), NULL);
-	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_ANY);
+	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
 	j++;
 
 	/* Loss */
