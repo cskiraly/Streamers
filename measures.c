@@ -22,20 +22,20 @@ void add_measures(struct nodeID *id)
 
 	dprintf("adding measures to %s\n",node_addr(id));
 	// RX bytes
-	id->mhs[j] = monCreateMeasure(BYTE, RXONLY | PACKET | IN_BAND);
+	//id->mhs[j] = monCreateMeasure(BYTE, RXONLY | PACKET | IN_BAND);
 //	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
 	//Uncomment the following line to publish results
-	monPublishStatisticalType(id->mhs[j], "RxBytesChunk", "OfferStreamer", st , sizeof(st)/sizeof(enum stat_types), NULL);
-	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
-	j++;
+	//monPublishStatisticalType(id->mhs[j], "RxBytesChunk", "OfferStreamer", st , sizeof(st)/sizeof(enum stat_types), NULL);
+	//monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
+	//j++;
 
 	// TX bytes
-	id->mhs[j] = monCreateMeasure(BYTE, TXONLY | PACKET | IN_BAND);
+	//id->mhs[j] = monCreateMeasure(BYTE, TXONLY | PACKET | IN_BAND);
 //	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
 	//Uncomment the following line to publish results
-	monPublishStatisticalType(id->mhs[j], "TxBytesChunk", "OfferStreamer", st , sizeof(st)/sizeof(enum stat_types), NULL);
-	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
-	j++;
+	//monPublishStatisticalType(id->mhs[j], "TxBytesChunk", "OfferStreamer", st , sizeof(st)/sizeof(enum stat_types), NULL);
+	//monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
+	//j++;
 
 	/* HopCount */
 	id->mhs[j] = monCreateMeasure(HOPCOUNT, TXRXUNI | PACKET | IN_BAND);
@@ -61,24 +61,25 @@ void add_measures(struct nodeID *id)
 	monPublishStatisticalType(id->mhs[j], NULL, "OfferStreamer", st , sizeof(st)/sizeof(enum stat_types), NULL);
 	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
 	j++;
-	// for static must not be more then 10 or whatever size is in net_helper-ml.c
-	id->n_mhs = j;
 
 	// RX bytes
-	id->mhs[j] = monCreateMeasure(BYTE, RXONLY | PACKET | IN_BAND);
+	//id->mhs[j] = monCreateMeasure(BYTE, RXONLY | PACKET | IN_BAND);
 //	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
 	//Uncomment the following line to publish results
-	monPublishStatisticalType(id->mhs[j], "RxBytes", "OfferStreamer", st , sizeof(st)/sizeof(enum stat_types), NULL);
-	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_ANY);
-	j++;
+	//monPublishStatisticalType(id->mhs[j], "RxBytes", "OfferStreamer", st , sizeof(st)/sizeof(enum stat_types), NULL);
+	//monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_ANY);
+	//j++;
 
 	// TX bytes
-	id->mhs[j] = monCreateMeasure(BYTE, TXONLY | PACKET | IN_BAND);
+	//id->mhs[j] = monCreateMeasure(BYTE, TXONLY | PACKET | IN_BAND);
 //	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
 	//Uncomment the following line to publish results
-	monPublishStatisticalType(id->mhs[j], "TxBytes", "OfferStreamer", st , sizeof(st)/sizeof(enum stat_types), NULL);
-	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_ANY);
-	j++;
+	//monPublishStatisticalType(id->mhs[j], "TxBytes", "OfferStreamer", st , sizeof(st)/sizeof(enum stat_types), NULL);
+	//monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_ANY);
+	//j++;
+
+	// for static must not be more then 10 or whatever size is in net_helper-ml.c
+	id->n_mhs = j;
 }
 
 void delete_measures(struct nodeID *id)
@@ -97,9 +98,9 @@ double get_measure(struct nodeID *id, int j, enum stat_types st)
 
 //in seconds
 double get_rtt(struct nodeID *id){
-	return get_measure(id, 3, WIN_AVG);
+	return get_measure(id, 1, WIN_AVG);
 }
 
 double get_lossrate(struct nodeID *id){
-	return get_measure(id, 4, WIN_AVG);
+	return get_measure(id, 2, WIN_AVG);
 }
