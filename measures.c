@@ -63,6 +63,22 @@ void add_measures(struct nodeID *id)
 	j++;
 	// for static must not be more then 10 or whatever size is in net_helper-ml.c
 	id->n_mhs = j;
+
+	// RX bytes
+	id->mhs[j] = monCreateMeasure(BYTE, RXONLY | PACKET | IN_BAND);
+//	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
+	//Uncomment the following line to publish results
+	monPublishStatisticalType(id->mhs[j], "RxBytes", "OfferStreamer", st , sizeof(st)/sizeof(enum stat_types), NULL);
+	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_ANY);
+	j++;
+
+	// TX bytes
+	id->mhs[j] = monCreateMeasure(BYTE, TXONLY | PACKET | IN_BAND);
+//	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
+	//Uncomment the following line to publish results
+	monPublishStatisticalType(id->mhs[j], "TxBytes", "OfferStreamer", st , sizeof(st)/sizeof(enum stat_types), NULL);
+	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_ANY);
+	j++;
 }
 
 void delete_measures(struct nodeID *id)
