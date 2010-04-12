@@ -25,16 +25,18 @@ void add_measures(struct nodeID *id)
 	id->mhs[j] = monCreateMeasure(BYTE, RXONLY | PACKET | IN_BAND);
 //	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
 	//Uncomment the following line to publish results
-	monPublishStatisticalType(id->mhs[j], NULL, "OfferStreamer", st , sizeof(st)/sizeof(enum stat_types), NULL);
+	monPublishStatisticalType(id->mhs[j], "RxBytesChunk", "OfferStreamer", st , sizeof(st)/sizeof(enum stat_types), NULL);
 	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
 	j++;
+
 	// TX bytes
 	id->mhs[j] = monCreateMeasure(BYTE, TXONLY | PACKET | IN_BAND);
 //	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
 	//Uncomment the following line to publish results
-	monPublishStatisticalType(id->mhs[j], NULL, "OfferStreamer", st , sizeof(st)/sizeof(enum stat_types), NULL);
+	monPublishStatisticalType(id->mhs[j], "TxBytesChunk", "OfferStreamer", st , sizeof(st)/sizeof(enum stat_types), NULL);
 	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
 	j++;
+
 	/* HopCount */
 	id->mhs[j] = monCreateMeasure(HOPCOUNT, TXRXUNI | PACKET | IN_BAND);
 //	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
@@ -42,13 +44,15 @@ void add_measures(struct nodeID *id)
 	monPublishStatisticalType(id->mhs[j], NULL, "OfferStreamer", st , sizeof(st)/sizeof(enum stat_types), NULL);
 	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
 	j++;
+
 	/* Round Trip Time */
 	id->mhs[j] = monCreateMeasure(RTT, TXRXBI | PACKET | IN_BAND);
 	//monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
 	//Uncomment the following line to publish results
-	monPublishStatisticalType(id->mhs[j], NULL, "OfferStreamer", st , sizeof(st)/sizeof(enum stat_types), NULL);
+	monPublishStatisticalType(id->mhs[j], "RoundTripDelay", "OfferStreamer", st , sizeof(st)/sizeof(enum stat_types), NULL);
 	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_ANY);
 	j++;
+
 	/* Loss */
 	id->mhs[j] = monCreateMeasure(LOSS, TXRXUNI | PACKET | IN_BAND);
 	//monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
