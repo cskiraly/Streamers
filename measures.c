@@ -18,7 +18,7 @@ void add_measures(struct nodeID *id)
 {
 	// Add measures
 	int j = 0;
-	enum stat_types stavg[] = {AVG};
+	enum stat_types stavg[] = {AVG, WIN_AVG};
 	enum stat_types stsum[] = {SUM};
 
 	dprintf("adding measures to %s\n",node_addr(id));
