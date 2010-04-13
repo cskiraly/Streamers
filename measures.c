@@ -64,19 +64,19 @@ void add_measures(struct nodeID *id)
 	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
 	j++;
 
-	id->mhs[j] = monCreateMeasure(BULK_TRANSFER, RXONLY | PACKET | TIMER_BASED);
+//	id->mhs[j] = monCreateMeasure(BULK_TRANSFER, RXONLY | PACKET | TIMER_BASED);
 //	 monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
 	//Uncomment the following line to publish results
-	monPublishStatisticalType(id->mhs[j], "RxBulkTransfer", "TestPolito", stavg , sizeof(stavg)/sizeof(enum stat_types), NULL);
-	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_ANY);
-        j++;
+//	monPublishStatisticalType(id->mhs[j], "RxBulkTransfer", "TestPolito", stavg , sizeof(stavg)/sizeof(enum stat_types), NULL);
+//	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_ANY);
+//        j++;
 
-	id->mhs[j] = monCreateMeasure(BULK_TRANSFER, TXONLY | PACKET | TIMER_BASED);
+//	id->mhs[j] = monCreateMeasure(BULK_TRANSFER, TXONLY | PACKET | TIMER_BASED);
 //	 monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
 	//Uncomment the following line to publish results
-	monPublishStatisticalType(id->mhs[j], "TxBulkTransfer", "TestPolito", stavg , sizeof(stavg)/sizeof(enum stat_types), NULL);
-	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_ANY);
-        j++;
+//	monPublishStatisticalType(id->mhs[j], "TxBulkTransfer", "TestPolito", stavg , sizeof(stavg)/sizeof(enum stat_types), NULL);
+//	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_ANY);
+//        j++;
 
 	// RX bytes
 	//id->mhs[j] = monCreateMeasure(BYTE, RXONLY | PACKET | IN_BAND);
