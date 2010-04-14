@@ -16,7 +16,7 @@
 #include "out-stream.h"
 #include "dbg.h"
 
-static int next_chunk;
+static int next_chunk = -1;
 static int buff_size;
 
 struct outbuf {
@@ -102,6 +102,11 @@ void output_deliver(const struct chunk *c)
 
   if (c->id >= next_chunk + buff_size) {
     int i;
+
+    /* Initialize buffer with first chunk */
+    if (next_chunk == -1) {
+      next_chunk = c->id - buff_size + 1;
+    }
 
     /* We might need some space for storing this chunk,
      * or the stored chunks are too old
