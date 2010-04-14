@@ -36,7 +36,7 @@ void reg_chunk_duplicate()
 
 void reg_chunk_playout(bool b)
 {
-	if (!chunk_playout) {
+	if (!chunk_playout && b) {	//don't count losses before the first arrived chunk
 		enum stat_types st[] = {AVG, SUM};
 		add_measure(&chunk_playout, GENERIC, 0, 120, "ChunksPlayed", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);
 	}
