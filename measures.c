@@ -9,7 +9,7 @@ typedef struct nodeID {
 	int connID;	// connection associated to this node, -1 if myself
 	int refcnt;
 	//a quick and dirty static vector for measures TODO: make it dinamic
-	MonHandler mhs[10];
+	MonHandler mhs[20];
 	int n_mhs;
 } nodeID;
 
