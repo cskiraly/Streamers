@@ -12,6 +12,7 @@
 
 #include <chunk.h>
 
+#include "measures.h"
 #include "out-stream.h"
 #include "dbg.h"
 
@@ -69,6 +70,7 @@ void buffer_free(int i)
   free(buff[i].data);
   buff[i].data = NULL;
   dprintf("Next Chunk: %d -> %d\n", next_chunk, buff[i].id + 1);
+  reg_chunk_playout(true);
   next_chunk = buff[i].id + 1;
 }
 
@@ -108,6 +110,7 @@ void output_deliver(const struct chunk *c)
       if (buff[i % buff_size].data) {
         buffer_free(i % buff_size);
       } else {
+        reg_chunk_playout(false);
         next_chunk++;
       }
     }
@@ -119,6 +122,7 @@ void output_deliver(const struct chunk *c)
   if (c->id == next_chunk) {
     dprintf("\tOut Chunk[%d] - %d: %s\n", c->id, c->id % buff_size, c->data);
     chunk_write(c->id, c->data, c->size);
+    reg_chunk_playout(true);
     next_chunk++;
     buffer_flush(next_chunk);
   } else {
