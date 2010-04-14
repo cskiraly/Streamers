@@ -77,6 +77,9 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
       remove_peer(peers[i--].id);
     }
   }
+
+  reg_neigh_size(peerset_size(pset));
+
   dprintf("after timer check:%d\n",peerset_size(pset));
 }
 
