@@ -13,6 +13,43 @@ typedef struct nodeID {
 	int n_mhs;
 } nodeID;
 
+static MonHandler chunk_dup, chunk_playout, neigh_size;
+
+void reg_chunk_duplicate()
+{
+	if (!chunk_dup) {
+		enum stat_types st[] = {SUM};
+		chunk_dup = monCreateMeasure(GENERIC, 0);
+		monSetParameter (chunk_dup, P_PUBLISHING_RATE, 120);
+		monPublishStatisticalType(chunk_dup, "ChunkDuplicates", "OfferStreamer", st , sizeof(st)/sizeof(enum stat_types), NULL);
+		monActivateMeasure(chunk_dup, NULL, MSG_TYPE_ANY);
+	}
+	monNewSample(chunk_dup, 1);
+}
+
+void reg_chunk_playout(bool b)
+{
+	if (!chunk_playout) {
+		enum stat_types st[] = {AVG, SUM};
+		chunk_playout = monCreateMeasure(GENERIC, 0);
+		monSetParameter (chunk_playout, P_PUBLISHING_RATE, 120);
+		monPublishStatisticalType(chunk_playout, "ChunksPlayed", "OfferStreamer", st , sizeof(st)/sizeof(enum stat_types), NULL);
+		monActivateMeasure(chunk_playout, NULL, MSG_TYPE_ANY);
+	}
+	monNewSample(chunk_playout, b);
+}
+
+void reg_neigh_size(int s)
+{
+	if (!neigh_size) {
+		enum stat_types st[] = {LAST};
+		neigh_size = monCreateMeasure(GENERIC, 0);
+		monSetParameter (neigh_size, P_PUBLISHING_RATE, 120);
+		monPublishStatisticalType(neigh_size, "NeighSize", "OfferStreamer", st , sizeof(st)/sizeof(enum stat_types), NULL);
+		monActivateMeasure(neigh_size, NULL, MSG_TYPE_ANY);
+	}
+	monNewSample(neigh_size, s);
+}
 
 void add_measures(struct nodeID *id)
 {
