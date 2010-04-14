@@ -4,7 +4,7 @@
 #include "dbg.h"
 #include <net_helper.h>
 
-static char* channel = "OfferStreamer";
+static char* channel = "OfferStreamer2";
 
 typedef struct nodeID {
 	socketID_handle addr;
