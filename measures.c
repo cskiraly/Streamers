@@ -25,7 +25,7 @@ void add_measures(struct nodeID *id)
 
 	/* HopCount */
 	id->mhs[j] = monCreateMeasure(HOPCOUNT, TXRXUNI | PACKET | IN_BAND);
-//	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
+	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 600);
 	//Uncomment the following line to publish results
 	monPublishStatisticalType(id->mhs[j], NULL, "OfferStreamer", stavg , sizeof(stavg)/sizeof(enum stat_types), NULL);
 	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
@@ -33,7 +33,7 @@ void add_measures(struct nodeID *id)
 
 	/* Round Trip Time */
 	id->mhs[j] = monCreateMeasure(RTT, TXRXBI | PACKET | IN_BAND);
-	//monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
+	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 60);
 	//Uncomment the following line to publish results
 	monPublishStatisticalType(id->mhs[j], "RoundTripDelay", "OfferStreamer", stavg , sizeof(stavg)/sizeof(enum stat_types), NULL);
 	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_SIGNALLING);
@@ -41,8 +41,7 @@ void add_measures(struct nodeID *id)
 
 	/* Loss */
 	id->mhs[j] = monCreateMeasure(LOSS, TXRXUNI | PACKET | IN_BAND);
-	//monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
-	//monSetParameter (id->mhs[j], P_WINDOW_SIZE, 100);
+	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 60);
 	//Uncomment the following line to publish results
 	monPublishStatisticalType(id->mhs[j], NULL, "OfferStreamer", stavg , sizeof(stavg)/sizeof(enum stat_types), NULL);
 	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
@@ -50,7 +49,7 @@ void add_measures(struct nodeID *id)
 
 	// RX bytes
 //	id->mhs[j] = monCreateMeasure(BYTE, RXONLY | PACKET | IN_BAND);
-//	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
+//	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 120);
 	//Uncomment the following line to publish results
 //	monPublishStatisticalType(id->mhs[j], "RxBytes", "OfferStreamer", stsum , sizeof(stsum)/sizeof(enum stat_types), NULL);
 //	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_ANY);
@@ -58,7 +57,7 @@ void add_measures(struct nodeID *id)
 
 	// TX bytes
 //	id->mhs[j] = monCreateMeasure(BYTE, TXONLY | PACKET | IN_BAND);
-//	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
+//	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 120);
 	//Uncomment the following line to publish results
 //	monPublishStatisticalType(id->mhs[j], "TxBytes", "OfferStreamer", stsum , sizeof(stsum)/sizeof(enum stat_types), NULL);
 //	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_ANY);
@@ -66,7 +65,7 @@ void add_measures(struct nodeID *id)
 
 	// RX bytes
 	id->mhs[j] = monCreateMeasure(BYTE, RXONLY | PACKET | IN_BAND);
-//	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
+	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 600);
 	//Uncomment the following line to publish results
 	monPublishStatisticalType(id->mhs[j], "RxBytesChunk", "OfferStreamer", stsum , sizeof(stsum)/sizeof(enum stat_types), NULL);
 	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
@@ -74,38 +73,52 @@ void add_measures(struct nodeID *id)
 
 	// TX bytes
 	id->mhs[j] = monCreateMeasure(BYTE, TXONLY | PACKET | IN_BAND);
-//	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
+	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 600);
 	//Uncomment the following line to publish results
 	monPublishStatisticalType(id->mhs[j], "TxBytesChunk", "OfferStreamer", stsum , sizeof(stsum)/sizeof(enum stat_types), NULL);
 	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
 	j++;
 
 	id->mhs[j] = monCreateMeasure(BULK_TRANSFER, RXONLY | PACKET | TIMER_BASED);
-	//monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
+	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 600);
 	//Uncomment the following line to publish results
-	monPublishStatisticalType(id->mhs[j], "RxBulkTransferChunk", "OfferStreamer", stavg , sizeof(stavg)/sizeof(enum stat_types), NULL);
+	monPublishStatisticalType(id->mhs[j], "RxChunkSec", "OfferStreamer", stavg , sizeof(stavg)/sizeof(enum stat_types), NULL);
 	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
         j++;
 
 	id->mhs[j] = monCreateMeasure(BULK_TRANSFER, TXONLY | PACKET | TIMER_BASED);
-	//monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
+	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 600);
 	//Uncomment the following line to publish results
-	monPublishStatisticalType(id->mhs[j], "TxBulkTransferChunk", "OfferStreamer", stavg , sizeof(stavg)/sizeof(enum stat_types), NULL);
+	monPublishStatisticalType(id->mhs[j], "TxChunkSec", "OfferStreamer", stavg , sizeof(stavg)/sizeof(enum stat_types), NULL);
 	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
         j++;
 
 	id->mhs[j] = monCreateMeasure(BULK_TRANSFER, RXONLY | PACKET | TIMER_BASED);
-	//monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
+	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 600);
 	//Uncomment the following line to publish results
-	monPublishStatisticalType(id->mhs[j], "RxBulkTransferSig", "OfferStreamer", stavg , sizeof(stavg)/sizeof(enum stat_types), NULL);
+	monPublishStatisticalType(id->mhs[j], "RxSigSec", "OfferStreamer", stavg , sizeof(stavg)/sizeof(enum stat_types), NULL);
 	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_SIGNALLING);
         j++;
 
 	id->mhs[j] = monCreateMeasure(BULK_TRANSFER, TXONLY | PACKET | TIMER_BASED);
-	//monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 100);
+	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 600);
 	//Uncomment the following line to publish results
-	monPublishStatisticalType(id->mhs[j], "TxBulkTransferSig", "OfferStreamer", stavg , sizeof(stavg)/sizeof(enum stat_types), NULL);
+	monPublishStatisticalType(id->mhs[j], "TxSigSec", "OfferStreamer", stavg , sizeof(stavg)/sizeof(enum stat_types), NULL);
 	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_SIGNALLING);
+        j++;
+
+	id->mhs[j] = monCreateMeasure(COUNTER, RXONLY | DATA);
+	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 600);
+	//Uncomment the following line to publish results
+	monPublishStatisticalType(id->mhs[j], "RxChunks", "OfferStreamer", stsum , sizeof(stsum)/sizeof(enum stat_types), NULL);
+	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
+        j++;
+
+	id->mhs[j] = monCreateMeasure(COUNTER, TXONLY | DATA);
+	monSetParameter (id->mhs[j], P_PUBLISHING_RATE, 600);
+	//Uncomment the following line to publish results
+	monPublishStatisticalType(id->mhs[j], "TxChunks", "OfferStreamer", stsum , sizeof(stsum)/sizeof(enum stat_types), NULL);
+	monActivateMeasure(id->mhs[j], id->addr, MSG_TYPE_CHUNK);
         j++;
 
 	// for static must not be more then 10 or whatever size is in net_helper-ml.c
