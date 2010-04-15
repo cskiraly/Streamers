@@ -19,6 +19,9 @@ static MonHandler chunk_dup, chunk_playout, neigh_size;
 static MonHandler rx_bytes_chunk_per_sec, tx_bytes_chunk_per_sec, rx_bytes_sig_per_sec, tx_bytes_sig_per_sec;
 static MonHandler rx_chunks, tx_chunks;
 
+/*
+ * Initialize one measure
+*/
 void add_measure(MonHandler *mh, MeasurementId id, MeasurementCapabilities mc, MonParameterValue rate, const char *pubname, enum stat_types st[], int length, SocketId dst, MsgType mt)
 {
 	*mh = monCreateMeasure(id, mc);
@@ -27,6 +30,9 @@ void add_measure(MonHandler *mh, MeasurementId id, MeasurementCapabilities mc, M
 	monActivateMeasure(*mh, dst, mt);
 }
 
+/*
+ * Register duplicate arrival
+*/
 void reg_chunk_duplicate()
 {
 	if (!chunk_dup) {
@@ -36,6 +42,9 @@ void reg_chunk_duplicate()
 	monNewSample(chunk_dup, 1);
 }
 
+/*
+ * Register playout/loss of a chunk before playout
+*/
 void reg_chunk_playout(bool b)
 {
 	if (!chunk_playout && b) {	//don't count losses before the first arrived chunk
@@ -45,6 +54,9 @@ void reg_chunk_playout(bool b)
 	monNewSample(chunk_playout, b);
 }
 
+/*
+ * Register actual neghbourhood size
+*/
 void reg_neigh_size(int s)
 {
 	if (!neigh_size) {
@@ -54,6 +66,9 @@ void reg_neigh_size(int s)
 	monNewSample(neigh_size, s);
 }
 
+/*
+ * Initialize peer level measurements
+*/
 void init_measures()
 {
 	enum stat_types stavg[] = {AVG, WIN_AVG};
@@ -70,6 +85,9 @@ void init_measures()
        add_measure(&tx_chunks, COUNTER, TXONLY | DATA | IN_BAND, 120, "TxChunks", stsum, sizeof(stsum)/sizeof(enum stat_types), NULL, MSG_TYPE_CHUNK);	//[chunks]
 }
 
+/*
+ * Initialize p2p measurements towards a peer
+*/
 void add_measures(struct nodeID *id)
 {
 	// Add measures
@@ -108,6 +126,9 @@ void add_measures(struct nodeID *id)
 	id->n_mhs = j;
 }
 
+/*
+ * Delete p2p measurements towards a peer
+*/
 void delete_measures(struct nodeID *id)
 {
 	int j;
@@ -117,16 +138,24 @@ void delete_measures(struct nodeID *id)
 	}
 }
 
+/*
+ * Helper to retrieve a measure
+*/
 double get_measure(struct nodeID *id, int j, enum stat_types st)
 {
 	return monRetrieveResult(id->mhs[j], st);
 }
 
-//in seconds
+/*
+ * RTT to a given peer in seconds
+*/
 double get_rtt(struct nodeID *id){
 	return get_measure(id, 1, WIN_AVG);
 }
 
+/*
+ * loss ratio from a given peer as 0..1
+*/
 double get_lossrate(struct nodeID *id){
 	return get_measure(id, 2, WIN_AVG);
 }
