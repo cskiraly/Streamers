@@ -73,6 +73,7 @@ void stream_init(int size, struct nodeID *myID)
   sprintf(conf, "size=%d", cb_size);
   cb = cb_init(conf);
   chunkDeliveryInit(myID);
+  init_measures();
 }
 
 int source_init(const char *fname, struct nodeID *myID, bool loop)

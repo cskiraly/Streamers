@@ -16,6 +16,8 @@ typedef struct nodeID {
 } nodeID;
 
 static MonHandler chunk_dup, chunk_playout, neigh_size;
+static MonHandler rx_bytes_chunk_per_sec, tx_bytes_chunk_per_sec, rx_bytes_sig_per_sec, tx_bytes_sig_per_sec;
+static MonHandler rx_chunks, tx_chunks;
 
 void add_measure(MonHandler *mh, MeasurementId id, MeasurementCapabilities mc, MonParameterValue rate, const char *pubname, enum stat_types st[], int length, SocketId dst, MsgType mt)
 {
@@ -50,6 +52,22 @@ void reg_neigh_size(int s)
 		add_measure(&neigh_size, GENERIC, 0, 120, "NeighSize", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);
 	}
 	monNewSample(neigh_size, s);
+}
+
+void init_measures()
+{
+	enum stat_types stavg[] = {AVG, WIN_AVG};
+	enum stat_types stsum[] = {SUM};
+
+	// Traffic
+       add_measure(&rx_bytes_chunk_per_sec, BULK_TRANSFER, RXONLY | PACKET | TIMER_BASED, 120, "RxBytesChunkPSec", stavg, sizeof(stavg)/sizeof(enum stat_types), NULL, MSG_TYPE_CHUNK);
+       add_measure(&tx_bytes_chunk_per_sec, BULK_TRANSFER, TXONLY | PACKET | TIMER_BASED, 120, "TxBytesChunkPSec", stavg, sizeof(stavg)/sizeof(enum stat_types), NULL, MSG_TYPE_CHUNK);
+       add_measure(&rx_bytes_sig_per_sec, BULK_TRANSFER, RXONLY | PACKET | TIMER_BASED, 120, "RxBytesSigPSec", stavg, sizeof(stavg)/sizeof(enum stat_types), NULL, MSG_TYPE_SIGNALLING);
+       add_measure(&tx_bytes_sig_per_sec, BULK_TRANSFER, TXONLY | PACKET | TIMER_BASED, 120, "TxBytesSigPSec", stavg, sizeof(stavg)/sizeof(enum stat_types), NULL, MSG_TYPE_SIGNALLING);
+
+	// Chunks
+       add_measure(&rx_chunks, COUNTER, RXONLY | DATA | IN_BAND, 120, "RxChunks", stsum, sizeof(stsum)/sizeof(enum stat_types), NULL, MSG_TYPE_CHUNK);
+       add_measure(&tx_chunks, COUNTER, TXONLY | DATA | IN_BAND, 120, "TxChunks", stsum, sizeof(stsum)/sizeof(enum stat_types), NULL, MSG_TYPE_CHUNK);
 }
 
 void add_measures(struct nodeID *id)
