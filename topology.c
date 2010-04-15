@@ -17,7 +17,7 @@
 #endif
 
 static struct peerset *pset;
-static struct timeval tout_bmap = {5, 0};
+static struct timeval tout_bmap = {10, 0};
 
 
 void add_peer(struct nodeID *id)
