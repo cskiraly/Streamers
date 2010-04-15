@@ -282,7 +282,7 @@ void send_offer()
 
     for (i = 0;i < size; i++) chunkps[i] = buff+i;
     for (i = 0; i<n; i++) peerps[i] = neighbours+i;
-    selectPeersForChunks(SCHED_WEIGHTED, peerps, n, chunkps, size, selectedpeers, &selectedpeers_len, needs, peerWeightRtt);	//select a peer that needs at least one of our chunks
+    selectPeersForChunks(SCHED_WEIGHTED, peerps, n, chunkps, size, selectedpeers, &selectedpeers_len, needs, peerWeightReceivedfrom);	//select a peer that needs at least one of our chunks
 
     for (i=0; i<selectedpeers_len ; i++){
       int max_deliver = 1;
