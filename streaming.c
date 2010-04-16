@@ -142,6 +142,20 @@ void send_bmap(struct peer *to)
   chunkID_set_free(my_bmap);
 }
 
+double get_average_lossrate_pset(struct peerset *pset)
+{
+  int i, n;
+  struct peer *neighbours;
+
+  n = peerset_size(pset);
+  neighbours = peerset_get_peers(pset);
+  {
+    struct nodeID *nodeids[n];
+    for (i = 0; i<n; i++) nodeids[i] = neighbours[i].id;
+    return get_average_lossrate(nodeids, n);
+  }
+}
+
 void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
 {
   int res;
@@ -298,10 +312,7 @@ void send_offer()
     struct peer *selectedpeers[selectedpeers_len];
 
     //reduce load a little bit if there are losses on the path from this guy
-    struct nodeID *nodeids[n];
-    double average_lossrate;
-    for (i = 0; i<n; i++) nodeids[i] = neighbours[i].id;
-    average_lossrate = get_average_lossrate(nodeids, n);
+    double average_lossrate = get_average_lossrate_pset(pset);
     average_lossrate = finite(average_lossrate) ? average_lossrate : 0;	//start agressively, assuming 0 loss
     if (rand()/((double)RAND_MAX + 1) < average_lossrate ) {
       return;
