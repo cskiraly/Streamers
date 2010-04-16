@@ -149,9 +149,9 @@ void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
   struct peer *p;
 
   res = decodeChunk(&c, buff + 1, len - 1);
-  chunk_unlock(c.id);
   if (res > 0) {
     reg_chunk_receive(c.id);
+    chunk_unlock(c.id);
     dprintf("Received chunk %d from peer: %s\n", c.id, node_addr(from));
     output_deliver(&c);
     res = cb_add_chunk(cb, &c);
