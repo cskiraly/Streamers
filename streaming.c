@@ -106,14 +106,14 @@ struct chunkID_set *cb_to_bmap(struct chunk_buffer *chbuf)
 struct chunkID_set *get_chunks_to_accept(struct peer *from, const struct chunkID_set *cset_off, int max_deliver){
   struct chunkID_set *cset_acc, *my_bmap;
   int i, d, cset_off_size;
-  double lossrate;
+  //double lossrate;
 
   cset_acc = chunkID_set_init(0);
 
   //reduce load a little bit if there are losses on the path from this guy
-  lossrate = get_lossrate(from->id);
-  lossrate = finite(lossrate) ? lossrate : 0;	//start agressively, assuming 0 loss
-  if (rand()/((double)RAND_MAX + 1) >= 10 * lossrate ) {
+  //lossrate = get_lossrate_receive(from->id);
+  //lossrate = finite(lossrate) ? lossrate : 0;	//start agressively, assuming 0 loss
+  //if (rand()/((double)RAND_MAX + 1) >= 10 * lossrate ) {
     my_bmap = cb_to_bmap(cb);
     cset_off_size = chunkID_set_size(cset_off);
     for (i = 0, d = 0; i < cset_off_size && d < max_deliver; i++) {
@@ -127,9 +127,9 @@ struct chunkID_set *get_chunks_to_accept(struct peer *from, const struct chunkID
       }
     }
     chunkID_set_free(my_bmap);
-  } else {
-    dtprintf("accepting -- from %s loss:%f rtt:%f\n", node_addr(from->id), lossrate, get_rtt(from->id));
-  }
+  //} else {
+  //    dtprintf("accepting -- from %s loss:%f rtt:%f\n", node_addr(from->id), lossrate, get_rtt(from->id));
+  //}
 
   return cset_acc;
 }
