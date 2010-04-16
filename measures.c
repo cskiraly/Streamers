@@ -15,7 +15,7 @@ typedef struct nodeID {
 	int n_mhs;
 } nodeID;
 
-static MonHandler chunk_dup, chunk_playout, neigh_size;
+static MonHandler chunk_dup, chunk_playout, neigh_size, chunk_receive, chunk_send;
 static MonHandler rx_bytes_chunk_per_sec, tx_bytes_chunk_per_sec, rx_bytes_sig_per_sec, tx_bytes_sig_per_sec;
 static MonHandler rx_chunks, tx_chunks;
 
@@ -38,6 +38,7 @@ void reg_chunk_duplicate()
 	if (!chunk_dup) {
 		enum stat_types st[] = {SUM};
 		add_measure(&chunk_dup, GENERIC, 0, 120, "ChunkDuplicates", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[chunks]
+		monNewSample(chunk_dup, 0);	//force publish even if there are no events
 	}
 	monNewSample(chunk_dup, 1);
 }
@@ -67,6 +68,32 @@ void reg_neigh_size(int s)
 }
 
 /*
+ * Register chunk receive event
+*/
+void reg_chunk_receive(int id)
+{
+	if (!chunk_receive) {
+		enum stat_types st[] = {RATE};
+		add_measure(&chunk_receive, GENERIC, 0, 120, "RxChunkAll", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
+		monNewSample(chunk_receive, 0);	//force publish even if there are no events
+	}
+	monNewSample(chunk_receive, 1);
+}
+
+/*
+ * Register chunk send event
+*/
+void reg_chunk_send(int id)
+{
+	if (!chunk_send) {
+		enum stat_types st[] = {RATE};
+		add_measure(&chunk_send, GENERIC, 0, 120, "TxChunkAll", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
+		monNewSample(chunk_send, 0);	//force publish even if there are no events
+	}
+	monNewSample(chunk_send, 1);
+}
+
+/*
  * Initialize peer level measurements
 */
 void init_measures()
@@ -81,8 +108,8 @@ void init_measures()
        add_measure(&tx_bytes_sig_per_sec, BULK_TRANSFER, TXONLY | PACKET | TIMER_BASED, 120, "TxBytesSigPSec", stavg, sizeof(stavg)/sizeof(enum stat_types), NULL, MSG_TYPE_SIGNALLING);	//[bytes/s]
 
 	// Chunks
-       add_measure(&rx_chunks, COUNTER, RXONLY | DATA | IN_BAND, 120, "RxChunks", stsum, sizeof(stsum)/sizeof(enum stat_types), NULL, MSG_TYPE_CHUNK);	//[chunks]
-       add_measure(&tx_chunks, COUNTER, TXONLY | DATA | IN_BAND, 120, "TxChunks", stsum, sizeof(stsum)/sizeof(enum stat_types), NULL, MSG_TYPE_CHUNK);	//[chunks]
+       // replaced by reg_chun_receive add_measure(&rx_chunks, COUNTER, RXONLY | DATA | IN_BAND, 120, "RxChunksAll", stsum, sizeof(stsum)/sizeof(enum stat_types), NULL, MSG_TYPE_CHUNK);	//[chunks]
+       // replaced by reg_chun_send add_measure(&tx_chunks, COUNTER, TXONLY | DATA | IN_BAND, 120, "TxChunksAll", stsum, sizeof(stsum)/sizeof(enum stat_types), NULL, MSG_TYPE_CHUNK);	//[chunks]
 }
 
 /*
