@@ -1,3 +1,5 @@
+#include <math.h>
+
 #include <mon.h>
 #include <ml.h>
 
@@ -173,6 +175,14 @@ void delete_measures(struct nodeID *id)
 double get_measure(struct nodeID *id, int j, enum stat_types st)
 {
 	return monRetrieveResult(id->mhs[j], st);
+}
+
+/*
+ * Hopcount to a given peer
+*/
+int get_hopcount(struct nodeID *id){
+	double r = get_measure(id, 0, LAST);
+	return isnan(r) ? -1 : (int) r;
 }
 
 /*
