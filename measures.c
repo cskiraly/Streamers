@@ -198,3 +198,18 @@ double get_rtt(struct nodeID *id){
 double get_lossrate(struct nodeID *id){
 	return get_measure(id, 2, WIN_AVG);
 }
+
+double get_average_lossrate(struct nodeID **ids, int len){
+	int i;
+	int n = 0;
+	double sum = 0;
+
+	for (i = 0; i < len; i++) {
+		double l = get_lossrate(ids[i]);
+		if (!isnan(l)) {
+			sum += l;
+			n++;
+		}
+	}
+	return (n > 0) ? sum / n : NAN;
+}
