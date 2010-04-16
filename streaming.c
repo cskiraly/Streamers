@@ -267,6 +267,15 @@ void send_accepted_chunks(struct peer *to, struct chunkID_set *cset_acc, int max
   }
 }
 
+int offer_max_deliver(struct peer *p)
+{
+  switch (get_hopcount(p->id)) {
+    case 0: return 5;
+    case 1: return 2;
+    default: return 1;
+  }
+}
+
 void send_offer()
 {
   struct chunk *buff;
@@ -293,7 +302,7 @@ void send_offer()
     selectPeersForChunks(SCHED_WEIGHTED, peerps, n, chunkps, size, selectedpeers, &selectedpeers_len, needs, peerWeightReceivedfrom);	//select a peer that needs at least one of our chunks
 
     for (i=0; i<selectedpeers_len ; i++){
-      int max_deliver = 1;
+      int max_deliver = offer_max_deliver(selectedpeers[i]);
       struct chunkID_set *my_bmap = cb_to_bmap(cb);
       dprintf("\t sending offer(%d) to %s\n", transid, node_addr(selectedpeers[i]->id));
       res = offerChunks(selectedpeers[i]->id, my_bmap, max_deliver, transid++);
