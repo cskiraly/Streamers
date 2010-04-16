@@ -22,6 +22,7 @@ CPPFLAGS += -I$(GRAPES)/som
 ifdef DEBUG
 CFLAGS += -O0
 CPPFLAGS += -DDEBUG
+OBJS += dbg.o
 endif
 
 ifdef DEBUGOUT
@@ -46,7 +47,7 @@ LDFLAGS = -L$(GRAPES)/som/TopologyManager -L$(GRAPES)/som/ChunkTrading -L$(GRAPE
 LDLIBS = -ltrading -lcb -ltopman -lsched -lpeerset -lsignalling
 endif
 
-OBJS = streaming.o 
+OBJS += streaming.o
 OBJS += input.o
 OBJS += output.o 
 OBJS += net_helpers.o 
