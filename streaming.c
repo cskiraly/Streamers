@@ -333,7 +333,7 @@ void send_offer()
     //reduce load a little bit if there are losses on the path from this guy
     double average_lossrate = get_average_lossrate_pset(pset);
     average_lossrate = finite(average_lossrate) ? average_lossrate : 0;	//start agressively, assuming 0 loss
-    if (rand()/((double)RAND_MAX + 1) < average_lossrate ) {
+    if (rand()/((double)RAND_MAX + 1) < 10 * average_lossrate ) {
       return;
     }
 
