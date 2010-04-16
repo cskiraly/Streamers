@@ -163,6 +163,17 @@ double get_average_lossrate_pset(struct peerset *pset)
   }
 }
 
+void ack_chunk(struct chunk *c, struct peer *p)
+{
+  //reduce load a little bit if there are losses on the path from this guy
+  double average_lossrate = get_average_lossrate_pset(get_peers());
+  average_lossrate = finite(average_lossrate) ? average_lossrate : 0;	//start agressively, assuming 0 loss
+  if (rand()/((double)RAND_MAX + 1) < 1 * average_lossrate ) {
+    return;
+  }
+  send_bmap(p);	//send explicit ack
+}
+
 void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
 {
   int res;
@@ -187,7 +198,7 @@ void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
     p = nodeid_to_peer(from,1);
     if (p) {	//now we have it almost sure
       chunkID_set_add_chunk(p->bmap,c.id);	//don't send it back
-      send_bmap(p);	//send explicit ack
+      ack_chunk(&c,p);	//send explicit ack
     }
   } else {
     fprintf(stderr,"\tError: can't decode chunk!\n");
