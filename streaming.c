@@ -297,6 +297,16 @@ void send_offer()
     struct peer *peerps[n];
     struct peer *selectedpeers[selectedpeers_len];
 
+    //reduce load a little bit if there are losses on the path from this guy
+    struct nodeID *nodeids[n];
+    double average_lossrate;
+    for (i = 0; i<n; i++) nodeids[i] = neighbours[i].id;
+    average_lossrate = get_average_lossrate(nodeids, n);
+    average_lossrate = finite(average_lossrate) ? average_lossrate : 0;	//start agressively, assuming 0 loss
+    if (rand()/((double)RAND_MAX + 1) < average_lossrate ) {
+      return;
+    }
+
     for (i = 0;i < size; i++) chunkps[i] = buff+i;
     for (i = 0; i<n; i++) peerps[i] = neighbours+i;
     selectPeersForChunks(SCHED_WEIGHTED, peerps, n, chunkps, size, selectedpeers, &selectedpeers_len, needs, peerWeightReceivedfrom);	//select a peer that needs at least one of our chunks
