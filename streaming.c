@@ -151,6 +151,7 @@ void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
   res = decodeChunk(&c, buff + 1, len - 1);
   chunk_unlock(c.id);
   if (res > 0) {
+    reg_chunk_receive(c.id);
     dprintf("Received chunk %d from peer: %s\n", c.id, node_addr(from));
     output_deliver(&c);
     res = cb_add_chunk(cb, &c);
@@ -258,6 +259,7 @@ void send_accepted_chunks(struct peer *to, struct chunkID_set *cset_acc, int max
       if (res >= 0) {
         chunkID_set_add_chunk(to->bmap, c->id); //don't send twice ... assuming that it will actually arrive
         d++;
+        reg_chunk_send(c->id);
       } else {
         fprintf(stderr,"ERROR sending chunk %d\n",c->id);
       }
@@ -345,6 +347,7 @@ void send_chunk()
       dprintf("\tResult: %d\n", res);
       if (res>=0) {
         chunkID_set_add_chunk(p->bmap,c->id); //don't send twice ... assuming that it will actually arrive
+        reg_chunk_send(c->id);
       } else {
         fprintf(stderr,"ERROR sending chunk %d\n",c->id);
       }
