@@ -1,4 +1,10 @@
 #include <math.h>
+#ifndef NAN	//NAN is missing in some old math.h versions
+#define NAN            (0.0/0.0)
+#endif
+#ifndef INFINITY
+#define INFINITY       (1.0/0.0)
+#endif
 
 #include <mon.h>
 #include <ml.h>
