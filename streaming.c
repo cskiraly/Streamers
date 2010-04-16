@@ -54,6 +54,8 @@ void cb_print()
       if (id == chunks[i].id) {
         dprintf("%d",id % 10);
         i++;
+      } else if (chunk_islocked(id)) {
+        dprintf("*");
       } else {
         dprintf(".");
       }
