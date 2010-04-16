@@ -118,14 +118,17 @@ struct chunkID_set *get_chunks_to_accept(struct peer *from, const struct chunkID
     cset_off_size = chunkID_set_size(cset_off);
     for (i = 0, d = 0; i < cset_off_size && d < max_deliver; i++) {
       int chunkid = chunkID_set_get_chunk(cset_off, i);
-      dprintf("\tdo I need c%d ? :",chunkid);
+      //dprintf("\tdo I need c%d ? :",chunkid);
       if (!chunk_islocked(chunkid) && _needs(my_bmap, cb_size, chunkid)) {
         chunkID_set_add_chunk(cset_acc, chunkid);
         chunk_lock(chunkid,from);
+        dtprintf("accepting %d from %s, loss:%f rtt:%f\n", chunkid, node_addr(from->id), lossrate, get_rtt(from->id));
         d++;
       }
     }
     chunkID_set_free(my_bmap);
+  } else {
+    dtprintf("accepting -- from %s loss:%f rtt:%f\n", node_addr(from->id), lossrate, get_rtt(from->id));
   }
 
   return cset_acc;
