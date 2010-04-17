@@ -122,7 +122,7 @@ struct chunkID_set *get_chunks_to_accept(struct peer *from, const struct chunkID
       if (!chunk_islocked(chunkid) && _needs(my_bmap, cb_size, chunkid)) {
         chunkID_set_add_chunk(cset_acc, chunkid);
         chunk_lock(chunkid,from);
-        dtprintf("accepting %d from %s, loss:%f rtt:%f\n", chunkid, node_addr(from->id), lossrate, get_rtt(from->id));
+        dtprintf("accepting %d from %s, loss:%f rtt:%f\n", chunkid, node_addr(from->id), get_lossrate(from->id), get_rtt(from->id));
         d++;
       }
     }
