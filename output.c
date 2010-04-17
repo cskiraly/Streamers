@@ -51,6 +51,10 @@ void buffer_print()
 #ifdef DEBUG
   int i;
 
+  if (next_chunk < 0) {
+    return;
+  }
+
   dprintf("\toutbuf: %d-> ",next_chunk);
   for (i = next_chunk; i < next_chunk + buff_size; i++) {
     if (buff[i % buff_size].data) {
