@@ -12,7 +12,7 @@
 #include "dbg.h"
 #include <net_helper.h>
 
-static const char* channel = "OfferStreamer2";
+static const char* channel = "OfferStreamer3";
 
 typedef struct nodeID {
 	socketID_handle addr;
