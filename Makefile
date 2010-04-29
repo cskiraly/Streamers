@@ -14,10 +14,11 @@ CFLAGS += $(call cc-option, -Wundef)
 
 CFLAGS += $(call cc-option, -funit-at-a-time)
 
+NAPA ?= NAPA
 GRAPES ?= GRAPES
 
-CPPFLAGS = -I$(GRAPES)/include
-CPPFLAGS += -I$(GRAPES)/som
+CPPFLAGS = -I$(NAPA)/include
+CPPFLAGS += -I$(GRAPES)/include
 
 ifdef DEBUG
 CFLAGS += -O0
@@ -29,12 +30,14 @@ ifdef DEBUGOUT
 CPPFLAGS += -DDEBUGOUT
 endif
 
+LDFLAGS += -L$(GRAPES)/som
+LDLIBS += -lgrapes
 ifdef ML
-LDFLAGS += -L$(GRAPES)/som -L$(GRAPES)/ml -L$(LIBEVENT)/lib
-LDLIBS += -lsom -lml -lm
+LDFLAGS += -L$(NAPA)/ml -L$(LIBEVENT)/lib
+LDLIBS += -lml -lm
 CPPFLAGS += -I$(LIBEVENT)/include
 ifdef MONL
-LDFLAGS += -L$(GRAPES)/dclog -L$(GRAPES)/rep -L$(GRAPES)/monl -L$(GRAPES)/common
+LDFLAGS += -L$(NAPA)/dclog -L$(NAPA)/rep -L$(NAPA)/monl -L$(NAPA)/common
 LDLIBS += -lstdc++ -lmon -lrep -ldclog -lcommon
 CPPFLAGS += -DMONL
 ifdef STATIC
@@ -42,9 +45,6 @@ CC=g++
 endif
 endif
 LDLIBS += -levent
-else
-LDFLAGS = -L$(GRAPES)/som/TopologyManager -L$(GRAPES)/som/ChunkTrading -L$(GRAPES)/som/ChunkBuffer  -L$(GRAPES)/som/Scheduler -L$(GRAPES)/som/PeerSet -L$(GRAPES)/som/ChunkIDSet
-LDLIBS = -ltrading -lcb -ltopman -lsched -lpeerset -lsignalling
 endif
 
 OBJS += streaming.o
@@ -101,7 +101,7 @@ all: $(EXECTARGET)
 ifndef ML
 $(EXECTARGET): $(OBJS) $(GRAPES)/som/net_helper.o
 else
-$(EXECTARGET): $(OBJS) $(GRAPES)/som/net_helper-ml.o
+$(EXECTARGET): $(OBJS) $(NAPA)/som/net_helper-ml.o
 endif
 
 $(EXECTARGET).o: streamer.o
@@ -118,15 +118,14 @@ ffmpeg:
 	cd ffmpeg; ./configure
 
 prepare: $(GRAPES) $(FFSRC)
-ifndef ML
-	$(MAKE) -C $(GRAPES)/som -f Makefile.som
-else
-	cd $(GRAPES); ./autogen.sh; $(MAKE)
+	$(MAKE) -C $(GRAPES)/som -f Makefile
+ifdef ML
+	cd $(NAPA); ./autogen.sh; $(MAKE)
 endif
 	$(MAKE) -C $(FFSRC)
 
 clean:
 	rm -f $(EXECTARGET)
-	rm -f $(GRAPES)/som/net_helper-ml.o
+	rm -f $(NAPA)/som/net_helper-ml.o
 	rm -f $(GRAPES)/som/net_helper.o
 	rm -f *.o
