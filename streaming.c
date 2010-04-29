@@ -13,7 +13,6 @@
 #include <net_helper.h>
 #include <chunk.h> 
 #include <chunkbuffer.h> 
-#include "chunkbuffer_helper.h"
 #include <trade_msg_la.h>
 #include <trade_msg_ha.h>
 #include <peerset.h>
