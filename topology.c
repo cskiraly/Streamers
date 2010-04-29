@@ -52,7 +52,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
   if (from) {
     dprintf("from:%s, ",node_addr(from));
     if (peerset_check(pset, from) < 0) {
-      topAddNeighbour(from);	//@TODO: this is agressive
+      topAddNeighbour(from, NULL, 0);	//@TODO: this is agressive
       add_peer(from);
     }
   }
@@ -91,7 +91,7 @@ struct peer *nodeid_to_peer(const struct nodeID* id, int reg)
   if (!p) {
     fprintf(stderr,"warning: received message from unknown peer: %s!\n",node_addr(id));
     if (reg) {
-      topAddNeighbour(id);	//@TODO: this is agressive
+      topAddNeighbour(id, NULL, 0);	//@TODO: this is agressive
       add_peer(id);
       p = peerset_get_peer(pset,id);
     }

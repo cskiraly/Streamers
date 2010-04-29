@@ -105,7 +105,7 @@ static struct nodeID *init(void)
     return NULL;
   }
   free(my_addr);
-  topInit(myID);
+  topInit(myID, NULL, 0);
 
   output_init(outbuff_size);
 
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 
       return -1;
     }
-    topAddNeighbour(srv);
+    topAddNeighbour(srv, NULL, 0);
 
     loop(my_sock, 1000000 / chunks_per_second, buff_size);
   }
