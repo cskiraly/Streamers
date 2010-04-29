@@ -60,7 +60,7 @@ void loop(struct nodeID *s, int csize, int buff_size)
     struct timeval tv;
 
     tout_init(&tv);
-    res = wait4data(s, &tv);
+    res = wait4data(s, &tv, NULL);
     if (res > 0) {
       struct nodeID *remote;
 
@@ -119,7 +119,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
     struct timeval tv;
 
     tout_init(&tv);
-    res = wait4data(s, &tv);
+    res = wait4data(s, &tv, NULL);
     if (res > 0) {
       struct nodeID *remote;
 
