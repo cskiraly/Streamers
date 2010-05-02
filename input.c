@@ -67,7 +67,7 @@ int input_get(struct input_desc *s, struct chunk *c)
   gettimeofday(&now, NULL);
   delta = delta + s->start_time - now.tv_sec * 1000000ULL - now.tv_usec;
   dprintf("Delta: %lld\n", delta);
-  dprintf("Generate Chunk[%d] (TS: %llu): %s\n", c->id, c->timestamp, c->data);
+  dprintf("Generate Chunk[%d] (TS: %llu)\n", c->id, c->timestamp);
 
   return delta > 0 ? delta : 0;
 }
