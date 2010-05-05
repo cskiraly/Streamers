@@ -83,6 +83,9 @@ EXECTARGET = offerstreamer
 ifdef ML
 EXECTARGET := $(EXECTARGET)-ml
 endif
+ifdef MONL
+EXECTARGET := $(EXECTARGET)-monl
+endif
 ifdef THREADS
 EXECTARGET := $(EXECTARGET)-threads
 endif
