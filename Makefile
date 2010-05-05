@@ -44,7 +44,7 @@ ifdef STATIC
 CC=g++
 endif
 endif
-LDLIBS += -levent
+LDLIBS += -levent -lrt
 endif
 
 OBJS += streaming.o
