@@ -219,9 +219,9 @@ int generated_chunk(suseconds_t *delta)
  * Looks at buffermap information received about the given peer.
  */
 int needs(struct peer *p, struct chunk *c){
-  dprintf("\t%s needs c%d ? :",node_addr(p->id),c->id);
+  //dprintf("\t%s needs c%d ? :",node_addr(p->id),c->id);
   if (! p->bmap) {
-    dprintf("no bmap\n");
+    //dprintf("no bmap\n");
     return 1;	// if we have no bmap information, we assume it needs the chunk (aggressive behaviour!)
   }
   return _needs(p->bmap, p->cb_size, c->id);
@@ -233,17 +233,17 @@ int _needs(struct chunkID_set *cset, int cb_size, int cid){
     //@TODO: add some bmap_timestamp based logic
 
     if (chunkID_set_size(cset) == 0) {
-      dprintf("bmap empty\n");
+      //dprintf("bmap empty\n");
       return 1;	// if the bmap seems empty, it needs the chunk
     }
     missing = cb_size - chunkID_set_size(cset);
     missing = missing < 0 ? 0 : missing;
     min = chunkID_set_get_chunk(cset, chunkID_set_size(cset)-1);
-      dprintf("%s ... cid(%d) >= min(%d) - missing(%d) ?\n",(cid >= min - missing)?"YES":"NO",cid, min, missing);
+      //dprintf("%s ... cid(%d) >= min(%d) - missing(%d) ?\n",(cid >= min - missing)?"YES":"NO",cid, min, missing);
     return (cid >= min - missing);
   }
 
-  dprintf("has it\n");
+  //dprintf("has it\n");
   return 0;
 }
 
@@ -258,7 +258,7 @@ double peerWeightUniform(struct peer **p){
 #ifdef MONL
 double peerWeightRtt(struct peer **p){
   double rtt = get_rtt((*p)->id);
-  dprintf("RTT to %s: %f\n", node_addr((*p)->id), rtt);
+  //dprintf("RTT to %s: %f\n", node_addr((*p)->id), rtt);
   return finite(rtt) ? 1 / (rtt + 0.005) : 1 / 1;
 }
 #endif
