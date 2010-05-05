@@ -74,7 +74,9 @@ void buffer_free(int i)
   free(buff[i].data);
   buff[i].data = NULL;
   dprintf("Next Chunk: %d -> %d\n", next_chunk, buff[i].id + 1);
+#ifdef MONL
   reg_chunk_playout(true);
+#endif
   next_chunk = buff[i].id + 1;
 }
 
@@ -119,7 +121,9 @@ void output_deliver(const struct chunk *c)
       if (buff[i % buff_size].data) {
         buffer_free(i % buff_size);
       } else {
+#ifdef MONL
         reg_chunk_playout(false);
+#endif
         next_chunk++;
       }
     }
@@ -131,7 +135,9 @@ void output_deliver(const struct chunk *c)
   if (c->id == next_chunk) {
     dprintf("\tOut Chunk[%d] - %d: %s\n", c->id, c->id % buff_size, c->data);
     chunk_write(c->id, c->data, c->size);
+#ifdef MONL
     reg_chunk_playout(true);
+#endif
     next_chunk++;
     buffer_flush(next_chunk);
   } else {
@@ -140,7 +146,9 @@ void output_deliver(const struct chunk *c)
       if (buff[c->id % buff_size].id == c->id) {
         /* Duplicate of a stored chunk */
         dprintf("\tDuplicate!\n");
+#ifdef MONL
         reg_chunk_duplicate();
+#endif
         return;
       }
       fprintf(stderr, "Crap!\n");

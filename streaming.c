@@ -151,7 +151,11 @@ double get_average_lossrate_pset(struct peerset *pset)
   {
     struct nodeID *nodeids[n];
     for (i = 0; i<n; i++) nodeids[i] = neighbours[i].id;
+#ifdef MONL
     return get_average_lossrate(nodeids, n);
+#else
+    return 0;
+#endif
   }
 }
 
@@ -163,7 +167,9 @@ void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
 
   res = decodeChunk(&c, buff + 1, len - 1);
   if (res > 0) {
+#ifdef MONL
     reg_chunk_receive(c.id);
+#endif
     chunk_unlock(c.id);
     dprintf("Received chunk %d from peer: %s\n", c.id, node_addr(from));
     output_deliver(&c);
@@ -249,11 +255,13 @@ double peerWeightUniform(struct peer **p){
   return 1;
 }
 
+#ifdef MONL
 double peerWeightRtt(struct peer **p){
   double rtt = get_rtt((*p)->id);
   dprintf("RTT to %s: %f\n", node_addr((*p)->id), rtt);
   return finite(rtt) ? 1 / (rtt + 0.005) : 1 / 1;
 }
+#endif
 
 double getChunkTimestamp(struct chunk **c){
   return (double) (*c)->timestamp;
@@ -272,7 +280,9 @@ void send_accepted_chunks(struct peer *to, struct chunkID_set *cset_acc, int max
       if (res >= 0) {
         chunkID_set_add_chunk(to->bmap, c->id); //don't send twice ... assuming that it will actually arrive
         d++;
+#ifdef MONL
         reg_chunk_send(c->id);
+#endif
       } else {
         fprintf(stderr,"ERROR sending chunk %d\n",c->id);
       }
@@ -282,11 +292,15 @@ void send_accepted_chunks(struct peer *to, struct chunkID_set *cset_acc, int max
 
 int offer_max_deliver(struct peer *p)
 {
+#ifdef MONL
   switch (get_hopcount(p->id)) {
     case 0: return 5;
     case 1: return 2;
     default: return 1;
   }
+#else
+  return 1;
+#endif
 }
 
 void send_offer()
@@ -376,7 +390,9 @@ void send_chunk()
       dprintf("\tResult: %d\n", res);
       if (res>=0) {
         chunkID_set_add_chunk(p->bmap,c->id); //don't send twice ... assuming that it will actually arrive
+#ifdef MONL
         reg_chunk_send(c->id);
+#endif
       } else {
         fprintf(stderr,"ERROR sending chunk %d\n",c->id);
       }
