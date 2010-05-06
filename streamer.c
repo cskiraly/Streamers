@@ -17,6 +17,7 @@
 #include "net_helpers.h"
 #include "loop.h"
 #include "output.h"
+#include "channel.h"
 
 static const char *my_iface = NULL;
 static int port = 6666;
@@ -35,7 +36,7 @@ static void cmdline_parse(int argc, char *argv[])
 {
   int o;
 
-  while ((o = getopt(argc, argv, "b:o:c:t:p:i:P:I:f:m:l")) != -1) {
+  while ((o = getopt(argc, argv, "b:o:c:t:p:i:P:I:f:m:lC:")) != -1) {
     switch(o) {
       case 'b':
         buff_size = atoi(optarg);
@@ -70,11 +71,18 @@ static void cmdline_parse(int argc, char *argv[])
       case 'l':
         loop_input = true;
         break;
+      case 'C':
+        channel_set_name(optarg);
+        break;
       default:
         fprintf(stderr, "Error: unknown option %c\n", o);
 
         exit(-1);
     }
+  }
+
+  if (!channel_get_name()) {
+    channel_set_name("generic");
   }
 }
 

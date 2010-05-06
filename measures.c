@@ -9,10 +9,9 @@
 #include <mon.h>
 #include <ml.h>
 
+#include "channel.h"
 #include "dbg.h"
 #include <net_helper.h>
-
-static const char* channel = "OfferStreamer3";
 
 typedef struct nodeID {
 	socketID_handle addr;
@@ -34,7 +33,7 @@ void add_measure(MonHandler *mh, MeasurementId id, MeasurementCapabilities mc, M
 {
 	*mh = monCreateMeasure(id, mc);
 	monSetParameter (*mh, P_PUBLISHING_RATE, rate);
-	monPublishStatisticalType(*mh, pubname, channel, st , length, NULL);
+	monPublishStatisticalType(*mh, pubname, channel_get_name(), st , length, NULL);
 	monActivateMeasure(*mh, dst, mt);
 }
 

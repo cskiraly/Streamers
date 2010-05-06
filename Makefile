@@ -54,6 +54,7 @@ OBJS += net_helpers.o
 OBJS += topology.o
 OBJS += chunk_signaling.o
 OBJS += chunklock.o
+OBJS += channel.o
 ifdef THREADS
 OBJS += loop-mt.o
 CFLAGS += -pthread
