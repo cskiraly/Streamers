@@ -55,7 +55,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     dprintf("from:%s, ",node_addr(from));
     if (peerset_check(pset, from) < 0) {
       topAddNeighbour(from, NULL, 0);	//@TODO: this is agressive
-      if (peerset_size(pset) < NEIGHBORHOOD_TARGET_SIZE) {
+      if (!NEIGHBORHOOD_TARGET_SIZE || peerset_size(pset) < NEIGHBORHOOD_TARGET_SIZE) {
         add_peer(from);
       }
     }
@@ -66,7 +66,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
   ids = topGetNeighbourhood(&n_ids);
   for(i = 0; i < n_ids; i++) {
     if(peerset_check(pset, ids[i]) < 0) {
-      if (peerset_size(pset) < NEIGHBORHOOD_TARGET_SIZE) {
+      if (!NEIGHBORHOOD_TARGET_SIZE || peerset_size(pset) < NEIGHBORHOOD_TARGET_SIZE) {
         add_peer(ids[i]);
       }
     }
