@@ -382,7 +382,7 @@ void send_chunk()
   
     for (i = 0;i < size; i++) chunkps[i] = buff+i;
     for (i = 0; i<n; i++) peerps[i] = neighbours+i;
-    schedSelectPeerFirst(SCHED_WEIGHTED, peerps, n, chunkps, size, selectedpairs, &selectedpairs_len, needs, peerWeightReceivedfrom, getChunkTimestamp);
+    schedSelectPeerFirst(SCHED_WEIGHTED, peerps, n, chunkps, size, selectedpairs, &selectedpairs_len, needs, peerWeightRtt, getChunkTimestamp);
   /************ /USE SCHEDULER ****************/
 
     for (i=0; i<selectedpairs_len ; i++){
