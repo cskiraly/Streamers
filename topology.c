@@ -16,7 +16,7 @@
 
 #endif
 
-#define NEIGHBORHOOD_TARGET_SIZE 30
+#define NEIGHBORHOOD_TARGET_SIZE 0
 
 static struct peerset *pset;
 static struct timeval tout_bmap = {10, 0};
