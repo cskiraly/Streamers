@@ -92,7 +92,7 @@ struct chunkID_set *cb_to_bmap(struct chunk_buffer *chbuf)
 {
   struct chunk *chunks;
   int num_chunks, i;
-  struct chunkID_set *my_bmap = chunkID_set_init(0);
+  struct chunkID_set *my_bmap = chunkID_set_init("type=1");
   chunks = cb_get_chunks(chbuf, &num_chunks);
 
   for(i=num_chunks-1; i>=0; i--) {
@@ -107,7 +107,7 @@ struct chunkID_set *get_chunks_to_accept(struct peer *from, const struct chunkID
   int i, d, cset_off_size;
   //double lossrate;
 
-  cset_acc = chunkID_set_init(0);
+  cset_acc = chunkID_set_init("size=0");
 
   //reduce load a little bit if there are losses on the path from this guy
   //lossrate = get_lossrate_receive(from->id);
