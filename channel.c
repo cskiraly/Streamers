@@ -1,8 +1,9 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "channel.h"
 
-static const char * chname = NULL;
+static char * chname = NULL;
 
 void channel_set_name(char *ch)
 {
