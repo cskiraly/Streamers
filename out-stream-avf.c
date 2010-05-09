@@ -125,11 +125,9 @@ void chunk_write(int id, const uint8_t *data, int size)
     av_init_packet(&pkt);
     pkt.stream_index = 0;	// FIXME!
     if (pts != -1) {
-      pts += (pts < prev_pts - (1L << 31)) ? ((prev_pts >> 32) + 1) << 32 : (prev_pts >> 32) << 32;
+      pts += (pts < prev_pts - ((1L << 31) - 1)) ? ((prev_pts >> 32) + 1) << 32 : (prev_pts >> 32) << 32;
       dprintf(" PTS2: %d\n", pts);
       prev_pts = pts;
-      dts += (dts < prev_dts - (1L << 31)) ? ((prev_dts >> 32) + 1) << 32 : (prev_dts >> 32) << 32;
-      prev_dts = dts;
       dprintf("Frame %d has size %d --- PTS: %lld DTS: %lld\n", i, frame_size,
                                              av_rescale_q(pts, outctx->streams[0]->codec->time_base, AV_TIME_BASE_Q),
                                              av_rescale_q(dts, outctx->streams[0]->codec->time_base, AV_TIME_BASE_Q));
@@ -137,6 +135,8 @@ void chunk_write(int id, const uint8_t *data, int size)
     } else {
       pkt.pts = AV_NOPTS_VALUE;
     }
+    dts += (dts < prev_dts - ((1L << 31) - 1)) ? ((prev_dts >> 32) + 1) << 32 : (prev_dts >> 32) << 32;
+    prev_dts = dts;
     pkt.dts = av_rescale_q(dts, outctx->streams[0]->codec->time_base, outctx->streams[0]->time_base);
     pkt.data = p;
     p += frame_size;
