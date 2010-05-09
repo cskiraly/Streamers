@@ -106,13 +106,13 @@ void output_deliver(const struct chunk *c)
     return;
   }
 
+  /* Initialize buffer with first chunk */
+  if (next_chunk == -1) {
+    next_chunk = (c->id - buff_size + 1 > 0) ? c->id - buff_size + 1 : 0;
+  }
+
   if (c->id >= next_chunk + buff_size) {
     int i;
-
-    /* Initialize buffer with first chunk */
-    if (next_chunk == -1) {
-      next_chunk = c->id - buff_size + 1;
-    }
 
     /* We might need some space for storing this chunk,
      * or the stored chunks are too old
@@ -151,7 +151,7 @@ void output_deliver(const struct chunk *c)
 #endif
         return;
       }
-      fprintf(stderr, "Crap!\n");
+      fprintf(stderr, "Crap!, chunkid:%d, storedid: %d\n", c->id, buff[c->id % buff_size].id);
       exit(-1);
     }
     /* We previously flushed, so we know that c->id is free */
