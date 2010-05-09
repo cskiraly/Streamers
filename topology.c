@@ -9,6 +9,7 @@
 #include <topmanager.h>
 
 #include "topology.h"
+#include "streaming.h"
 #include "dbg.h"
 
 #ifdef MONL
@@ -30,6 +31,7 @@ void add_peer(struct nodeID *id)
       /* add measures here */
       add_measures(id);
 #endif
+      send_bmap(peerset_get_peer(pset,id));
 }
 
 void remove_peer(struct nodeID *id)
