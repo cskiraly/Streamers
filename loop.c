@@ -53,8 +53,8 @@ void loop(struct nodeID *s, int csize, int buff_size)
   
   sigInit(s);
   peers_init();
-  update_peers(NULL, NULL, 0);
   stream_init(buff_size, s);
+  update_peers(NULL, NULL, 0);
   while (!done) {
     int len, res;
     struct timeval tv;
