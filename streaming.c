@@ -259,13 +259,15 @@ double peerWeightUniform(struct peer **p){
   return 1;
 }
 
-#ifdef MONL
 double peerWeightRtt(struct peer **p){
+#ifdef MONL
   double rtt = get_rtt((*p)->id);
   //dprintf("RTT to %s: %f\n", node_addr((*p)->id), rtt);
   return finite(rtt) ? 1 / (rtt + 0.005) : 1 / 1;
-}
+#else
+  return 1;
 #endif
+}
 
 double getChunkTimestamp(struct chunk **c){
   return (double) (*c)->timestamp;
