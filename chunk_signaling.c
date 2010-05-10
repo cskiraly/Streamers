@@ -62,7 +62,7 @@ int sendSignalling(int type, const struct nodeID *to_id, const struct nodeID *ow
     buff[0] = MSG_TYPE_SIGNALLING;
     msg_len = 1 + encodeChunkSignaling(cset, meta, meta_len, buff+1, buff_len-1);
     free(meta);
-    if (msg_len < 0) {
+    if (msg_len <= 0) {
       fprintf(stderr, "Error in encoding chunk set for sending a buffermap\n");
       ret = -1;
     } else {
