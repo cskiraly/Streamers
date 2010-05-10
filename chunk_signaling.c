@@ -52,7 +52,7 @@ int sendSignalling(int type, const struct nodeID *to_id, const struct nodeID *ow
       meta_len += nodeid_dump(&sigmex->third_peer, owner_id);
     }
 
-    buff_len = 1 + chunkID_set_size(cset) * 4 + 12 + meta_len; // this should be enough
+    buff_len = 1 + chunkID_set_size(cset) * 4 + 16 + meta_len; // this should be enough
     buff = malloc(buff_len);
     if (!buff) {
       fprintf(stderr, "Error allocating buffer\n");
