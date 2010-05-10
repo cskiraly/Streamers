@@ -13,7 +13,7 @@
 
 #include "net_helper.h"
 
-static struct timeval toutdiff = {0, 300000};
+static struct timeval toutdiff = {0, 100000};
 
 
 
