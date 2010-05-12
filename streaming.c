@@ -18,6 +18,7 @@
 #include <peerset.h>
 #include <peer.h>
 #include <chunkidset.h>
+#include <limits.h>
 
 #include "streaming.h"
 #include "output.h"
@@ -278,6 +279,20 @@ double peerWeightRtt(struct peer **p){
 #else
   return 1;
 #endif
+}
+
+//ordering function for ELp peer selection, chunk ID based
+//can't be used as weight
+double peerScoreELpID(struct peer **p){
+  struct chunkID_set *bmap;
+  int latest;
+
+  bmap = (*p)->bmap;
+  if (!bmap) return 0;
+  latest = chunkID_set_get_latest(bmap);
+  if (latest == INT_MIN) return 0;
+
+  return -latest;
 }
 
 double getChunkTimestamp(struct chunk **c){
