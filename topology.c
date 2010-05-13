@@ -114,7 +114,7 @@ int peers_init()
 {
   fprintf(stderr,"peers_init\n");
   pset = peerset_init(0);
-  return (int) pset;
+  return pset ? 1 : 0;
 }
 
 struct peerset *get_peers()
