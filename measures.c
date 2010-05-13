@@ -169,8 +169,8 @@ void delete_measures(struct nodeID *id)
 {
 	int j;
 	dprintf("deleting measures from %s\n",node_addr(id));
-	for(j = 0; j < id->n_mhs; j++) {
-		monDestroyMeasure(id->mhs[j]);
+	while(id->n_mhs) {
+		monDestroyMeasure(id->mhs[--(id->n_mhs)]);
 	}
 }
 
@@ -179,7 +179,7 @@ void delete_measures(struct nodeID *id)
 */
 double get_measure(struct nodeID *id, int j, enum stat_types st)
 {
-	return monRetrieveResult(id->mhs[j], st);
+	return (id->n_mhs > j) ? monRetrieveResult(id->mhs[j], st) : NAN;
 }
 
 /*
