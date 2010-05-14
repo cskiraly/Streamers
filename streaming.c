@@ -313,6 +313,9 @@ void send_accepted_chunks(struct peer *to, struct chunkID_set *cset_acc, int max
   int i, d, cset_acc_size;
 
   cset_acc_size = chunkID_set_size(cset_acc);
+#ifdef MONL
+  reg_offer_accept(cset_acc_size > 0 ? 1 : 0);	//this only works if accepts are sent back even if 0 is accepted
+#endif
   for (i = 0, d=0; i < cset_acc_size && d < max_deliver; i++) {
     struct chunk *c;
     int chunkid = chunkID_set_get_chunk(cset_acc, i);
