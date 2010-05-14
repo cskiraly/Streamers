@@ -210,6 +210,24 @@ double get_rtt(struct nodeID *id){
 }
 
 /*
+ * average RTT to a set of peers in seconds
+*/
+double get_average_rtt(struct nodeID **ids, int len){
+	int i;
+	int n = 0;
+	double sum = 0;
+
+	for (i = 0; i < len; i++) {
+		double l = get_rtt(ids[i]);
+		if (!isnan(l)) {
+			sum += l;
+			n++;
+		}
+	}
+	return (n > 0) ? sum / n : NAN;
+}
+
+/*
  * loss ratio from a given peer as 0..1
 */
 double get_lossrate(struct nodeID *id){
