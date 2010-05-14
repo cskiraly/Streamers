@@ -22,7 +22,7 @@ typedef struct nodeID {
 	int n_mhs;
 } nodeID;
 
-static MonHandler chunk_dup, chunk_playout, neigh_size, chunk_receive, chunk_send;
+static MonHandler chunk_dup, chunk_playout, neigh_size, chunk_receive, chunk_send, offer_accept;
 static MonHandler rx_bytes_chunk_per_sec, tx_bytes_chunk_per_sec, rx_bytes_sig_per_sec, tx_bytes_sig_per_sec;
 static MonHandler rx_chunks, tx_chunks;
 
@@ -98,6 +98,18 @@ void reg_chunk_send(int id)
 		monNewSample(chunk_send, 0);	//force publish even if there are no events
 	}
 	monNewSample(chunk_send, 1);
+}
+
+/*
+ * Register chunk accept evemt
+*/
+void reg_offer_accept(bool b)
+{
+	if (!offer_accept) {
+		enum stat_types st[] = {AVG};
+		add_measure(&offer_accept, GENERIC, 0, 120, "OfferAccept", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
+	}
+	monNewSample(offer_accept, b);
 }
 
 /*
