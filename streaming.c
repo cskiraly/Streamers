@@ -36,6 +36,8 @@ static struct input_desc *input;
 static int cb_size;
 static int transid=0;
 
+static int offer_per_tick = 1;	//N_p parameter of POLITO
+
 int _needs(struct chunkID_set *cset, int cb_size, int cid);
 
 void cb_print()
@@ -335,6 +337,11 @@ void send_accepted_chunks(struct peer *to, struct chunkID_set *cset_acc, int max
   }
 }
 
+int offer_peer_count()
+{
+  return offer_per_tick;
+}
+
 int offer_max_deliver(struct nodeID *n)
 {
 #ifdef MONL
@@ -364,7 +371,7 @@ void send_offer()
   if (size == 0) return;
 
   {
-    size_t selectedpeers_len = 1;
+    size_t selectedpeers_len = offer_peer_count();
     int chunkids[size];
     struct nodeID *nodeids[n];
     struct nodeID *selectedpeers[selectedpeers_len];
