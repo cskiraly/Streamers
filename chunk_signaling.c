@@ -138,7 +138,7 @@ void offer_received(const struct nodeID *fromid, struct chunkID_set *cset, int m
     gettimeofday(&from->bmap_timestamp, NULL);
 
     //decide what to accept
-    cset_acc = get_chunks_to_accept(from, cset, max_deliver);
+    cset_acc = get_chunks_to_accept(from, cset, max_deliver, trans_id);
 
     //send accept message
     dprintf("\t accept %d chunks from peer %s, trans_id %d\n", chunkID_set_size(cset_acc), node_addr(from->id), trans_id);
@@ -154,7 +154,7 @@ void accept_received(const struct nodeID *fromid, struct chunkID_set *cset, int 
   dprintf("The peer %s accepted our offer for %d chunks, max deliver %d.\n", node_addr(fromid), chunkID_set_size(cset), max_deliver);
 
   if (from) {
-    send_accepted_chunks(from, cset, max_deliver);
+    send_accepted_chunks(from, cset, max_deliver, trans_id);
   }
 }
 

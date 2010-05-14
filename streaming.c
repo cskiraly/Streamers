@@ -103,7 +103,7 @@ struct chunkID_set *cb_to_bmap(struct chunk_buffer *chbuf)
 }
 
 // a simple implementation that request everything that we miss ... up to max deliver
-struct chunkID_set *get_chunks_to_accept(struct peer *from, const struct chunkID_set *cset_off, int max_deliver){
+struct chunkID_set *get_chunks_to_accept(struct peer *from, const struct chunkID_set *cset_off, int max_deliver, int trans_id){
   struct chunkID_set *cset_acc, *my_bmap;
   int i, d, cset_off_size;
   //double lossrate;
@@ -309,7 +309,7 @@ double getChunkTimestamp(int *cid){
   return (double) c->timestamp;
 }
 
-void send_accepted_chunks(struct peer *to, struct chunkID_set *cset_acc, int max_deliver){
+void send_accepted_chunks(struct peer *to, struct chunkID_set *cset_acc, int max_deliver, int trans_id){
   int i, d, cset_acc_size;
 
   cset_acc_size = chunkID_set_size(cset_acc);
