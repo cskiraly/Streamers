@@ -216,6 +216,9 @@ double get_lossrate(struct nodeID *id){
 	return get_measure(id, 2, WIN_AVG);
 }
 
+/*
+ * average loss ratio from a set of peers as 0..1
+*/
 double get_average_lossrate(struct nodeID **ids, int len){
 	int i;
 	int n = 0;
