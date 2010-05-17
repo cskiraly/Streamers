@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <math.h>
+#include <assert.h>
 
 #include <net_helper.h>
 #include <chunk.h> 
@@ -30,6 +31,10 @@
 #include "measures.h"
 
 #include "scheduler_la.h"
+
+struct chunk_attributes {
+  uint16_t hopcount;
+} __attribute__((packed));
 
 static struct chunk_buffer *cb;
 static struct input_desc *input;
@@ -89,6 +94,32 @@ int source_init(const char *fname, struct nodeID *myID, bool loop)
 
   stream_init(1, myID);
   return 0;
+}
+
+void chunk_attributes_fill(struct chunk* c)
+{
+  struct chunk_attributes * ca;
+
+  assert(!c->attributes && c->attributes_size == 0);
+
+  c->attributes_size = sizeof(struct chunk_attributes);
+  c->attributes = ca = malloc(c->attributes_size);
+
+  ca->hopcount = 0;
+}
+
+void chunk_attributes_update_received(struct chunk* c)
+{
+  struct chunk_attributes * ca;
+
+  if (!c->attributes || c->attributes_size != sizeof(struct chunk_attributes)) {
+    fprintf(stderr,"Warning, received chunk %d with strange attributes block", c->id);
+    return;
+  }
+
+  ca = (struct chunk_attributes *) c->attributes;
+  ca->hopcount++;
+  dprintf("Received chunk %d with hopcount %hu\n", c->id, ca->hopcount);
 }
 
 struct chunkID_set *cb_to_bmap(struct chunk_buffer *chbuf)
@@ -185,6 +216,7 @@ void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
 
   res = decodeChunk(&c, buff + 1, len - 1);
   if (res > 0) {
+    chunk_attributes_update_received(&c);
 #ifdef MONL
     reg_chunk_receive(c.id);
 #endif
@@ -222,6 +254,7 @@ int generated_chunk(suseconds_t *delta)
     return 0;
   }
   dprintf("Generated chunk %d of %d bytes\n",c.id, c.size);
+  chunk_attributes_fill(&c);
   res = cb_add_chunk(cb, &c);
   if (res < 0) {
     free(c.data);
