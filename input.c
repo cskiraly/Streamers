@@ -70,5 +70,7 @@ int input_get(struct input_desc *s, struct chunk *c)
   dprintf("Delta: %lld\n", delta);
   dprintf("Generate Chunk[%d] (TS: %llu)\n", c->id, c->timestamp);
 
+  c->timestamp = now.tv_sec * 1000000ULL + now.tv_usec;
+
   return delta > 0 ? delta : 0;
 }
