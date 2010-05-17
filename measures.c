@@ -68,7 +68,7 @@ void reg_chunk_playout(int id, bool b, uint64_t timestamp)
 		add_measure(&playout_delay, GENERIC, 0, 120, "PlayoutDelay", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
 	}
 	gettimeofday(&tnow, NULL);
-	monNewSample(playout_delay, tnow.tv_usec + tnow.tv_sec * 1000000ULL - timestamp);
+	monNewSample(playout_delay, ((double)(tnow.tv_usec + tnow.tv_sec * 1000000ULL - timestamp)) / 1000000.0);
 }
 
 /*
@@ -108,7 +108,7 @@ void reg_chunk_receive(int id, uint64_t timestamp, int hopcount)
 		add_measure(&chunk_delay, GENERIC, 0, 120, "ReceiveDelay", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
 	}
 	gettimeofday(&tnow, NULL);
-	monNewSample(chunk_delay, tnow.tv_usec + tnow.tv_sec * 1000000ULL - timestamp);
+	monNewSample(chunk_delay, ((double)(tnow.tv_usec + tnow.tv_sec * 1000000ULL - timestamp)) / 1000000.0);
 }
 
 /*
