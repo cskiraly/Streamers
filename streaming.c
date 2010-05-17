@@ -112,6 +112,18 @@ void chunk_attributes_fill(struct chunk* c)
   ca->hopcount = 0;
 }
 
+int chunk_get_hopcount(struct chunk* c) {
+  struct chunk_attributes * ca;
+
+  if (!c->attributes || c->attributes_size != sizeof(struct chunk_attributes)) {
+    fprintf(stderr,"Warning, chunk %d with strange attributes block", c->id);
+    return -1;
+  }
+
+  ca = (struct chunk_attributes *) c->attributes;
+  return ca->hopcount;
+}
+
 void chunk_attributes_update_received(struct chunk* c)
 {
   struct chunk_attributes * ca;
@@ -236,7 +248,7 @@ void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
   if (res > 0) {
     chunk_attributes_update_received(&c);
 #ifdef MONL
-    reg_chunk_receive(c.id);
+    reg_chunk_receive(c.id, chunk_get_hopcount(&c));
 #endif
     chunk_unlock(c.id);
     dprintf("Received chunk %d from peer: %s\n", c.id, node_addr(from));

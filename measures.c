@@ -22,7 +22,7 @@ typedef struct nodeID {
 	int n_mhs;
 } nodeID;
 
-static MonHandler chunk_dup, chunk_playout, neigh_size, chunk_receive, chunk_send, offer_accept;
+static MonHandler chunk_dup, chunk_playout, neigh_size, chunk_receive, chunk_send, offer_accept, chunk_hops;
 static MonHandler rx_bytes_chunk_per_sec, tx_bytes_chunk_per_sec, rx_bytes_sig_per_sec, tx_bytes_sig_per_sec;
 static MonHandler rx_chunks, tx_chunks;
 
@@ -77,7 +77,7 @@ void reg_neigh_size(int s)
 /*
  * Register chunk receive event
 */
-void reg_chunk_receive(int id)
+void reg_chunk_receive(int id, int hopcount)
 {
 	if (!chunk_receive) {
 		enum stat_types st[] = {RATE};
@@ -85,6 +85,12 @@ void reg_chunk_receive(int id)
 		monNewSample(chunk_receive, 0);	//force publish even if there are no events
 	}
 	monNewSample(chunk_receive, 1);
+
+	if (!chunk_hops) {
+		enum stat_types st[] = {WIN_AVG};
+		add_measure(&chunk_hops, GENERIC, 0, 120, "Hops", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
+	}
+	monNewSample(chunk_hops, hopcount);
 }
 
 /*
