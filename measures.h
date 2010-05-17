@@ -15,7 +15,7 @@ int get_hopcount(struct nodeID *id);
 void reg_chunk_duplicate();
 void reg_chunk_playout(bool b);
 void reg_neigh_size(int s);
-void reg_chunk_receive(int id, int hopcount);
+void reg_chunk_receive(int id, uint64_t timestamp, int hopcount);
 void reg_chunk_send(int id);
 void reg_offer_accept(bool b);
 

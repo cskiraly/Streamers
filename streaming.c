@@ -248,7 +248,7 @@ void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
   if (res > 0) {
     chunk_attributes_update_received(&c);
 #ifdef MONL
-    reg_chunk_receive(c.id, chunk_get_hopcount(&c));
+    reg_chunk_receive(c.id, c.timestamp, chunk_get_hopcount(&c));
 #endif
     chunk_unlock(c.id);
     dprintf("Received chunk %d from peer: %s\n", c.id, node_addr(from));

@@ -22,7 +22,7 @@ typedef struct nodeID {
 	int n_mhs;
 } nodeID;
 
-static MonHandler chunk_dup, chunk_playout, neigh_size, chunk_receive, chunk_send, offer_accept, chunk_hops;
+static MonHandler chunk_dup, chunk_playout, neigh_size, chunk_receive, chunk_send, offer_accept, chunk_hops, chunk_delay;
 static MonHandler rx_bytes_chunk_per_sec, tx_bytes_chunk_per_sec, rx_bytes_sig_per_sec, tx_bytes_sig_per_sec;
 static MonHandler rx_chunks, tx_chunks;
 
@@ -77,8 +77,10 @@ void reg_neigh_size(int s)
 /*
  * Register chunk receive event
 */
-void reg_chunk_receive(int id, int hopcount)
+void reg_chunk_receive(int id, uint64_t timestamp, int hopcount)
 {
+	struct timeval tnow;
+
 	if (!chunk_receive) {
 		enum stat_types st[] = {RATE};
 		add_measure(&chunk_receive, GENERIC, 0, 120, "RxChunkAll", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
@@ -91,6 +93,13 @@ void reg_chunk_receive(int id, int hopcount)
 		add_measure(&chunk_hops, GENERIC, 0, 120, "Hops", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
 	}
 	monNewSample(chunk_hops, hopcount);
+
+	if (!chunk_delay) {
+		enum stat_types st[] = {WIN_AVG, WIN_VAR};
+		add_measure(&chunk_delay, GENERIC, 0, 120, "ReceiveDelay", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
+	}
+	gettimeofday(&tnow, NULL);
+	monNewSample(chunk_delay, tnow.tv_usec + tnow.tv_sec * 1000000ULL - timestamp);
 }
 
 /*
