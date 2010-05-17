@@ -133,3 +133,4 @@ clean:
 	rm -f $(NAPA)/som/net_helper-ml.o
 	rm -f $(GRAPES)/som/net_helper.o
 	rm -f *.o
+	rm -f Chunkiser/*.o
