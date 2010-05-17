@@ -136,7 +136,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
           update_peers(remote, buff, len);
           break;
         case MSG_TYPE_CHUNK:
-          fprintf(stderr, "Some dumb peer pushed a chunk to me!\n");
+          fprintf(stderr, "Some dumb peer pushed a chunk to me! peer:%s\n",node_addr(remote));
           break;
         case MSG_TYPE_SIGNALLING:
           sigParseData(remote, buff, len);

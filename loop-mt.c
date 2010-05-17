@@ -63,7 +63,7 @@ static void *source_receive(void *dummy)
         pthread_mutex_unlock(&topology_mutex);
         break;
       case MSG_TYPE_CHUNK:
-        fprintf(stderr, "Some dumb peer pushed a chunk to me!\n");
+        fprintf(stderr, "Some dumb peer pushed a chunk to me! peer:%s\n",node_addr(remote));
         break;
       case MSG_TYPE_SIGNALLING:
         pthread_mutex_lock(&topology_mutex);
