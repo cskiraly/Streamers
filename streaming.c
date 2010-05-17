@@ -33,6 +33,8 @@
 #include "scheduler_la.h"
 
 struct chunk_attributes {
+  uint64_t deadline;
+  uint16_t deadline_increment;
   uint16_t hopcount;
 } __attribute__((packed));
 
@@ -105,6 +107,8 @@ void chunk_attributes_fill(struct chunk* c)
   c->attributes_size = sizeof(struct chunk_attributes);
   c->attributes = ca = malloc(c->attributes_size);
 
+  ca->deadline = c->timestamp;
+  ca->deadline_increment = 2;
   ca->hopcount = 0;
 }
 
@@ -120,6 +124,20 @@ void chunk_attributes_update_received(struct chunk* c)
   ca = (struct chunk_attributes *) c->attributes;
   ca->hopcount++;
   dprintf("Received chunk %d with hopcount %hu\n", c->id, ca->hopcount);
+}
+
+void chunk_attributes_update_sending(struct chunk* c)
+{
+  struct chunk_attributes * ca;
+
+  if (!c->attributes || c->attributes_size != sizeof(struct chunk_attributes)) {
+    fprintf(stderr,"Warning, chunk %d with strange attributes block", c->id);
+    return;
+  }
+
+  ca = (struct chunk_attributes *) c->attributes;
+  ca->deadline += ca->deadline_increment;
+  dprintf("Sending chunk %d with deadline %lu\n", c->id, ca->deadline);
 }
 
 struct chunkID_set *cb_to_bmap(struct chunk_buffer *chbuf)
@@ -356,6 +374,7 @@ void send_accepted_chunks(struct peer *to, struct chunkID_set *cset_acc, int max
     int chunkid = chunkID_set_get_chunk(cset_acc, i);
     c = cb_get_chunk(cb, chunkid);
     if (c && needs(to->id, chunkid) ) {	// we should have the chunk, and he should not have it. Although the "accept" should have been an answer to our "offer", we do some verification
+      chunk_attributes_update_sending(c);
       int res = sendChunk(to->id, c);
       if (res >= 0) {
         chunkID_set_add_chunk(to->bmap, c->id); //don't send twice ... assuming that it will actually arrive
@@ -471,6 +490,7 @@ void send_chunk()
       dprintf("%s\n", node_addr(p->id));
 
       send_bmap(p);
+      chunk_attributes_update_sending(c);
       res = sendChunk(p->id, c);
       dprintf("\tResult: %d\n", res);
       if (res>=0) {
