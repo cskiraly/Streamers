@@ -87,7 +87,7 @@ void reg_chunk_receive(int id, int hopcount)
 	monNewSample(chunk_receive, 1);
 
 	if (!chunk_hops) {
-		enum stat_types st[] = {WIN_AVG};
+		enum stat_types st[] = {WIN_AVG, WIN_VAR};
 		add_measure(&chunk_hops, GENERIC, 0, 120, "Hops", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
 	}
 	monNewSample(chunk_hops, hopcount);
