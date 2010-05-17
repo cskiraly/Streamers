@@ -116,7 +116,7 @@ int chunk_get_hopcount(struct chunk* c) {
   struct chunk_attributes * ca;
 
   if (!c->attributes || c->attributes_size != sizeof(struct chunk_attributes)) {
-    fprintf(stderr,"Warning, chunk %d with strange attributes block", c->id);
+    fprintf(stderr,"Warning, chunk %d with strange attributes block\n", c->id);
     return -1;
   }
 
@@ -129,7 +129,7 @@ void chunk_attributes_update_received(struct chunk* c)
   struct chunk_attributes * ca;
 
   if (!c->attributes || c->attributes_size != sizeof(struct chunk_attributes)) {
-    fprintf(stderr,"Warning, received chunk %d with strange attributes block", c->id);
+    fprintf(stderr,"Warning, received chunk %d with strange attributes block\n", c->id);
     return;
   }
 
@@ -143,7 +143,7 @@ void chunk_attributes_update_sending(struct chunk* c)
   struct chunk_attributes * ca;
 
   if (!c->attributes || c->attributes_size != sizeof(struct chunk_attributes)) {
-    fprintf(stderr,"Warning, chunk %d with strange attributes block", c->id);
+    fprintf(stderr,"Warning, chunk %d with strange attributes block\n", c->id);
     return;
   }
 
