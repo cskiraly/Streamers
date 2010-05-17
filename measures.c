@@ -22,7 +22,7 @@ typedef struct nodeID {
 	int n_mhs;
 } nodeID;
 
-static MonHandler chunk_dup, chunk_playout, neigh_size, chunk_receive, chunk_send, offer_accept, chunk_hops, chunk_delay;
+static MonHandler chunk_dup, chunk_playout, neigh_size, chunk_receive, chunk_send, offer_accept, chunk_hops, chunk_delay, playout_delay;
 static MonHandler rx_bytes_chunk_per_sec, tx_bytes_chunk_per_sec, rx_bytes_sig_per_sec, tx_bytes_sig_per_sec;
 static MonHandler rx_chunks, tx_chunks;
 
@@ -53,13 +53,22 @@ void reg_chunk_duplicate()
 /*
  * Register playout/loss of a chunk before playout
 */
-void reg_chunk_playout(bool b)
+void reg_chunk_playout(int id, bool b, uint64_t timestamp)
 {
+	struct timeval tnow;
+
 	if (!chunk_playout && b) {	//don't count losses before the first arrived chunk
 		enum stat_types st[] = {AVG, SUM, RATE};
 		add_measure(&chunk_playout, GENERIC, 0, 120, "ChunksPlayed", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[chunks]
 	}
 	monNewSample(chunk_playout, b);
+
+	if (!playout_delay) {
+		enum stat_types st[] = {WIN_AVG, WIN_VAR};
+		add_measure(&playout_delay, GENERIC, 0, 120, "PlayoutDelay", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
+	}
+	gettimeofday(&tnow, NULL);
+	monNewSample(playout_delay, tnow.tv_usec + tnow.tv_sec * 1000000ULL - timestamp);
 }
 
 /*

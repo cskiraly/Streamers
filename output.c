@@ -23,6 +23,7 @@ struct outbuf {
   void *data;
   int size;
   int id;
+  uint64_t timestamp;
 };
 static struct outbuf *buff;
 
@@ -75,7 +76,7 @@ void buffer_free(int i)
   buff[i].data = NULL;
   dprintf("Next Chunk: %d -> %d\n", next_chunk, buff[i].id + 1);
 #ifdef MONL
-  reg_chunk_playout(true);
+  reg_chunk_playout(buff[i].id, true, buff[i].timestamp);
 #endif
   next_chunk = buff[i].id + 1;
 }
@@ -122,7 +123,7 @@ void output_deliver(const struct chunk *c)
         buffer_free(i % buff_size);
       } else {
 #ifdef MONL
-        reg_chunk_playout(false);
+        reg_chunk_playout(c->id, false, c->timestamp);
 #endif
         next_chunk++;
       }
@@ -136,7 +137,7 @@ void output_deliver(const struct chunk *c)
     dprintf("\tOut Chunk[%d] - %d: %s\n", c->id, c->id % buff_size, c->data);
     chunk_write(c->id, c->data, c->size);
 #ifdef MONL
-    reg_chunk_playout(true);
+    reg_chunk_playout(c->id, true, c->timestamp);
 #endif
     next_chunk++;
     buffer_flush(next_chunk);
@@ -159,5 +160,6 @@ void output_deliver(const struct chunk *c)
     memcpy(buff[c->id % buff_size].data, c->data, c->size);
     buff[c->id % buff_size].size = c->size;
     buff[c->id % buff_size].id = c->id;
+    buff[c->id % buff_size].timestamp = c->timestamp;
   }
 }
