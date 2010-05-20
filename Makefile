@@ -30,7 +30,7 @@ ifdef DEBUGOUT
 CPPFLAGS += -DDEBUGOUT
 endif
 
-LDFLAGS += -L$(GRAPES)/som
+LDFLAGS += -L$(GRAPES)
 LDLIBS += -lgrapes
 ifdef ML
 LDFLAGS += -L$(NAPA)/ml -L$(LIBEVENT)/lib
@@ -103,9 +103,9 @@ endif
 all: $(EXECTARGET)
 
 ifndef ML
-$(EXECTARGET): $(OBJS) $(GRAPES)/som/net_helper.o
+$(EXECTARGET): $(OBJS) $(GRAPES)/net_helper.o
 else
-$(EXECTARGET): $(OBJS) $(NAPA)/som/net_helper-ml.o
+$(EXECTARGET): $(OBJS) $(GRAPES)/net_helper-ml.o
 endif
 
 $(EXECTARGET).o: streamer.o
@@ -122,7 +122,7 @@ ffmpeg:
 	cd ffmpeg; ./configure
 
 prepare: $(GRAPES) $(FFSRC)
-	$(MAKE) -C $(GRAPES)/som -f Makefile
+	$(MAKE) -C $(GRAPES) -f Makefile
 ifdef ML
 	cd $(NAPA); ./autogen.sh; $(MAKE)
 endif
@@ -130,7 +130,7 @@ endif
 
 clean:
 	rm -f $(EXECTARGET)
-	rm -f $(NAPA)/som/net_helper-ml.o
-	rm -f $(GRAPES)/som/net_helper.o
+	rm -f $(GRAPES)/net_helper-ml.o
+	rm -f $(GRAPES)/net_helper.o
 	rm -f *.o
 	rm -f Chunkiser/*.o
