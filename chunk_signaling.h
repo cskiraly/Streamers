@@ -33,7 +33,7 @@ int sendBufferMap(const struct nodeID *to_id, const struct nodeID *owner_id, Chu
 
 int sendMyBufferMap(const struct nodeID *to_id, ChunkIDSet *bmap, int cb_size, int trans_id);
 
-int offerChunks(const struct nodeID *to_id, struct chunkID_set *cset, int max_deliver, int trans_id);
+//int offerChunks(const struct nodeID *to_id, struct chunkID_set *cset, int max_deliver, int trans_id);
 
 int acceptChunks(const struct nodeID *to_id, struct chunkID_set *cset, int max_deliver, int trans_id);
 

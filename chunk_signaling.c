@@ -93,9 +93,11 @@ int sendMyBufferMap(const struct nodeID *to_id, struct chunkID_set *bmap, int cb
   return sendBufferMap(to_id, localID, bmap, cb_size, trans_id);
 }
 
+/*
 int offerChunks(const struct nodeID *to_id, struct chunkID_set *cset, int max_deliver, int trans_id) {
   return sendSignalling(MSG_SIG_OFF, to_id, NULL, cset, max_deliver, -1, trans_id);
 }
+*/
 
 int acceptChunks(const struct nodeID *to_id, struct chunkID_set *cset, int max_deliver, int trans_id) {
   return sendSignalling(MSG_SIG_ACC, to_id, NULL, cset, max_deliver, -1, trans_id);
