@@ -31,6 +31,7 @@
 #include "dbg.h"
 
 static struct nodeID *localID;
+/*
 
 int sendSignalling(int type, const struct nodeID *to_id, const struct nodeID *owner_id, struct chunkID_set *cset, int max_deliver, int cb_size, int trans_id)
 {
@@ -71,7 +72,7 @@ int sendSignalling(int type, const struct nodeID *to_id, const struct nodeID *ow
     ret = 1;
     free(buff);
     return ret;
-}
+}*/
 
 /**
  * Send a BufferMap to a Peer.
@@ -84,6 +85,7 @@ int sendSignalling(int type, const struct nodeID *to_id, const struct nodeID *ow
  * @param[in] trans_id transaction number associated with this send
  * @return 0 on success, <0 on error
  */
+/*
 int sendBufferMap(const struct nodeID *to_id, const struct nodeID *owner_id, struct chunkID_set *bmap, int cb_size, int trans_id) {
   return sendSignalling(MSG_SIG_BMOFF, to_id, owner_id, bmap, 0, cb_size, trans_id);
 }
@@ -92,6 +94,7 @@ int sendMyBufferMap(const struct nodeID *to_id, struct chunkID_set *bmap, int cb
 {
   return sendBufferMap(to_id, localID, bmap, cb_size, trans_id);
 }
+*/
 
 /*
 int offerChunks(const struct nodeID *to_id, struct chunkID_set *cset, int max_deliver, int trans_id) {
