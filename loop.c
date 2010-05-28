@@ -52,6 +52,7 @@ void loop(struct nodeID *s, int csize, int buff_size)
   period.tv_usec = csize % 1000000;
   
   sigInit(s);
+  chunkSignalingInit(s);
   peers_init();
   stream_init(buff_size, s);
   update_peers(NULL, NULL, 0);
@@ -109,6 +110,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
   period.tv_usec = csize % 1000000;
   
   sigInit(s);
+  chunkSignalingInit(s);
   peers_init();
   if (source_init(fname, s, loop) < 0) {
     fprintf(stderr,"Cannot initialize source, exiting");
