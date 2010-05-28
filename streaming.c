@@ -85,6 +85,7 @@ void stream_init(int size, struct nodeID *myID)
   sprintf(conf, "size=%d", cb_size);
   cb = cb_init(conf);
   chunkDeliveryInit(myID);
+  chunkSignalingInit(myID);
   //init_measures();
 }
 
@@ -205,8 +206,7 @@ struct chunkID_set *get_chunks_to_accept(struct peer *from, const struct chunkID
 void send_bmap(struct peer *to)
 {
   struct chunkID_set *my_bmap = cb_to_bmap(cb);
-   sendMyBufferMap(to->id, my_bmap, cb_size, 0);
-
+   sendBufferMap(to->id,NULL, my_bmap, cb_size, 0);
   chunkID_set_free(my_bmap);
 }
 
