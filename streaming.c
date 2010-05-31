@@ -20,6 +20,7 @@
 #include <peer.h>
 #include <chunkidset.h>
 #include <limits.h>
+#include <trade_sig_ha.h>
 
 #include "streaming.h"
 #include "output.h"
