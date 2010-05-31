@@ -376,7 +376,7 @@ double getChunkTimestamp(int *cid){
 }
 
 void send_accepted_chunks(struct peer *to, struct chunkID_set *cset_acc, int max_deliver, int trans_id){
-  int i, d, cset_acc_size;
+  int i, d, cset_acc_size, res;
 
   cset_acc_size = chunkID_set_size(cset_acc);
 #ifdef MONL
@@ -388,7 +388,7 @@ void send_accepted_chunks(struct peer *to, struct chunkID_set *cset_acc, int max
     c = cb_get_chunk(cb, chunkid);
     if (c && needs(to->id, chunkid) ) {	// we should have the chunk, and he should not have it. Although the "accept" should have been an answer to our "offer", we do some verification
       chunk_attributes_update_sending(c);
-      int res = sendChunk(to->id, c);
+      res = sendChunk(to->id, c);
       if (res >= 0) {
         chunkID_set_add_chunk(to->bmap, c->id); //don't send twice ... assuming that it will actually arrive
         d++;
