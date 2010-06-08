@@ -15,7 +15,7 @@ CFLAGS += $(call cc-option, -Wundef)
 CFLAGS += $(call cc-option, -funit-at-a-time)
 
 NAPA ?= NAPA
-GRAPES ?= GRAPES
+GRAPES ?= GRAPES/som
 
 CPPFLAGS = -I$(NAPA)/include
 CPPFLAGS += -I$(GRAPES)/include
