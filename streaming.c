@@ -20,6 +20,7 @@
 #include <peer.h>
 #include <chunkidset.h>
 #include <limits.h>
+#include <trade_sig_ha.h>
 
 #include "streaming.h"
 #include "output.h"
@@ -84,6 +85,7 @@ void stream_init(int size, struct nodeID *myID)
   sprintf(conf, "size=%d", cb_size);
   cb = cb_init(conf);
   chunkDeliveryInit(myID);
+  chunkSignalingInit(myID);
   //init_measures();
 }
 
@@ -204,8 +206,7 @@ struct chunkID_set *get_chunks_to_accept(struct peer *from, const struct chunkID
 void send_bmap(struct peer *to)
 {
   struct chunkID_set *my_bmap = cb_to_bmap(cb);
-   sendMyBufferMap(to->id, my_bmap, cb_size, 0);
-
+   sendBufferMap(to->id,NULL, my_bmap, cb_size, 0);
   chunkID_set_free(my_bmap);
 }
 
@@ -375,7 +376,7 @@ double getChunkTimestamp(int *cid){
 }
 
 void send_accepted_chunks(struct peer *to, struct chunkID_set *cset_acc, int max_deliver, int trans_id){
-  int i, d, cset_acc_size;
+  int i, d, cset_acc_size, res;
 
   cset_acc_size = chunkID_set_size(cset_acc);
 #ifdef MONL
@@ -387,7 +388,7 @@ void send_accepted_chunks(struct peer *to, struct chunkID_set *cset_acc, int max
     c = cb_get_chunk(cb, chunkid);
     if (c && needs(to->id, chunkid) ) {	// we should have the chunk, and he should not have it. Although the "accept" should have been an answer to our "offer", we do some verification
       chunk_attributes_update_sending(c);
-      int res = sendChunk(to->id, c);
+      res = sendChunk(to->id, c);
       if (res >= 0) {
         chunkID_set_add_chunk(to->bmap, c->id); //don't send twice ... assuming that it will actually arrive
         d++;

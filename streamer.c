@@ -38,40 +38,40 @@ static void cmdline_parse(int argc, char *argv[])
 
   while ((o = getopt(argc, argv, "b:o:c:t:p:i:P:I:f:m:lC:")) != -1) {
     switch(o) {
-      case 'b':
+      case 'b':// Chunk Buffer size, which is also the window of chunks we may exchange.
         buff_size = atoi(optarg);
         break;
-      case 'o':
+      case 'o':// Buffer size of the output buffer.
         outbuff_size = atoi(optarg);
         break;
-      case 'c':
+        case 'c'://number of chunks per second: how aggressive is the peer.
         chunks_per_second = atoi(optarg);
         break;
-      case 'm':
+      case 'm'://number of chunks the source may push in parallel
         multiply = atoi(optarg);
         break;
-      case 't':
+      case 't'://chunk emission period
         period = atoi(optarg);
         break;
-      case 'p':
+      case 'p'://remote port to connect
         srv_port = atoi(optarg);
         break;
-      case 'i':
+      case 'i'://remote IP address to contact
         srv_ip = strdup(optarg);
         break;
-      case 'P':
+      case 'P'://current port to connect
         port =  atoi(optarg);
         break;
-      case 'I':
+      case 'I'://current IP address to use
         my_iface = strdup(optarg);
         break;
-      case 'f':
+      case 'f'://name of the video stream to reproduce
         fname = strdup(optarg);
         break;
-      case 'l':
+      case 'l'://loop on the video stream
         loop_input = true;
         break;
-      case 'C':
+      case 'C'://set the name of the channel.
         channel_set_name(optarg);
         break;
       default:
