@@ -35,7 +35,7 @@ LDLIBS += -lgrapes
 ifdef ML
 LDFLAGS += -L$(NAPA)/ml -L$(LIBEVENT)/lib
 LDLIBS += -lml -lm
-CPPFLAGS += -I$(LIBEVENT)/include
+CPPFLAGS += -I$(NAPA)/ml/include -I$(LIBEVENT)/include
 ifdef MONL
 LDFLAGS += -L$(NAPA)/dclog -L$(NAPA)/rep -L$(NAPA)/monl -L$(NAPA)/common
 LDLIBS += -lstdc++ -lmon -lrep -ldclog -lcommon
