@@ -55,6 +55,9 @@ void reg_chunk_duplicate()
 */
 void reg_chunk_playout(int id, bool b, uint64_t timestamp)
 {
+	static MonHandler chunk_loss_burst_size;
+	static int last_arrived_chunk = -1;
+
 	struct timeval tnow;
 
 	if (!chunk_playout && b) {	//don't count losses before the first arrived chunk
@@ -67,8 +70,22 @@ void reg_chunk_playout(int id, bool b, uint64_t timestamp)
 		enum stat_types st[] = {WIN_AVG, WIN_VAR};
 		add_measure(&playout_delay, GENERIC, 0, 120, "PlayoutDelay", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
 	}
-	gettimeofday(&tnow, NULL);
-	monNewSample(playout_delay, ((int64_t)(tnow.tv_usec + tnow.tv_sec * 1000000ULL) - (int64_t)timestamp) / 1000000.0);
+	if (b) {	//count delay only if chunk has arrived
+		gettimeofday(&tnow, NULL);
+		monNewSample(playout_delay, ((int64_t)(tnow.tv_usec + tnow.tv_sec * 1000000ULL) - (int64_t)timestamp) / 1000000.0);
+	}
+
+	if (!chunk_loss_burst_size) {
+		enum stat_types st[] = {WIN_AVG, WIN_VAR};
+		add_measure(&chunk_loss_burst_size, GENERIC, 0, 120, "ChunkLossBurstSize", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
+	}
+	if (b) {
+		if (last_arrived_chunk >= 0) {
+			int burst_size = id - 1 - last_arrived_chunk;
+			if (burst_size) monNewSample(chunk_loss_burst_size, burst_size);
+		}
+		last_arrived_chunk = id;
+	}
 }
 
 /*
