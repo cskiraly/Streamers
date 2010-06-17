@@ -14,6 +14,9 @@
 */
 void reg_chunk_duplicate()
 {
+  static int duplicates = 0;
+
+  duplicates++;
 }
 
 /*
@@ -21,6 +24,11 @@ void reg_chunk_duplicate()
 */
 void reg_chunk_playout(int id, bool b, uint64_t timestamp)
 {
+  static int chunks = 0;
+  static int sum = 0;
+
+  sum += b ? 1 : 0;
+  chunks++;
 }
 
 /*
@@ -35,6 +43,11 @@ void reg_neigh_size(int s)
 */
 void reg_chunk_receive(int id, uint64_t timestamp, int hopcount)
 {
+  static int chunks_received = 0;
+  static int sum_hopcount = 0;
+
+  chunks_received++;
+  sum_hopcount += hopcount;
 }
 
 /*
@@ -42,6 +55,9 @@ void reg_chunk_receive(int id, uint64_t timestamp, int hopcount)
 */
 void reg_chunk_send(int id)
 {
+  static int chunks_sent = 0;
+
+  chunks_sent++;
 }
 
 /*
@@ -49,6 +65,11 @@ void reg_chunk_send(int id)
 */
 void reg_offer_accept(bool b)
 {
+  static int offers = 0;
+  static int accepts = 0;
+
+  offers++;
+  if (b) accepts++;
 }
 
 /*
