@@ -65,6 +65,8 @@ endif
 
 ifdef MONL
 OBJS += measures-monl.o
+else
+OBJS += measures.o
 endif
 
 ifndef DUMMY
