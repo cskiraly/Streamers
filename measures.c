@@ -32,8 +32,8 @@ static MonHandler rx_chunks, tx_chunks;
 void add_measure(MonHandler *mh, MeasurementId id, MeasurementCapabilities mc, MonParameterValue rate, const char *pubname, enum stat_types st[], int length, SocketId dst, MsgType mt)
 {
 	*mh = monCreateMeasure(id, mc);
-	monSetParameter (*mh, P_PUBLISHING_RATE, rate);
-	monPublishStatisticalType(*mh, pubname, channel_get_name(), st , length, NULL);
+	if (rate) monSetParameter (*mh, P_PUBLISHING_RATE, rate);
+	if (length) monPublishStatisticalType(*mh, pubname, channel_get_name(), st , length, NULL);
 	monActivateMeasure(*mh, dst, mt);
 }
 
