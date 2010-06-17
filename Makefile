@@ -64,7 +64,7 @@ OBJS += loop.o
 endif
 
 ifdef MONL
-OBJS += measures.o
+OBJS += measures-monl.o
 endif
 
 ifndef DUMMY

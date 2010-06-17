@@ -11,11 +11,7 @@
 #include "topology.h"
 #include "streaming.h"
 #include "dbg.h"
-
-#ifdef MONL
 #include "measures.h"
-
-#endif
 
 #define NEIGHBORHOOD_TARGET_SIZE 0
 
@@ -27,20 +23,16 @@ void add_peer(struct nodeID *id)
 {
       dprintf("Adding %s to neighbourhood!\n", node_addr(id));
       peerset_add_peer(pset, id);
-#ifdef MONL
       /* add measures here */
       add_measures(id);
-#endif
       send_bmap(peerset_get_peer(pset,id));
 }
 
 void remove_peer(struct nodeID *id)
 {
       dprintf("Removing %s from neighbourhood!\n", node_addr(id));
-#ifdef MONL
       /* add measures here */
       delete_measures(id);
-#endif
       peerset_remove_peer(pset, id);
 }
 
@@ -88,9 +80,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     }
   }
 
-#ifdef MONL
   reg_neigh_size(peerset_size(pset));
-#endif
 
   dprintf("after timer check:%d\n",peerset_size(pset));
 }

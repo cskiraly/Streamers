@@ -248,9 +248,7 @@ void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
   res = decodeChunk(&c, buff + 1, len - 1);
   if (res > 0) {
     chunk_attributes_update_received(&c);
-#ifdef MONL
     reg_chunk_receive(c.id, c.timestamp, chunk_get_hopcount(&c));
-#endif
     chunk_unlock(c.id);
     dprintf("Received chunk %d from peer: %s\n", c.id, node_addr(from));
     output_deliver(&c);
@@ -379,9 +377,7 @@ void send_accepted_chunks(struct peer *to, struct chunkID_set *cset_acc, int max
   int i, d, cset_acc_size, res;
 
   cset_acc_size = chunkID_set_size(cset_acc);
-#ifdef MONL
   reg_offer_accept(cset_acc_size > 0 ? 1 : 0);	//this only works if accepts are sent back even if 0 is accepted
-#endif
   for (i = 0, d=0; i < cset_acc_size && d < max_deliver; i++) {
     struct chunk *c;
     int chunkid = chunkID_set_get_chunk(cset_acc, i);
@@ -392,9 +388,7 @@ void send_accepted_chunks(struct peer *to, struct chunkID_set *cset_acc, int max
       if (res >= 0) {
         chunkID_set_add_chunk(to->bmap, c->id); //don't send twice ... assuming that it will actually arrive
         d++;
-#ifdef MONL
         reg_chunk_send(c->id);
-#endif
       } else {
         fprintf(stderr,"ERROR sending chunk %d\n",c->id);
       }
@@ -508,9 +502,7 @@ void send_chunk()
       dprintf("\tResult: %d\n", res);
       if (res>=0) {
         chunkID_set_add_chunk(p->bmap,c->id); //don't send twice ... assuming that it will actually arrive
-#ifdef MONL
         reg_chunk_send(c->id);
-#endif
       } else {
         fprintf(stderr,"ERROR sending chunk %d\n",c->id);
       }
