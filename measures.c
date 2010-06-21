@@ -1,3 +1,8 @@
+/*
+ *  Copyright (c) 2010 Csaba Kiraly
+ *
+ *  This is free software; see gpl-3.0.txt
+ */
 #include <stdint.h>
 #include <math.h>
 #ifndef NAN	//NAN is missing in some old math.h versions

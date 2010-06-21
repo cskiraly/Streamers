@@ -1,3 +1,8 @@
+/*
+ *  Copyright (c) 2010 Luca Abeni
+ *
+ *  This is free software; see gpl-3.0.txt
+ */
 #include <unistd.h>
 #include <stdint.h>
 #include <stdio.h>

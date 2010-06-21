@@ -1,3 +1,9 @@
+/*
+ *  Copyright (c) 2010 Csaba Kiraly
+ *  Copyright (c) 2010 Luca Abeni
+ *
+ *  This is free software; see gpl-3.0.txt
+ */
 #ifndef CHUNKLOCK_H
 #define CHUNKLOCK_H
 

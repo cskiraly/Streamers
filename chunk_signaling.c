@@ -1,8 +1,8 @@
 /*
- *  Copyright (c) 2009 Alessandro Russo.
+ *  Copyright (c) 2009 Alessandro Russo
+ *  Copyright (c) 2009 Csaba Kiraly
  *
- *  This is free software;
- *  see GPL.txt
+ *  This is free software; see gpl-3.0.txt
  *
  * Chunk Signaling API - Higher Abstraction
  *
@@ -10,7 +10,6 @@
  * This is a part of the Data Exchange Protocol which provides high level abstraction for chunks' negotiations, like requesting and proposing chunks.
  *
  */
-
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
