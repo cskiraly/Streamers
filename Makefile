@@ -14,8 +14,8 @@ CFLAGS += $(call cc-option, -Wundef)
 
 CFLAGS += $(call cc-option, -funit-at-a-time)
 
-NAPA ?= NAPA
-GRAPES ?= GRAPES
+NAPA ?= ../../NAPA-BASELIBS
+GRAPES ?= ../../GRAPES
 
 CPPFLAGS = -I$(NAPA)/include
 CPPFLAGS += -I$(GRAPES)/include
@@ -26,6 +26,7 @@ CPPFLAGS += -DDEBUG
 OBJS += dbg.o
 endif
 
+
 ifdef DEBUGOUT
 CPPFLAGS += -DDEBUGOUT
 endif
@@ -33,7 +34,7 @@ endif
 LDFLAGS += -L$(GRAPES)
 LDLIBS += -lgrapes
 ifdef ML
-LDFLAGS += -L$(NAPA)/ml -L$(LIBEVENT)/lib
+LDFLAGS += -L$(NAPA)/ml -L$(LIBEVENT_DIR)/lib
 LDLIBS += -lml -lm
 CPPFLAGS += -I$(NAPA)/ml/include -I$(LIBEVENT)/include
 ifdef MONL
@@ -70,10 +71,8 @@ OBJS += measures.o
 endif
 
 ifndef DUMMY
-FFDIR ?= ffmpeg
-FFSRC ?= $(FFDIR)
 OBJS += Chunkiser/input-stream-avs.o out-stream-avf.o
-LDFLAGS += -L$(FFDIR)/libavcodec -L$(FFDIR)/libavformat -L$(FFDIR)/libavutil
+LDFLAGS += -L$(FFMPEG_DIR)/lib
 LDLIBS += -lavformat -lavcodec -lavutil
 LDLIBS += -lm
 LDLIBS += $(call ld-option, -lz)
@@ -94,7 +93,7 @@ EXECTARGET := $(EXECTARGET)-threads
 endif
 
 ifdef STATIC
-LDFLAGS += -static
+LDFLAGS += -static -v
 EXECTARGET := $(EXECTARGET)-static
 endif
 
@@ -113,7 +112,7 @@ endif
 $(EXECTARGET).o: streamer.o
 	ln -sf streamer.o $(EXECTARGET).o
 
-out-stream-avf.o Chunkiser/input-stream-avs.o: CPPFLAGS += -I$(FFSRC) 
+out-stream-avf.o Chunkiser/input-stream-avs.o: CPPFLAGS += -I$(FFMPEG_DIR)/include 
 
 GRAPES:
 	git clone http://www.disi.unitn.it/~kiraly/PublicGits/GRAPES.git
