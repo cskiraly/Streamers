@@ -36,7 +36,7 @@ LDLIBS += -lgrapes
 ifdef ML
 LDFLAGS += -L$(NAPA)/ml -L$(LIBEVENT_DIR)/lib
 LDLIBS += -lml -lm
-CPPFLAGS += -I$(NAPA)/ml/include -I$(LIBEVENT)/include
+CPPFLAGS += -I$(NAPA)/ml/include -I$(LIBEVENT_DIR)/include
 ifdef MONL
 LDFLAGS += -L$(NAPA)/dclog -L$(NAPA)/rep -L$(NAPA)/monl -L$(NAPA)/common
 LDLIBS += -lstdc++ -lmon -lrep -ldclog -lcommon
@@ -72,6 +72,7 @@ endif
 
 ifndef DUMMY
 OBJS += Chunkiser/input-stream-avs.o out-stream-avf.o
+CPPFLAGS += -I$(FFMPEG_DIR)/include
 LDFLAGS += -L$(FFMPEG_DIR)/lib
 LDLIBS += -lavformat -lavcodec -lavutil
 LDLIBS += -lm
