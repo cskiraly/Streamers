@@ -219,10 +219,10 @@ void add_measures(struct nodeID *id)
 
 //	// Capacity
        add_measure(&id->mhs[j++], CLOCKDRIFT, TXRXUNI | PACKET | IN_BAND, 0, NULL, NULL, 0, id->addr, MSG_TYPE_CHUNK);
-	monSetParameter (&id->mhs[j], P_CLOCKDRIFT_ALGORITHM, 1);
+	monSetParameter (id->mhs[j], P_CLOCKDRIFT_ALGORITHM, 1);
        add_measure(&id->mhs[j++], CORRECTED_DELAY, TXRXUNI | PACKET | IN_BAND, 0, NULL, NULL, 0, id->addr, MSG_TYPE_CHUNK);
        add_measure(&id->mhs[j++], CAPACITY_CAPPROBE, TXRXUNI | PACKET | IN_BAND, 120, "Capacity", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//[bytes/s]
-	monSetParameter (&id->mhs[j], P_CAPPROBE_DELAY_TH, -1);
+	monSetParameter (id->mhs[j], P_CAPPROBE_DELAY_TH, -1);
 //	monSetParameter (mh, P_CAPPROBE_PKT_TH, 100);
 //	monSetParameter (mh, P_CAPPROBE_IPD_TH, 60);
 //	monPublishStatisticalType(mh, NULL, st , sizeof(st)/sizeof(enum stat_types), repoclient);
