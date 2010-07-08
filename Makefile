@@ -45,7 +45,8 @@ ifdef STATIC
 CC=g++
 endif
 endif
-LDLIBS += -levent -lrt
+#LDLIBS += -levent -lrt
+LDLIBS += $(LIBEVENT_DIR)/lib/libevent.a -lrt
 endif
 
 OBJS += streaming.o
