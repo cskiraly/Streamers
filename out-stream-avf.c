@@ -4,7 +4,18 @@
  *  This is free software; see gpl-3.0.txt
  */
 
+#define __STDC_CONSTANT_MACROS 1
+#include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include <libavformat/avformat.h>
+#ifdef __cplusplus
+}
+#endif
+
+
 #include <stdio.h>
 
 #include "out-stream.h"
@@ -47,7 +58,7 @@ static enum CodecID libav_codec_id(uint8_t mytype)
       return CODEC_ID_DIRAC;
     default:
       fprintf(stderr, "Unknown codec %d\n", mytype);
-      return 0;
+      return CODEC_ID_NONE;
   }
 }
 
@@ -138,7 +149,7 @@ void chunk_write(int id, const uint8_t *data, int size)
     dts += (dts < prev_dts - ((1L << 31) - 1)) ? ((prev_dts >> 32) + 1) << 32 : (prev_dts >> 32) << 32;
     prev_dts = dts;
     pkt.dts = av_rescale_q(dts, outctx->streams[0]->codec->time_base, outctx->streams[0]->time_base);
-    pkt.data = p;
+    pkt.data = (uint8_t *)p;
     p += frame_size;
     pkt.size = frame_size;
     av_interleaved_write_frame(outctx, &pkt);

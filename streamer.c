@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
     return -1;
   }
   if (srv_port != 0) {
-    struct nodeID *srv;
+    const struct nodeID *srv;
 
     srv = create_node(srv_ip, srv_port);
     if (srv == NULL) {

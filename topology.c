@@ -9,11 +9,12 @@
 #include <sys/time.h>
 #include <time.h>
 
-#include <net_helper.h>
+
 #include <peerset.h>
 #include <peer.h>
 #include <topmanager.h>
 
+#include <net_helper.h>
 #include "topology.h"
 #include "streaming.h"
 #include "dbg.h"
@@ -43,10 +44,10 @@ void remove_peer(struct nodeID *id)
 }
 
 // currently it just makes the peerset grow
-void update_peers(struct nodeID *from, const uint8_t *buff, int len)
+void update_peers(const struct nodeID *from, const uint8_t *buff, int len)
 {
   int n_ids, i;
-  const struct nodeID **ids;
+  const struct nodeID * const *ids;
   struct peer *peers;
   struct timeval tnow, told;
 
@@ -56,7 +57,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     if (peerset_check(pset, from) < 0) {
       topAddNeighbour(from, NULL, 0);	//@TODO: this is agressive
       if (!NEIGHBORHOOD_TARGET_SIZE || peerset_size(pset) < NEIGHBORHOOD_TARGET_SIZE) {
-        add_peer(from);
+        add_peer((struct nodeID *)from);
       }
     }
   }
@@ -67,7 +68,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
   for(i = 0; i < n_ids; i++) {
     if(peerset_check(pset, ids[i]) < 0) {
       if (!NEIGHBORHOOD_TARGET_SIZE || peerset_size(pset) < NEIGHBORHOOD_TARGET_SIZE) {
-        add_peer(ids[i]);
+        add_peer((struct nodeID *)ids[i]);
       }
     }
   }
@@ -81,7 +82,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
          ( timerisset(&peers[i].bmap_timestamp) && timercmp(&peers[i].bmap_timestamp, &told, <)     )   ) {
       //if (peerset_size(pset) > 1) {	// avoid dropping our last link to the world
         topRemoveNeighbour(peers[i].id);
-        remove_peer(peers[i--].id);
+        remove_peer((struct nodeID *)(peers[i--].id));
       //}
     }
   }
@@ -98,7 +99,7 @@ struct peer *nodeid_to_peer(const struct nodeID* id, int reg)
     fprintf(stderr,"warning: received message from unknown peer: %s!\n",node_addr(id));
     if (reg) {
       topAddNeighbour(id, NULL, 0);	//@TODO: this is agressive
-      add_peer(id);
+      add_peer((struct nodeID *)id);
       p = peerset_get_peer(pset,id);
     }
   }

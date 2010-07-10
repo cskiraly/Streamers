@@ -22,10 +22,10 @@ void reg_chunk_send(int id);
 void reg_offer_accept(bool b);
 
 #ifdef MONL
-double get_rtt(struct nodeID *id);
-double get_lossrate(struct nodeID *id);
-double get_average_lossrate(struct  nodeID**id, int len);
-int get_hopcount(struct nodeID *id);
+double get_rtt(const struct nodeID *id);
+double get_lossrate(const struct nodeID *id);
+double get_average_lossrate(const struct  nodeID**id, int len);
+int get_hopcount(const struct nodeID *id);
 #endif
 
 #endif
