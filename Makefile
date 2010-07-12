@@ -47,7 +47,7 @@ else
 LDLIBS_EXTRA = -lm -lstdc++
 endif
 endif
-LDLIBS += -static -levent $(if $(STATIC), , -dynamic) -lrt
+LDLIBS += -Wl,-static -levent $(if $(STATIC), , -Wl,-Bdynamic) -lrt
 #LDLIBS += -levent -lrt
 endif
 
