@@ -16,6 +16,8 @@ CFLAGS += $(call cc-option, -funit-at-a-time)
 
 NAPA ?= ../../NAPA-BASELIBS
 GRAPES ?= ../../GRAPES
+ULPLAYER ?= ../StreamerPlayerChunker
+ULPLAYER_EXTERNAL_LIBS ?= external_libs
 
 CPPFLAGS = -I$(NAPA)/include
 CPPFLAGS += -I$(GRAPES)/include
@@ -35,25 +37,28 @@ LDFLAGS += -L$(GRAPES)
 LDLIBS += -lgrapes
 ifdef ML
 LDFLAGS += -L$(NAPA)/ml -L$(LIBEVENT_DIR)/lib
-LDLIBS += -lml
+LDLIBS += -lml -lm
 CPPFLAGS += -I$(NAPA)/ml/include -I$(LIBEVENT_DIR)/include
 ifdef MONL
 LDFLAGS += -L$(NAPA)/dclog -L$(NAPA)/rep -L$(NAPA)/monl -L$(NAPA)/common
-LDLIBS += -lmon -lrep -ldclog -lcommon
+LDLIBS += -lstdc++ -lmon -lrep -ldclog -lcommon
 CPPFLAGS += -DMONL
 ifdef STATIC
 CC=g++
-else
-LDLIBS_EXTRA = -lm -lstdc++
 endif
 endif
-LDLIBS += -Wl,-static -levent $(if $(STATIC), , -Wl,-Bdynamic) -lrt
 #LDLIBS += -levent -lrt
+LDLIBS += $(LIBEVENT_DIR)/lib/libevent.a -lrt
 endif
 
 OBJS += streaming.o
+ifndef HTTPIO
 OBJS += input.o
 OBJS += output.o 
+else
+OBJS += input-http.o
+OBJS += output-http.o
+endif
 OBJS += net_helpers.o 
 OBJS += topology.o
 OBJS += chunk_signaling.o
@@ -74,18 +79,33 @@ OBJS += measures.o
 endif
 
 ifndef DUMMY
+ifndef HTTPIO
 OBJS += Chunkiser/input-stream-avs.o out-stream-avf.o
 CPPFLAGS += -I$(FFMPEG_DIR)/include
 LDFLAGS += -L$(FFMPEG_DIR)/lib
 LDLIBS += -lavformat -lavcodec -lavutil
-LDLIBS_EXTRA += -lm
+LDLIBS += -lm
 LDLIBS += $(call ld-option, -lz)
 LDLIBS += $(call ld-option, -lbz2)
 else
+CPPFLAGS += -DHTTPIO
+OBJS += $(ULPLAYER)/chunker_player/chunk_puller.o
+OBJS += $(ULPLAYER)/chunker_streamer/chunk_pusher_curl.o
+CPPFLAGS += -I$(ULPLAYER) -I$(ULPLAYER)/chunk_transcoding
+CFLAGS += -pthread
+LDFLAGS += -pthread
+
+LOCAL_MHD=$(ULPLAYER)/$(ULPLAYER_EXTERNAL_LIBS)/libmicrohttpd
+CPPFLAGS += -I$(LOCAL_MHD) -I$(LOCAL_MHD)/src/daemon -I$(LOCAL_MHD)/src/include
+LDFLAGS += -L$(LOCAL_MHD)/src/daemon
+LDLIBS += $(LOCAL_MHD)/src/daemon/.libs/libmicrohttpd.a
+
+LOCAL_CURL=$(ULPLAYER)/$(ULPLAYER_EXTERNAL_LIBS)/curl-7.21.0/temp_curl_install
+LDLIBS += $(LOCAL_CURL)/lib/libcurl.a -lrt
+endif
+else
 OBJS += input-stream-dummy.o out-stream-dummy.o
 endif
-
-LDLIBS += $(LDLIBS_EXTRA)
 
 EXECTARGET = offerstreamer
 ifdef ML
@@ -96,6 +116,9 @@ EXECTARGET := $(EXECTARGET)-monl
 endif
 ifdef THREADS
 EXECTARGET := $(EXECTARGET)-threads
+endif
+ifdef HTTPIO
+EXECTARGET := $(EXECTARGET)-http
 endif
 
 ifdef STATIC

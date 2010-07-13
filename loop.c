@@ -13,20 +13,23 @@
 #include <stdbool.h>
 
 #include <net_helper.h>
-
 #include <msg_types.h>
 #include <peerset.h>
 #include <peer.h>
 
 #include "chunk_signaling.h"
-#include "topology.h"
 #include "streaming.h"
+#include "topology.h"
 #include "loop.h"
 #include "dbg.h"
 
 #define BUFFSIZE 512 * 1024
 static struct timeval period = {0, 500000};
 static struct timeval tnext;
+
+#ifdef HTTPIO
+extern pthread_mutex_t cb_mutex;
+#endif
 
 void tout_init(struct timeval *tv)
 {
@@ -63,7 +66,7 @@ void loop(struct nodeID *s, int csize, int buff_size)
     tout_init(&tv);
     res = wait4data(s, &tv, NULL);
     if (res > 0) {
-      const struct nodeID *remote;
+      struct nodeID *remote;
 
       len = recv_from_peer(s, &remote, buff, BUFFSIZE);
       if (len < 0) {
@@ -77,7 +80,13 @@ void loop(struct nodeID *s, int csize, int buff_size)
           break;
         case MSG_TYPE_CHUNK:
           dprintf("Chunk message received:\n");
+#ifdef HTTPIO
+          pthread_mutex_lock(&cb_mutex);
+#endif
           received_chunk(remote, buff, len);
+#ifdef HTTPIO
+          pthread_mutex_unlock(&cb_mutex);
+#endif
           break;
         case MSG_TYPE_SIGNALLING:
           sigParseData(remote, buff, len);
@@ -119,10 +128,14 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
     int len, res;
     struct timeval tv;
 
+#ifdef HTTPIO
+    res = wait4data(s, NULL, NULL);
+#else
     tout_init(&tv);
     res = wait4data(s, &tv, NULL);
+#endif
     if (res > 0) {
-      const struct nodeID *remote;
+      struct nodeID *remote;
 
       len = recv_from_peer(s, &remote, buff, BUFFSIZE);
       if (len < 0) {
