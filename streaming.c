@@ -41,7 +41,7 @@ struct chunk_attributes {
   uint16_t hopcount;
 } __attribute__((packed));
 
-static struct chunk_buffer *cb;
+struct chunk_buffer *cb;
 static struct input_desc *input;
 static int cb_size;
 static int transid=0;
