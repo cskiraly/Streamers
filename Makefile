@@ -97,12 +97,14 @@ CPPFLAGS += -I$(ULPLAYER) -I$(ULPLAYER)/chunk_transcoding
 CFLAGS += -pthread
 LDFLAGS += -pthread
 
-LOCAL_MHD=$(ULPLAYER)/$(ULPLAYER_EXTERNAL_LIBS)/libmicrohttpd
-CPPFLAGS += -I$(LOCAL_MHD) -I$(LOCAL_MHD)/src/daemon -I$(LOCAL_MHD)/src/include
-LDFLAGS += -L$(LOCAL_MHD)/src/daemon
-LDLIBS += $(LOCAL_MHD)/src/daemon/.libs/libmicrohttpd.a
+LOCAL_MHD=$(ULPLAYER)/$(ULPLAYER_EXTERNAL_LIBS)/libmicrohttpd/temp_mhd_install
+CPPFLAGS += -I$(LOCAL_MHD)/include
+LDFLAGS += -L$(LOCAL_MHD)/lib
+LDLIBS += $(LOCAL_MHD)/lib/libmicrohttpd.a
 
-LOCAL_CURL=$(ULPLAYER)/$(ULPLAYER_EXTERNAL_LIBS)/curl-7.21.0/temp_curl_install
+LOCAL_CURL=$(ULPLAYER)/$(ULPLAYER_EXTERNAL_LIBS)/curl/temp_curl_install
+CPPFLAGS += -I$(LOCAL_CURL)/include
+LDFLAGS += -L$(LOCAL_CURL)/lib
 LDLIBS += $(LOCAL_CURL)/lib/libcurl.a -lrt
 endif
 else
