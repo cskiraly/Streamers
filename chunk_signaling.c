@@ -17,16 +17,13 @@
 #include <errno.h>
 #include <assert.h>
 #include <string.h>
-
 #include "peer.h"
 #include "peerset.h"
 #include "chunkidset.h"
-#include "trade_sig_ha.h"
 #include "trade_sig_la.h"
+#include "chunk_signaling.h"
 #include "msg_types.h"
 #include "net_helper.h"
-
-#include "chunk_signaling.h"
 
 #include "streaming.h"
 #include "topology.h"
@@ -202,7 +199,7 @@ int sigParseData(const struct nodeID *fromid, uint8_t *buff, int buff_len) {
         case MSG_SIG_BMOFF:
         {
           int dummy;
-          const struct nodeID *ownerid = nodeid_undump(&(signal->third_peer),&dummy);
+          struct nodeID *ownerid = nodeid_undump(&(signal->third_peer),&dummy);
           bmap_received(fromid, ownerid, c_set, signal->cb_size, signal->trans_id);
           nodeid_free(ownerid);
           break;

@@ -19,7 +19,7 @@ static struct timeval toutdiff = {0, 100000};
 
 struct lock {
   int chunkid;
-  const struct nodeID *peer;
+  struct nodeID *peer;
   struct timeval timestamp;
 };
 
@@ -31,13 +31,13 @@ void locks_init()
 {
   if (!locks) {
     lsize = LSIZE_INCREMENT;
-    locks = (struct lock *)malloc(sizeof(struct lock) * lsize);
+    locks = malloc(sizeof(struct lock) * lsize);
     lcount = 0;
   }
 
   if (lcount == lsize) {
     lsize += LSIZE_INCREMENT;
-    locks = (struct lock *)realloc(locks , sizeof(struct lock) * lsize);
+    locks = realloc(locks , sizeof(struct lock) * lsize);
   }
 
   if (!locks) {
@@ -80,7 +80,7 @@ void chunk_lock(int chunkid,struct peer *from){
 }
 
 void chunk_unlock(int chunkid){
-  size_t i;
+  int i;
 
   for (i=0; i<lcount; i++) {
     if (locks[i].chunkid == chunkid) {
@@ -91,7 +91,7 @@ void chunk_unlock(int chunkid){
 }
 
 int chunk_islocked(int chunkid){
-  size_t i;
+  int i;
 
   chunk_locks_cleanup();
 

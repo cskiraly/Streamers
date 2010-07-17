@@ -37,20 +37,19 @@ LDFLAGS += -L$(GRAPES)
 LDLIBS += -lgrapes
 ifdef ML
 LDFLAGS += -L$(NAPA)/ml -L$(LIBEVENT_DIR)/lib
-LDLIBS += -lml
+LDLIBS += -lml -lm
 CPPFLAGS += -I$(NAPA)/ml/include -I$(LIBEVENT_DIR)/include
 ifdef MONL
 LDFLAGS += -L$(NAPA)/dclog -L$(NAPA)/rep -L$(NAPA)/monl -L$(NAPA)/common
-LDLIBS += -lmon -lrep -ldclog -lcommon
+LDLIBS += -lstdc++ -lmon -lrep -ldclog -lcommon
 CPPFLAGS += -DMONL
 ifdef STATIC
 CC=g++
-else
-LDLIBS_EXTRA = -lm -lstdc++
 endif
 endif
 LDLIBS += -Wl,-static -levent $(if $(STATIC), , -Wl,-Bdynamic) -lrt
 #LDLIBS += -levent -lrt
+LDLIBS += $(LIBEVENT_DIR)/lib/libevent.a -lrt
 endif
 
 OBJS += streaming.o
@@ -86,7 +85,7 @@ OBJS += Chunkiser/input-stream-avs.o out-stream-avf.o
 CPPFLAGS += -I$(FFMPEG_DIR)/include
 LDFLAGS += -L$(FFMPEG_DIR)/lib
 LDLIBS += -lavformat -lavcodec -lavutil
-LDLIBS_EXTRA += -lm
+LDLIBS += -lm
 LDLIBS += $(call ld-option, -lz)
 LDLIBS += $(call ld-option, -lbz2)
 else
@@ -110,8 +109,6 @@ endif
 else
 OBJS += input-stream-dummy.o out-stream-dummy.o
 endif
-
-LDLIBS += $(LDLIBS_EXTRA)
 
 EXECTARGET = offerstreamer
 ifdef ML

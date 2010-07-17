@@ -246,7 +246,7 @@ void delete_measures(struct nodeID *id)
 /*
  * Helper to retrieve a measure
 */
-double get_measure(const struct nodeID *id, int j, enum stat_types st)
+double get_measure(struct nodeID *id, int j, enum stat_types st)
 {
 	return (id->n_mhs > j) ? monRetrieveResult(id->mhs[j], st) : NAN;
 }
@@ -254,7 +254,7 @@ double get_measure(const struct nodeID *id, int j, enum stat_types st)
 /*
  * Hopcount to a given peer
 */
-int get_hopcount(const struct nodeID *id){
+int get_hopcount(struct nodeID *id){
 	double r = get_measure(id, 0, LAST);
 	return isnan(r) ? -1 : (int) r;
 }
@@ -262,14 +262,14 @@ int get_hopcount(const struct nodeID *id){
 /*
  * RTT to a given peer in seconds
 */
-double get_rtt(const struct nodeID *id){
+double get_rtt(struct nodeID *id){
 	return get_measure(id, 1, WIN_AVG);
 }
 
 /*
  * average RTT to a set of peers in seconds
 */
-double get_average_rtt(const struct nodeID **ids, int len){
+double get_average_rtt(struct nodeID **ids, int len){
 	int i;
 	int n = 0;
 	double sum = 0;
@@ -287,14 +287,14 @@ double get_average_rtt(const struct nodeID **ids, int len){
 /*
  * loss ratio from a given peer as 0..1
 */
-double get_lossrate(const struct nodeID *id){
+double get_lossrate(struct nodeID *id){
 	return get_measure(id, 2, WIN_AVG);
 }
 
 /*
  * average loss ratio from a set of peers as 0..1
 */
-double get_average_lossrate(const struct nodeID **ids, int len){
+double get_average_lossrate(struct nodeID **ids, int len){
 	int i;
 	int n = 0;
 	double sum = 0;

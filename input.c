@@ -30,7 +30,7 @@ struct input_desc *input_open(const char *fname, uint16_t flags)
   struct input_desc *res;
   struct timeval tv;
 
-  res = (struct input_desc *)malloc(sizeof(struct input_desc));
+  res = malloc(sizeof(struct input_desc));
   if (res == NULL) {
     return NULL;
   }

@@ -4,20 +4,8 @@
  *  This is free software; see gpl-3.0.txt
  */
 
-
-#define __STDC_CONSTANT_MACROS 1
-#include <stdint.h>
-#include <stdbool.h>
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 #include <libavformat/avformat.h>
-#ifdef __cplusplus
-}
-#endif
-
+#include <stdbool.h>
 
 #include "../dbg.h"
 #include "../input-stream.h"
@@ -123,13 +111,12 @@ static void frame_header_fill(uint8_t *data, int size, AVPacket *pkt, AVStream *
 struct input_stream *input_stream_open(const char *fname, int *period, uint16_t flags)
 {
   struct input_stream *desc;
-  size_t i;
-  int res;
+  int i, res;
 
   avcodec_register_all();
   av_register_all();
 
-  desc = (struct input_stream *)malloc(sizeof(struct input_stream));
+  desc = malloc(sizeof(struct input_stream));
   if (desc == NULL) {
     return NULL;
   }
@@ -298,7 +285,7 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
       }
     }
     *size = pkt.size + s->s->streams[pkt.stream_index]->codec->extradata_size * header_out + header_size + FRAME_HEADER_SIZE;
-    data = (uint8_t *)malloc(*size);
+    data = malloc(*size);
     if (data == NULL) {
       *size = -1;
       av_free_packet(&pkt);

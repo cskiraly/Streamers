@@ -32,8 +32,6 @@
 #include "measures.h"
 
 #include "scheduler_la.h"
-#include "chunkbuffer.h"
-#include "chunkbuffer_helper.h"
 
 struct chunk_attributes {
   uint64_t deadline;
@@ -109,7 +107,7 @@ void chunk_attributes_fill(struct chunk* c)
   assert(!c->attributes && c->attributes_size == 0);
 
   c->attributes_size = sizeof(struct chunk_attributes);
-  c->attributes = ca = (struct chunk_attributes *)malloc(c->attributes_size);
+  c->attributes = ca = malloc(c->attributes_size);
 
   ca->deadline = c->timestamp;
   ca->deadline_increment = 2;
@@ -128,7 +126,7 @@ int chunk_get_hopcount(struct chunk* c) {
   return ca->hopcount;
 }
 
-void chunk_attributes_update_received(const struct chunk* c)
+void chunk_attributes_update_received(struct chunk* c)
 {
   struct chunk_attributes * ca;
 
@@ -142,7 +140,7 @@ void chunk_attributes_update_received(const struct chunk* c)
   dprintf("Received chunk %d with hopcount %hu\n", c->id, ca->hopcount);
 }
 
-void chunk_attributes_update_sending(const struct chunk* c)
+void chunk_attributes_update_sending(struct chunk* c)
 {
   struct chunk_attributes * ca;
 
@@ -159,8 +157,7 @@ void chunk_attributes_update_sending(const struct chunk* c)
 struct chunkID_set *cb_to_bmap(struct chunk_buffer *chbuf)
 {
   struct chunk *chunks;
-  size_t num_chunks;
-  int i;
+  int num_chunks, i;
   struct chunkID_set *my_bmap = chunkID_set_init("type=1");
   chunks = cb_get_chunks(chbuf, &num_chunks);
 
@@ -221,7 +218,7 @@ double get_average_lossrate_pset(struct peerset *pset)
   n = peerset_size(pset);
   neighbours = peerset_get_peers(pset);
   {
-    const struct nodeID *nodeids[n];
+    struct nodeID *nodeids[n];
     for (i = 0; i<n; i++) nodeids[i] = neighbours[i].id;
 #ifdef MONL
     return get_average_lossrate(nodeids, n);
@@ -242,7 +239,7 @@ void ack_chunk(struct chunk *c, struct peer *p)
   send_bmap(p);	//send explicit ack
 }
 
-void received_chunk(const struct nodeID *from, const uint8_t *buff, int len)
+void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
 {
   int res;
   static struct chunk c;
@@ -301,7 +298,7 @@ int generated_chunk(suseconds_t *delta)
  *
  * Looks at buffermap information received about the given peer.
  */
-int needs(const struct nodeID *n, int cid){
+int needs(struct nodeID *n, int cid){
   struct peer * p = nodeid_to_peer(n, 0);
   if (!p) return 1; // if we don't know this peer, but we assume it needs the chunk (aggressive behaviour!)
 
@@ -333,17 +330,17 @@ int _needs(struct chunkID_set *cset, int cb_size, int cid){
   return 0;
 }
 
-double peerWeightReceivedfrom(const struct nodeID * const *n){
+double peerWeightReceivedfrom(struct nodeID **n){
   struct peer * p = nodeid_to_peer(*n, 0);
   if (!p) return 0;
   return timerisset(&p->bmap_timestamp) ? 1 : 0.1;
 }
 
-double peerWeightUniform(const struct nodeID * const *n){
+double peerWeightUniform(struct nodeID **n){
   return 1;
 }
 
-double peerWeightRtt(const struct nodeID * const *n){
+double peerWeightRtt(struct nodeID **n){
 #ifdef MONL
   double rtt = get_rtt(*n);
   //dprintf("RTT to %s: %f\n", node_addr(p->id), rtt);
@@ -369,8 +366,8 @@ double peerScoreELpID(struct nodeID **n){
   return -latest;
 }
 
-double getChunkTimestamp(const int *cid){
-  const struct chunk *c = cb_get_chunk(cb, *cid);
+double getChunkTimestamp(int *cid){
+  struct chunk *c = cb_get_chunk(cb, *cid);
   if (!c) return 0;
 
   return (double) c->timestamp;
@@ -382,7 +379,7 @@ void send_accepted_chunks(struct peer *to, struct chunkID_set *cset_acc, int max
   cset_acc_size = chunkID_set_size(cset_acc);
   reg_offer_accept(cset_acc_size > 0 ? 1 : 0);	//this only works if accepts are sent back even if 0 is accepted
   for (i = 0, d=0; i < cset_acc_size && d < max_deliver; i++) {
-    const struct chunk *c;
+    struct chunk *c;
     int chunkid = chunkID_set_get_chunk(cset_acc, i);
     c = cb_get_chunk(cb, chunkid);
     if (c && needs(to->id, chunkid) ) {	// we should have the chunk, and he should not have it. Although the "accept" should have been an answer to our "offer", we do some verification
@@ -404,7 +401,7 @@ int offer_peer_count()
   return offer_per_tick;
 }
 
-int offer_max_deliver(const struct nodeID *n)
+int offer_max_deliver(struct nodeID *n)
 {
 #ifdef MONL
   switch (get_hopcount(n)) {
@@ -420,8 +417,7 @@ int offer_max_deliver(const struct nodeID *n)
 void send_offer()
 {
   struct chunk *buff;
-  size_t size, i, n;
-  int res;
+  int size, res, i, n;
   struct peer *neighbours;
   struct peerset *pset;
 
@@ -436,8 +432,8 @@ void send_offer()
   {
     size_t selectedpeers_len = offer_peer_count();
     int chunkids[size];
-    const struct nodeID *nodeids[n];
-    const struct nodeID *selectedpeers[selectedpeers_len];
+    struct nodeID *nodeids[n];
+    struct nodeID *selectedpeers[selectedpeers_len];
 
     //reduce load a little bit if there are losses on the path from this guy
     double average_lossrate = get_average_lossrate_pset(pset);
@@ -448,7 +444,7 @@ void send_offer()
 
     for (i = 0;i < size; i++) chunkids[i] = (buff+i)->id;
     for (i = 0; i<n; i++) nodeids[i] = (neighbours+i)->id;
-    schedSelectPeersForChunks(SCHED_WEIGHTED, nodeids, n, chunkids, size, selectedpeers, &selectedpeers_len, needs, (transid % 2) ? peerWeightReceivedfrom : peerWeightRtt);	//select a peer that needs at least one of our chunks
+    selectPeersForChunks(SCHED_WEIGHTED, nodeids, n, chunkids, size, selectedpeers, &selectedpeers_len, needs, (transid % 2) ? peerWeightReceivedfrom : peerWeightRtt);	//select a peer that needs at least one of our chunks
 
     for (i=0; i<selectedpeers_len ; i++){
       int max_deliver = offer_max_deliver(selectedpeers[i]);
@@ -464,8 +460,7 @@ void send_offer()
 void send_chunk()
 {
   struct chunk *buff;
-  size_t size, i, n;
-  int res;
+  int size, res, i, n;
   struct peer *neighbours;
   struct peerset *pset;
 
@@ -487,7 +482,7 @@ void send_chunk()
   {
     size_t selectedpairs_len = 1;
     int chunkids[size];
-    const struct nodeID *nodeids[n];
+    struct nodeID *nodeids[n];
     struct PeerChunk selectedpairs[1];
   
     for (i = 0;i < size; i++) chunkids[i] = (buff+i)->id;
@@ -497,7 +492,7 @@ void send_chunk()
 
     for (i=0; i<selectedpairs_len ; i++){
       struct peer *p = nodeid_to_peer(selectedpairs[i].peer, 0);
-      const struct chunk *c = cb_get_chunk(cb, selectedpairs[i].chunk);
+      struct chunk *c = cb_get_chunk(cb, selectedpairs[i].chunk);
       dprintf("\t sending chunk[%d] to ", c->id);
       dprintf("%s\n", node_addr(p->id));
 

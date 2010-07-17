@@ -20,7 +20,7 @@ static int next_chunk = -1;
 static int buff_size;
 
 struct outbuf {
-  uint8_t *data;
+  void *data;
   int size;
   int id;
   uint64_t timestamp;
@@ -33,7 +33,7 @@ void output_init(int bufsize)
     int i;
 
     buff_size = bufsize;
-    buff = (struct outbuf *)malloc(sizeof(struct outbuf) * buff_size);
+    buff = malloc(sizeof(struct outbuf) * buff_size);
     if (!buff) {
      fprintf(stderr, "Error: can't allocate output buffer\n");
      exit(1);
@@ -148,7 +148,7 @@ void output_deliver(const struct chunk *c)
       exit(-1);
     }
     /* We previously flushed, so we know that c->id is free */
-    buff[c->id % buff_size].data = (uint8_t *)malloc(c->size);
+    buff[c->id % buff_size].data = malloc(c->size);
     memcpy(buff[c->id % buff_size].data, c->data, c->size);
     buff[c->id % buff_size].size = c->size;
     buff[c->id % buff_size].id = c->id;

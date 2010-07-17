@@ -13,14 +13,13 @@
 #include <stdbool.h>
 
 #include <net_helper.h>
-
 #include <msg_types.h>
 #include <peerset.h>
 #include <peer.h>
 
 #include "chunk_signaling.h"
-#include "topology.h"
 #include "streaming.h"
+#include "topology.h"
 #include "loop.h"
 #include "dbg.h"
 
@@ -67,7 +66,7 @@ void loop(struct nodeID *s, int csize, int buff_size)
     tout_init(&tv);
     res = wait4data(s, &tv, NULL);
     if (res > 0) {
-      const struct nodeID *remote;
+      struct nodeID *remote;
 
       len = recv_from_peer(s, &remote, buff, BUFFSIZE);
       if (len < 0) {
@@ -136,7 +135,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
     res = wait4data(s, &tv, NULL);
 #endif
     if (res > 0) {
-      const struct nodeID *remote;
+      struct nodeID *remote;
 
       len = recv_from_peer(s, &remote, buff, BUFFSIZE);
       if (len < 0) {

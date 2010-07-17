@@ -17,7 +17,7 @@ inline int cb_add_chunk(struct chunk_buffer *cb, const struct chunk *c) {
   return chbAddChunk(cb, c);
 }
 
-inline struct chunk *cb_get_chunks(const struct chunk_buffer *cb, size_t *n) {
+inline struct chunk *cb_get_chunks(const struct chunk_buffer *cb, int *n) {
  return chbGetChunks(cb, n);
 }
 
