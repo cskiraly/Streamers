@@ -44,7 +44,9 @@ LDFLAGS += -L$(NAPA)/dclog -L$(NAPA)/rep -L$(NAPA)/monl -L$(NAPA)/common
 LDLIBS += -lstdc++ -lmon -lrep -ldclog -lcommon
 CPPFLAGS += -DMONL
 ifdef STATIC
-CC=g++
+LD=g++
+else
+LD=$(CC)
 endif
 endif
 LDLIBS += -Wl,-static -levent $(if $(STATIC), , -Wl,-Bdynamic) -lrt
@@ -136,10 +138,11 @@ endif
 all: $(EXECTARGET)
 
 ifndef ML
-$(EXECTARGET): $(OBJS) $(GRAPES)/net_helper.o
+$(EXECTARGET): $(OBJS) $(GRAPES)/net_helper.o $(EXECTARGET).o
 else
-$(EXECTARGET): $(OBJS) $(GRAPES)/net_helper-ml.o
+$(EXECTARGET): $(OBJS) $(GRAPES)/net_helper-ml.o $(EXECTARGET).o
 endif
+	$(LD) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 $(EXECTARGET).o: streamer.o
 	ln -sf streamer.o $(EXECTARGET).o
