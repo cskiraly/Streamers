@@ -32,6 +32,54 @@ static const char *fname = "input.mpg";
 static bool loop_input = false;
 unsigned char msgTypes[] = {MSG_TYPE_TOPOLOGY,MSG_TYPE_CHUNK,MSG_TYPE_SIGNALLING};
 
+static void print_usage()
+{
+  fprintf (stderr,
+    "Usage:offerstreamer [-bocmtpiPIflCh]\n"
+    "\n"
+    "Peer options\n"
+    "\t[-p port]: port of the remote peer to connect at during bootstrap.\n"
+    "\t           Usually it is the source peer port.\n"
+    "\t[-i IP]: IP address of the remote peer to connect at during bootstrap.\n"
+    "\t         Usually it is the source peer IP\n"
+    "\t[-C name]: set the channel name to use on the repository.\n"
+    "\t           All peers should use the same channel name.\n"
+    "\n"
+    "\t[-b size]: set the peer Chunk Buffer size.\n"
+    "\t           This is also the chunk trading window size.\n"
+    "\t[-o size]: set the Output Buffer size.\n"
+    "\t[-c chunks]: set the number of chunks a peer can send per seconds.\n"
+    "\t             it controls the upload capacity of peer as well.\n"
+    "\t[-t time]: chunk emission period. STILL NEEDED??\n"
+    "\t[-P port]: local UDP port to be used by the peer.\n"
+    "\t[-I IP]: local IP address to be used by the peer.\n"
+    "\t         Useful if the host has several interfaces/addresses.\n"
+    "\n"
+    "Special Source Peer options\n"
+    "\t[-m chunks]: set the number of copies the source injects in the overlay.\n"
+    "\t[-f filename]: name of the video stream file to transmit.\n"
+    "\t[-l]: loop the video stream.\n"
+    "\n"
+    "NOTE: the peer will dump the received video on STDOUT in raw format\n"
+    "      it can be played by your favourite player simply using a pipe\n"
+    "      e.g., | vlc -\n"
+    "\n"
+    "Examples:\n"
+    "\n"
+    "Start a source peer on port 6600:\n"
+    "\n"
+    "./offestreamer -m 3 -C MyTest -l -f foreman.avi -P 6600\n"
+    "\n"
+    "Start a peer connecting to the previous source, and using videolan as player:\n"
+    "\n"
+    "./offerstreamer -i 130.192.9.140 -p 6600 |vlc -\n"
+    "\n"
+    
+    );
+  }
+
+
+
 static void cmdline_parse(int argc, char *argv[])
 {
   int o;
@@ -76,6 +124,7 @@ static void cmdline_parse(int argc, char *argv[])
         break;
       default:
         fprintf(stderr, "Error: unknown option %c\n", o);
+        print_usage();
 
         exit(-1);
     }
