@@ -19,6 +19,7 @@
 #define PLAYER_IP "127.0.0.1"
 
 struct nodeID *streamer;
+extern int port;
 
 void output_init(int bufsize)
 {
@@ -30,7 +31,12 @@ void output_deliver(const struct chunk *c)
   int ret = -1;
   char url[256];
 
-	sprintf(url, "http://%s:%d%s", PLAYER_IP, UL_DEFAULT_EXTERNALPLAYER_PORT, UL_DEFAULT_EXTERNALPLAYER_PATH);
-  ret = sendViaCurl(*c, GRAPES_ENCODED_CHUNK_HEADER_SIZE + c->size + c->attributes_size, url);
-  dprintf("Chunk %d delivered to %s\n", c->id, url);
+	//deliver the chunk to the external http player listening on the same (plus one)
+	//port the offerstreamr is running on. If port was set > 60000 the the http
+	//deliver is disabled, to allow mixed testing scenarios
+	if(port < 60000) {
+		sprintf(url, "http://%s:%d%s", PLAYER_IP, port+1, UL_DEFAULT_EXTERNALPLAYER_PATH);
+  	ret = sendViaCurl(*c, GRAPES_ENCODED_CHUNK_HEADER_SIZE + c->size + c->attributes_size, url);
+  	dprintf("Chunk %d delivered to %s\n", c->id, url);
+	}
 }

@@ -20,7 +20,11 @@
 #include "channel.h"
 
 static const char *my_iface = NULL;
+#ifdef HTTPIO
+int port = 6666;
+#else
 static int port = 6666;
+#endif
 static int srv_port;
 static const char *srv_ip = "";
 static int period = 40;
