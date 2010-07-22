@@ -14,6 +14,8 @@ CFLAGS += $(call cc-option, -Wundef)
 
 CFLAGS += $(call cc-option, -funit-at-a-time)
 
+LINKER = $(CC)
+
 NAPA ?= ../../NAPA-BASELIBS
 GRAPES ?= ../../GRAPES
 ULPLAYER ?= ../StreamerPlayerChunker
@@ -44,9 +46,7 @@ LDFLAGS += -L$(NAPA)/dclog -L$(NAPA)/rep -L$(NAPA)/monl -L$(NAPA)/common
 LDLIBS += -lstdc++ -lmon -lrep -ldclog -lcommon
 CPPFLAGS += -DMONL
 ifdef STATIC
-LD=g++
-else
-LD=$(CC)
+LINKER=g++
 endif
 endif
 LDLIBS += -Wl,-static -levent $(if $(STATIC), , -Wl,-Bdynamic) -lrt
@@ -142,7 +142,7 @@ $(EXECTARGET): $(OBJS) $(GRAPES)/net_helper.o $(EXECTARGET).o
 else
 $(EXECTARGET): $(OBJS) $(GRAPES)/net_helper-ml.o $(EXECTARGET).o
 endif
-	$(LD) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
+	$(LINKER) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 $(EXECTARGET).o: streamer.o
 	ln -sf streamer.o $(EXECTARGET).o
