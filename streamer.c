@@ -19,6 +19,8 @@
 #include "output.h"
 #include "channel.h"
 
+const char *peername = NULL;
+
 static const char *my_iface = NULL;
 #ifdef HTTPIO
 int port = 6666;
@@ -58,6 +60,8 @@ static void print_usage()
     "\t[-P port]: local UDP port to be used by the peer.\n"
     "\t[-I IP]: local IP address to be used by the peer.\n"
     "\t         Useful if the host has several interfaces/addresses.\n"
+    "\t[-N name]: set the name of the peer.\n"
+    "\t         This name will be used when publishing in the repository.\n"
     "\n"
     "Special Source Peer options\n"
     "\t[-m chunks]: set the number of copies the source injects in the overlay.\n"
@@ -88,7 +92,7 @@ static void cmdline_parse(int argc, char *argv[])
 {
   int o;
 
-  while ((o = getopt(argc, argv, "b:o:c:t:p:i:P:I:f:m:lC:")) != -1) {
+  while ((o = getopt(argc, argv, "b:o:c:t:p:i:P:I:f:m:lC:N:")) != -1) {
     switch(o) {
       case 'b':
         buff_size = atoi(optarg);
@@ -125,6 +129,9 @@ static void cmdline_parse(int argc, char *argv[])
         break;
       case 'C':
         channel_set_name(optarg);
+        break;
+      case 'N':
+        peername = strdup(optarg);
         break;
       default:
         fprintf(stderr, "Error: unknown option %c\n", o);
