@@ -86,7 +86,7 @@ void stream_init(int size, struct nodeID *myID)
   cb = cb_init(conf);
   chunkDeliveryInit(myID);
   chunkSignalingInit(myID);
-  //init_measures();
+  init_measures();
 }
 
 int source_init(const char *fname, struct nodeID *myID, bool loop)
