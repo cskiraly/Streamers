@@ -19,6 +19,8 @@
 #include "dbg.h"
 #include "measures.h"
 
+extern const char *peername;
+
 typedef struct nodeID {
 	socketID_handle addr;
 	int connID;	// connection associated to this node, -1 if myself
@@ -166,6 +168,8 @@ void init_measures()
 {
 	enum stat_types stavg[] = {WIN_AVG};
 	enum stat_types stsum[] = {SUM};
+
+	if (peername) monSetPeerName(peername);
 
 	// Traffic
        //add_measure(&rx_bytes_chunk_per_sec, BULK_TRANSFER, RXONLY | PACKET | TIMER_BASED, 120, "RxBytesChunkPSec", stavg, sizeof(stavg)/sizeof(enum stat_types), NULL, MSG_TYPE_CHUNK);	//[bytes/s]
