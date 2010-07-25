@@ -11,7 +11,7 @@
 
 struct input_desc;
 
-struct input_desc *input_open(const char *fname, uint16_t flags);
+struct input_desc *input_open(const char *fname, uint16_t flags, int *fds, int fds_size);
 void input_close(struct input_desc *s);
 int input_get(struct input_desc *s, struct chunk *c);
 

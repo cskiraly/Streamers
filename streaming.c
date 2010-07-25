@@ -88,9 +88,9 @@ void stream_init(int size, struct nodeID *myID)
   init_measures();
 }
 
-int source_init(const char *fname, struct nodeID *myID, bool loop)
+int source_init(const char *fname, struct nodeID *myID, bool loop, int *fds, int fds_size)
 {
-  input = input_open(fname, loop ? INPUT_LOOP : 0);
+  input = input_open(fname, loop ? INPUT_LOOP : 0, fds, fds_size);
   if (input == NULL) {
     return -1;
   }

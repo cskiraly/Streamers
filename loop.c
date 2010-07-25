@@ -24,6 +24,7 @@
 #include "dbg.h"
 
 #define BUFFSIZE 512 * 1024
+#define FDSSIZE 16
 static struct timeval period = {0, 500000};
 static struct timeval tnext;
 
@@ -113,12 +114,15 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
   int done = 0;
   static uint8_t buff[BUFFSIZE];
   int cnt = 0;
+  int fds[FDSSIZE];
+  fds[0] = -1;
 
   period.tv_sec = csize  / 1000000;
   period.tv_usec = csize % 1000000;
   
   peers_init();
-  if (source_init(fname, s, loop) < 0) {
+
+  if (source_init(fname, s, loop, fds, FDSSIZE) < 0) {
     fprintf(stderr,"Cannot initialize source, exiting");
     return;
   }
