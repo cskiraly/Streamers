@@ -442,7 +442,7 @@ void send_offer()
       return;
     }
 
-    for (i = 0;i < size; i++) chunkids[i] = (buff+i)->id;
+    for (i = 0;i < size; i++) chunkids[size - 1 - i] = (buff+i)->id;
     for (i = 0; i<n; i++) nodeids[i] = (neighbours+i)->id;
     selectPeersForChunks(SCHED_WEIGHTED, nodeids, n, chunkids, size, selectedpeers, &selectedpeers_len, needs, (transid % 2) ? peerWeightReceivedfrom : peerWeightRtt);	//select a peer that needs at least one of our chunks
 
