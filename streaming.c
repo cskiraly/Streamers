@@ -269,27 +269,42 @@ void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
   }
 }
 
-int generated_chunk(suseconds_t *delta)
+struct chunk *generated_chunk(suseconds_t *delta)
 {
-  int res;
-  struct chunk c;
+  struct chunk *c;
 
-  *delta = input_get(input, &c);
+  c = malloc(sizeof(struct chunk));
+  if (!c) {
+    fprintf(stderr, "Memory allocation error!\n");
+    return NULL;
+  }
+
+  *delta = input_get(input, c);
   if (*delta < 0) {
     fprintf(stderr, "Error in input!\n");
     exit(-1);
   }
-  if (c.data == NULL) {
+  if (c->data == NULL) {
+    free(c);
+    return NULL;
+  }
+  dprintf("Generated chunk %d of %d bytes\n",c->id, c->size);
+  chunk_attributes_fill(c);
+  return c;
+}
+
+int add_chunk(struct chunk *c)
+{
+  int res;
+
+  res = cb_add_chunk(cb, c);
+  if (res < 0) {
+    free(c->data);
+    free(c->attributes);
+    free(c);
     return 0;
   }
-  dprintf("Generated chunk %d of %d bytes\n",c.id, c.size);
-  chunk_attributes_fill(&c);
-  res = cb_add_chunk(cb, &c);
-  if (res < 0) {
-    free(c.data);
-    free(c.attributes);
-  }
-
+  free(c);
   return 1;
 }
 
