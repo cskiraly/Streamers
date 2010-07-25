@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include <net_helper.h>
 #include <msg_types.h>
@@ -129,12 +130,15 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
   while (!done) {
     int len, res;
     struct timeval tv;
+    int wait4fds[FDSSIZE];
 
 #ifdef HTTPIO
-    res = wait4data(s, NULL, fds);
+    memcpy(wait4fds, fds, sizeof(fds));
+    res = wait4data(s, NULL, wait4fds);
 #else
     tout_init(&tv);
-    res = wait4data(s, &tv, fds);
+    memcpy(wait4fds, fds, sizeof(fds));
+    res = wait4data(s, &tv, wait4fds);
 #endif
     if (res == 1) {
       struct nodeID *remote;
