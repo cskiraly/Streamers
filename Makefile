@@ -119,6 +119,11 @@ OBJS += input-stream-dummy.o
 OBJS += output.o 
 OBJS += out-stream-dummy.o
 endif
+ifeq ($(IO), udp)
+OBJS += input-udp.o
+OBJS += output.o
+OBJS += out-stream-udp.o
+endif
 
 EXECTARGET = offerstreamer
 ifdef ML
