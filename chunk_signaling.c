@@ -54,7 +54,6 @@ void offer_received(const struct nodeID *fromid, struct chunkID_set *cset, int m
 
   if (from) {
     struct chunkID_set *cset_acc;
-    int max_deliver2;
 
     //register these chunks in the buffermap. Warning: this should be changed when offers become selective.
     chunkID_set_clear(from->bmap,0);	//TODO: some better solution might be needed to keep info about chunks we sent in flight.
@@ -66,8 +65,7 @@ void offer_received(const struct nodeID *fromid, struct chunkID_set *cset, int m
 
     //send accept message
     dprintf("\t accept %d chunks from peer %s, trans_id %d\n", chunkID_set_size(cset_acc), node_addr(from->id), trans_id);
-    max_deliver2 = chunkID_set_size(cset_acc);
-    acceptChunks(fromid, cset_acc, max_deliver2, trans_id);
+    acceptChunks(fromid, cset_acc, trans_id);
 
     chunkID_set_free(cset_acc);
   }
