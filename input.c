@@ -40,7 +40,8 @@ struct input_desc *input_open(const char *fname, uint16_t flags)
   res->s = input_stream_open(fname, &res->interframe, flags);
   if (res->s == NULL) {
     free(res);
-    return NULL;
+    res = NULL;
+    return res;
   }
   res->id = (res->start_time / res->interframe) % INT_MAX; //TODO: verify 32/64 bit
 
