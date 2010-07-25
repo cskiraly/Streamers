@@ -24,6 +24,11 @@ ULPLAYER_EXTERNAL_LIBS ?= external_libs
 CPPFLAGS = -I$(NAPA)/include
 CPPFLAGS += -I$(GRAPES)/include
 
+ifdef GPROF
+CFLAGS += -pg
+LDFLAGS += -pg
+endif
+
 ifdef DEBUG
 CFLAGS += -O0
 CPPFLAGS += -DDEBUG
