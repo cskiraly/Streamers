@@ -93,6 +93,7 @@ CPPFLAGS += -I$(FFMPEG_DIR)/include
 LDFLAGS += -L$(FFMPEG_DIR)/lib
 LDLIBS += -lavformat -lavcodec -lavutil
 LDLIBS += -lm
+LDLIBS += -lpthread
 LDLIBS += $(call ld-option, -lz)
 LDLIBS += $(call ld-option, -lbz2)
 else
