@@ -10,6 +10,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <getopt.h>
+#include <signal.h>
 #include <msg_types.h>
 #include <net_helper.h>
 #include <topmanager.h>
@@ -180,10 +181,15 @@ static struct nodeID *init(void)
   return myID;
 }
 
+void leave(int sig) {
+  exit(sig);
+}
 
 int main(int argc, char *argv[])
 {
   struct nodeID *my_sock;
+
+  (void) signal(SIGTERM,leave);
 
   cmdline_parse(argc, argv);
 
