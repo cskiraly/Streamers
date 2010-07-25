@@ -32,11 +32,15 @@ static struct nodeID *s;
 static void *chunk_forging(void *dummy)
 {
   suseconds_t d;
+  struct chunk *c;
 
   while(!done) {
-    pthread_mutex_lock(&cb_mutex);
-    generated_chunk(&d);
-    pthread_mutex_unlock(&cb_mutex);
+    c = generated_chunk(&d);
+    if (c) {
+      pthread_mutex_lock(&cb_mutex);
+      add_chunk(c);
+      pthread_mutex_unlock(&cb_mutex);
+    }
     usleep(d);
   }
 

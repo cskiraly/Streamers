@@ -160,12 +160,14 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
       }
       nodeid_free(remote);
     } else {
-      int i, res;
+      int i;
       struct timeval tmp, d;
+      struct chunk *c;
 
       d.tv_sec = 0;
-      res = generated_chunk(&d.tv_usec);
-      if (res) {
+      c = generated_chunk(&d.tv_usec);
+      if (c) {
+        add_chunk(c);
         for (i = 0; i < chunks; i++) {	// @TODO: why this cycle?
           send_chunk();
         }
