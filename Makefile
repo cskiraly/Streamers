@@ -60,13 +60,6 @@ LDLIBS += -levent -lrt
 endif
 
 OBJS += streaming.o
-ifndef HTTPIO
-OBJS += input.o
-OBJS += output.o 
-else
-OBJS += input-http.o
-OBJS += output-http.o
-endif
 OBJS += net_helpers.o 
 OBJS += topology.o
 OBJS += chunk_signaling.o
@@ -86,9 +79,12 @@ else
 OBJS += measures.o
 endif
 
-ifndef DUMMY
-ifndef HTTPIO
-OBJS += Chunkiser/input-stream-avs.o out-stream-avf.o
+IO ?= ffmpeg
+ifeq ($(IO), ffmpeg)
+OBJS += input.o
+OBJS += Chunkiser/input-stream-avs.o 
+OBJS += output.o 
+OBJS += out-stream-avf.o
 CPPFLAGS += -I$(FFMPEG_DIR)/include
 LDFLAGS += -L$(FFMPEG_DIR)/lib
 LDLIBS += -lavformat -lavcodec -lavutil
@@ -96,13 +92,16 @@ LDLIBS += -lm
 LDLIBS += -lpthread
 LDLIBS += $(call ld-option, -lz)
 LDLIBS += $(call ld-option, -lbz2)
-else
+endif
+ifeq ($(IO), http)
 CPPFLAGS += -DHTTPIO
 OBJS += $(ULPLAYER)/chunker_player/chunk_puller.o
 OBJS += $(ULPLAYER)/chunker_streamer/chunk_pusher_curl.o
 CPPFLAGS += -I$(ULPLAYER) -I$(ULPLAYER)/chunk_transcoding
 CFLAGS += -pthread
 LDFLAGS += -pthread
+OBJS += input-http.o
+OBJS += output-http.o
 
 LOCAL_MHD=$(ULPLAYER)/$(ULPLAYER_EXTERNAL_LIBS)/libmicrohttpd/temp_mhd_install
 CPPFLAGS += -I$(LOCAL_MHD)/include
@@ -114,8 +113,11 @@ CPPFLAGS += -I$(LOCAL_CURL)/include
 LDFLAGS += -L$(LOCAL_CURL)/lib
 LDLIBS += $(LOCAL_CURL)/lib/libcurl.a -lrt
 endif
-else
-OBJS += input-stream-dummy.o out-stream-dummy.o
+ifeq ($(IO), dummy)
+OBJS += input.o
+OBJS += input-stream-dummy.o 
+OBJS += output.o 
+OBJS += out-stream-dummy.o
 endif
 
 EXECTARGET = offerstreamer
@@ -128,8 +130,8 @@ endif
 ifdef THREADS
 EXECTARGET := $(EXECTARGET)-threads
 endif
-ifdef HTTPIO
-EXECTARGET := $(EXECTARGET)-http
+ifdef IO
+EXECTARGET := $(EXECTARGET)-$(IO)
 endif
 
 ifdef STATIC
