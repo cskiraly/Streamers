@@ -173,7 +173,7 @@ static struct nodeID *init(void)
     return NULL;
   }
   free(my_addr);
-  topInit(myID, NULL, 0);
+  topInit(myID, NULL, 0, "");
 
   output_init(outbuff_size);
 
