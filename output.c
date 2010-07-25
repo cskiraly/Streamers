@@ -107,7 +107,7 @@ void output_deliver(const struct chunk *c)
 
   /* Initialize buffer with first chunk */
   if (next_chunk == -1) {
-    next_chunk = (c->id - buff_size + 1 > 0) ? c->id - buff_size + 1 : 0;
+    next_chunk = c->id; // FIXME: could be anything between c->id and (c->id - buff_size + 1 > 0) ? c->id - buff_size + 1 : 0
   }
 
   if (c->id >= next_chunk + buff_size) {
@@ -120,7 +120,7 @@ void output_deliver(const struct chunk *c)
       if (buff[i % buff_size].data) {
         buffer_free(i % buff_size);
       } else {
-        reg_chunk_playout(c->id, false, c->timestamp);
+        reg_chunk_playout(c->id, false, c->timestamp); // FIXME: some chunks could be counted as lost at the beginning, depending on the initialization of next_chunk
         next_chunk++;
       }
     }
