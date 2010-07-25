@@ -163,7 +163,6 @@ void loop(struct nodeID *s1, int csize, int buff_size)
   period = csize;
   s = s1;
  
-  sigInit(s);
   peers_init();
   stream_init(buff_size, s);
   pthread_mutex_init(&cb_mutex, NULL);
