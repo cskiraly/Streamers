@@ -160,6 +160,7 @@ void loop(struct nodeID *s1, int csize, int buff_size)
   s = s1;
  
   sigInit(s);
+  peers_init();
   stream_init(buff_size, s);
   pthread_mutex_init(&cb_mutex, NULL);
   pthread_mutex_init(&topology_mutex, NULL);
@@ -181,6 +182,7 @@ void source_loop(const char *fname, struct nodeID *s1, int csize, int chunks, bo
   s = s1;
  
   sigInit(s);
+  peers_init();
   if (source_init(fname, s, loop) < 0) {
     fprintf(stderr,"Cannot initialize source, exiting");
     return;
