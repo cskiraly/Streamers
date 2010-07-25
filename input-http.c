@@ -27,9 +27,13 @@ struct input_desc {
 
 struct MHD_Daemon *httpd;
 
-struct input_desc *input_open(const char *fname, uint16_t flags)
+struct input_desc *input_open(const char *fname, uint16_t flags, int *fds, int fds_size)
 {
   struct input_desc *res;
+
+  if (fds_size >= 1) {
+    *fds = -1; //This input module needs no fds to monitor
+  }
 
   res = malloc(sizeof(struct input_desc));
   if (res == NULL) {
