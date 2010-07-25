@@ -131,12 +131,12 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
     struct timeval tv;
 
 #ifdef HTTPIO
-    res = wait4data(s, NULL, NULL);
+    res = wait4data(s, NULL, fds);
 #else
     tout_init(&tv);
-    res = wait4data(s, &tv, NULL);
+    res = wait4data(s, &tv, fds);
 #endif
-    if (res > 0) {
+    if (res == 1) {
       struct nodeID *remote;
 
       len = recv_from_peer(s, &remote, buff, BUFFSIZE);
@@ -161,7 +161,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
           fprintf(stderr, "Bad Message Type %x\n", buff[0]);
       }
       nodeid_free(remote);
-    } else {
+    } else if (res == 0 || res == 2) {	//timeout or data arrived from source
       int i;
       struct timeval tmp, d;
       struct chunk *c;
