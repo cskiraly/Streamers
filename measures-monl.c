@@ -312,3 +312,7 @@ double get_average_lossrate(struct nodeID **ids, int len){
 	}
 	return (n > 0) ? sum / n : NAN;
 }
+
+double get_receive_delay(void) {
+	return chunk_delay ? monRetrieveResult(chunk_delay, WIN_AVG) : NAN;
+}
