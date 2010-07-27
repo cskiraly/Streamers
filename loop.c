@@ -14,7 +14,7 @@
 #include <string.h>
 
 #include <net_helper.h>
-#include <msg_types.h>
+#include <grapes_msg_types.h>
 #include <peerset.h>
 #include <peer.h>
 

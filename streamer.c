@@ -11,7 +11,7 @@
 #include <string.h>
 #include <getopt.h>
 #include <signal.h>
-#include <msg_types.h>
+#include <grapes_msg_types.h>
 #include <net_helper.h>
 #include <topmanager.h>
 

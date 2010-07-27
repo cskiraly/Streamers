@@ -22,7 +22,6 @@
 #include "chunkidset.h"
 #include "trade_sig_la.h"
 #include "chunk_signaling.h"
-#include "msg_types.h"
 #include "net_helper.h"
 #include <trade_sig_ha.h>
 
