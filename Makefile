@@ -144,6 +144,10 @@ LDFLAGS += -static -v
 EXECTARGET := $(EXECTARGET)-static
 endif
 
+ifdef DEBUG
+EXECTARGET := $(EXECTARGET)-debug
+endif
+
 ifdef RELEASE
 EXECTARGET := $(EXECTARGET)-$(RELEASE)
 endif
