@@ -38,15 +38,15 @@ struct input_desc *input_open(const char *fname, uint16_t flags, int *fds, int f
   if (res == NULL) {
     return NULL;
   }
-  gettimeofday(&tv, NULL);
-  res->start_time = tv.tv_usec + tv.tv_sec * 1000000ULL;
-  res->first_ts = 0;
   res->s = input_stream_open(fname, &res->interframe, flags);
   if (res->s == NULL) {
     free(res);
     res = NULL;
     return res;
   }
+  gettimeofday(&tv, NULL);
+  res->start_time = tv.tv_usec + tv.tv_sec * 1000000ULL;
+  res->first_ts = 0;
   res->id = (res->start_time / res->interframe) % INT_MAX; //TODO: verify 32/64 bit
 
   return res;
