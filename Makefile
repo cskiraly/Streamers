@@ -40,7 +40,7 @@ ifdef DEBUGOUT
 CPPFLAGS += -DDEBUGOUT
 endif
 
-LDFLAGS += -L$(GRAPES)
+LDFLAGS += -L$(GRAPES)/src
 LDLIBS += -lgrapes
 ifdef ML
 LDFLAGS += -L$(NAPA)/ml -L$(LIBEVENT_DIR)/lib
@@ -151,9 +151,9 @@ endif
 all: $(EXECTARGET)
 
 ifndef ML
-$(EXECTARGET): $(OBJS) $(GRAPES)/net_helper.o $(EXECTARGET).o
+$(EXECTARGET): $(OBJS) $(GRAPES)/src/net_helper.o $(EXECTARGET).o
 else
-$(EXECTARGET): $(OBJS) $(GRAPES)/net_helper-ml.o $(EXECTARGET).o
+$(EXECTARGET): $(OBJS) $(GRAPES)/src/net_helper-ml.o $(EXECTARGET).o
 endif
 	$(LINKER) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
@@ -179,7 +179,7 @@ endif
 
 clean:
 	rm -f $(EXECTARGET)
-	rm -f $(GRAPES)/net_helper-ml.o
-	rm -f $(GRAPES)/net_helper.o
+	rm -f $(GRAPES)/src/net_helper-ml.o
+	rm -f $(GRAPES)/src/net_helper.o
 	rm -f *.o
 	rm -f Chunkiser/*.o
