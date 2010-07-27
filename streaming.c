@@ -4,6 +4,7 @@
  *
  *  This is free software; see gpl-3.0.txt
  */
+#include <sys/time.h> //ENST
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -37,6 +38,12 @@ struct chunk_attributes {
   uint16_t deadline_increment;
   uint16_t hopcount;
 } __attribute__((packed));
+
+//___________ENST_____________
+struct timeval what_time; //to store the epoch time
+uint64_t time_now; //to evaluate system time in us precision
+int hc; //variable for storing the hopcount
+//____________________________
 
 struct chunk_buffer *cb;
 static struct input_desc *input;
@@ -250,11 +257,18 @@ void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
     reg_chunk_receive(c.id, c.timestamp, chunk_get_hopcount(&c));
     chunk_unlock(c.id);
     dprintf("Received chunk %d from peer: %s\n", c.id, node_addr(from));
+    //____________ENST__________________________
+    gettimeofday(&what_time, NULL);	
+    time_now= what_time.tv_sec * 1000000ULL + what_time.tv_usec;
+    hc = chunk_get_hopcount(&c);
+    fprintf(stderr, "TEO: Received chunk %d from peer: %s at: %lld hopcount: %i\n", c.id, node_addr(from), time_now, hc);
+    //_________________________________________	    
     output_deliver(&c);
     res = cb_add_chunk(cb, &c);
     cb_print();
     if (res < 0) {
       dprintf("\tchunk too old, buffer full with newer chunks\n");
+      fprintf(stderr, "TEO: Received chunk: %d too old (buffer full with newer chunks) from peer: %s at: %lld\n", c.id, node_addr(from), time_now); //ENST
       free(c.data);
       free(c.attributes);
     }
@@ -403,6 +417,12 @@ void send_accepted_chunks(struct peer *to, struct chunkID_set *cset_acc, int max
         chunkID_set_add_chunk(to->bmap, c->id); //don't send twice ... assuming that it will actually arrive
         d++;
         reg_chunk_send(c->id);
+	//___________________ENST__________________________________
+        gettimeofday(&what_time, NULL);	
+        time_now = what_time.tv_sec * 1000000ULL + what_time.tv_usec;	
+	fprintf(stderr, "TEO: Sending chunk %d to peer: %s at: %lld Result: %d\n", c->id, node_addr(to->id), time_now, res);
+	//________________________________________________________
+
       } else {
         fprintf(stderr,"ERROR sending chunk %d\n",c->id);
       }
@@ -511,8 +531,15 @@ void send_chunk()
       dprintf("%s\n", node_addr(p->id));
 
       send_bmap(p);
+      //______________ENST_______________________
+      gettimeofday(&what_time, NULL);	 	 
+      time_now = what_time.tv_sec * 1000000ULL + what_time.tv_usec;
+      fprintf(stderr, "TEO: Sending chunk %d to peer: %s at: %lld ", c->id, node_addr(p->id), time_now);
+      //________________________________________
+
       chunk_attributes_update_sending(c);
       res = sendChunk(p->id, c);
+      fprintf(stderr, "Result: %d Size: %d bytes\n", res, c->size); //ENST
       dprintf("\tResult: %d\n", res);
       if (res>=0) {
         chunkID_set_add_chunk(p->bmap,c->id); //don't send twice ... assuming that it will actually arrive
