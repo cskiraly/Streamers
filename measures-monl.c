@@ -19,7 +19,7 @@
 #include "dbg.h"
 #include "measures.h"
 
-#define PUBLISH_INTERVAL 120 //in seconds
+#define PUBLISH_INTERVAL 30 //in seconds
 
 extern const char *peername;
 
