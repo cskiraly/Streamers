@@ -20,18 +20,19 @@
 #include "dbg.h"
 #include "io_udp.h"
 
-#define UDP_PORT_MIN 32000
-#define UDP_PORT_MAX 32003
 #define UDP_PORTS_NUM_MAX 10
 
 struct input_desc {
+  char ip[16];
+  int base_port;
+  int ports;
   int fds[UDP_PORTS_NUM_MAX + 1];
   int id;
   int interframe;
   uint64_t start_time;
 };
 
-int listen_udp(int port)
+static int listen_udp(int port)
 {
   struct sockaddr_in servaddr;
   int r;
@@ -56,24 +57,70 @@ int listen_udp(int port)
   return fd;
 }
 
-struct input_desc *input_open(const char *fname, uint16_t flags, int *fds, int fds_size)
+static int config_parse(struct input_desc *desc, const char *config)
+{
+  int res, i;
+
+  if (!config) {
+    return -1;
+  }
+
+  res = sscanf(config, "udp://%15[0-9.]:%d%n", desc->ip, &desc->base_port, &i);
+  if (res < 2) {
+    fprintf(stderr,"error parsing input config: %s\n", config);
+    return -2;
+  }
+  if (*(config + i) == 0) {
+    desc->ports = 1;
+  } else {
+    int max_port;
+    res = sscanf(config + i, "-%d", &max_port);
+    if (res == 1) {
+      desc->ports = max_port - desc->base_port + 1;
+      if (desc->ports <=0) {
+        fprintf(stderr,"error parsing input config: negative port range %s\n", config + i);
+        return -3;
+      }
+    } else {
+      fprintf(stderr,"error parsing input config: bad port range %s\n", config + i);
+      return -4;
+    }
+  }
+
+  return 1;
+}
+
+struct input_desc *input_open(const char *config, uint16_t flags, int *fds, int fds_size)
 {
   struct input_desc *res;
   struct timeval tv;
-  int i;
-
-  if (! fds || fds_size <= UDP_PORT_MAX - UDP_PORT_MIN + 2) {
-    fprintf(stderr, "UDP input module needs more then %d file descriptors\n", fds_size-1);
-    return NULL;
-  }
+  int ret, i;
 
   res = malloc(sizeof(struct input_desc));
   if (res == NULL) {
     return NULL;
   }
 
-  for (i = 0; UDP_PORT_MIN + i < UDP_PORT_MAX + 1; i++) {
-    res->fds[i] = fds[i] = listen_udp(UDP_PORT_MIN + i);
+  ret = config_parse(res, config);
+  if (ret < 0) {
+    free(res);
+    return NULL;
+  }
+
+  if ( res->ports > UDP_PORTS_NUM_MAX) {
+    fprintf(stderr, "UDP input supports only %d ports\n", UDP_PORTS_NUM_MAX);
+    free(res);
+    return NULL;
+  }
+
+  if (! fds || fds_size <= res->ports + 1) {
+    fprintf(stderr, "UDP input module needs more then %d file descriptors\n", fds_size-1);
+    free(res);
+    return NULL;
+  }
+
+  for (i = 0; i < res->ports; i++) {
+    res->fds[i] = fds[i] = listen_udp(res->base_port + i);
     if (fds[i] < 0) {
       for (; i>=0 ; i--) {
         close(fds[i]);
@@ -97,7 +144,7 @@ void input_close(struct input_desc *s)
 {
   int i;
 
-  for (i = 0; UDP_PORT_MIN + i < UDP_PORT_MAX + 1; i++) {
+  for (i = 0; i < s->ports; i++) {
     close(s->fds[i]);
   }
   free(s);
@@ -143,7 +190,7 @@ int input_get(struct input_desc *s, struct chunk *c)
 
   fprintf(stderr,"input_get called\n");
 
-  for (i = 0; UDP_PORT_MIN + i < UDP_PORT_MAX + 1; i++) {
+  for (i = 0; i < s->ports; i++) {
     if (input_get_udp(s, c, i)) {
       return 999999;
     }
