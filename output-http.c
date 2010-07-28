@@ -20,11 +20,10 @@
 
 struct nodeID *streamer;
 static char url[256];
+static int base_port = 0;
 
 void output_init(int bufsize, const char *config)
 {
-	int base_port = 0;
-
   if(!config) {
      fprintf(stderr, "Error: no http output module configuration issued. Exiting\n");
      exit(1);
@@ -45,7 +44,7 @@ void output_deliver(const struct chunk *c)
 	//which has been setup via the -F option of the offerstreamer commandline
 	//If port was set > 60000 the the http
 	//deliver is disabled, to allow mixed testing scenarios
-	if(port < 60000) {
+	if(base_port < 60000) {
   	ret = sendViaCurl(*c, GRAPES_ENCODED_CHUNK_HEADER_SIZE + c->size + c->attributes_size, url);
   	dprintf("Chunk %d delivered to %s\n", c->id, url);
 	}
