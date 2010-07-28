@@ -19,23 +19,33 @@
 #define PLAYER_IP "127.0.0.1"
 
 struct nodeID *streamer;
-extern int port;
+static char url[256];
 
-void output_init(int bufsize)
+void output_init(int bufsize, const char *config)
 {
-  //streamer = create_node(PLAYER_IP, PLAYER_PORT);
+	int base_port = 0;
+
+  if(!config) {
+     fprintf(stderr, "Error: no http output module configuration issued. Exiting\n");
+     exit(1);
+  }
+  if(sscanf(config, "%d", base_port) < 1) {
+     fprintf(stderr, "Error: can't parse http output module configuration string %s. Exiting\n", config);
+     exit(1);
+  }
+	//we use the -F portnum parameter as the http port number
+	sprintf(url, "http://%s:%d%s", PLAYER_IP, base_port, UL_DEFAULT_EXTERNALPLAYER_PATH);
 }
 
 void output_deliver(const struct chunk *c)
 {
   int ret = -1;
-  char url[256];
 
-	//deliver the chunk to the external http player listening on the same (plus one)
-	//port the offerstreamr is running on. If port was set > 60000 the the http
+	//deliver the chunk to the external http player listening on http port
+	//which has been setup via the -F option of the offerstreamer commandline
+	//If port was set > 60000 the the http
 	//deliver is disabled, to allow mixed testing scenarios
 	if(port < 60000) {
-		sprintf(url, "http://%s:%d%s", PLAYER_IP, port+1, UL_DEFAULT_EXTERNALPLAYER_PATH);
   	ret = sendViaCurl(*c, GRAPES_ENCODED_CHUNK_HEADER_SIZE + c->size + c->attributes_size, url);
   	dprintf("Chunk %d delivered to %s\n", c->id, url);
 	}
