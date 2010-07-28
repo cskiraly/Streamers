@@ -8,6 +8,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
@@ -18,43 +19,73 @@
 #include "io_udp.h"
 
 static int outfd = -1;
-#define PLAYER_IP "127.0.0.1"
-#define PLAYER_PORT 32500
+static char ip[16];
+static int base_port;
+static int ports;
 
-int output_stream_init()
+static int config_parse(const char *config)
 {
-  int fd;
+  int res, i;
 
-  fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-  if (fd < 0) {
-    fprintf(stderr, "output socket: can't open\n");
+  res = sscanf(config, "udp://%15[0-9.]:%d%n", ip, base_port, &i);
+  if (res < 2) {
+    fprintf(stderr,"error parsing output config: %s\n", config);
     return -1;
   }
+  if (*(config + i) == 0) {
+    ports = INT_MAX;
+  } else {
+    int max_port;
+    res = sscanf(config + i, "-%d", &max_port);
+    if (res == 1) {
+      ports = max_port - base_port + 1;
+      if (ports <=0) {
+        fprintf(stderr,"error parsing output config: negative port range %s\n", config + i);
+        return -2;
+      }
+    } else {
+      fprintf(stderr,"error parsing output config: bad port range %s\n", config + i);
+      return -3;
+    }
+  }
 
-  return fd;
+  return 1;
 }
+
 
 int out_stream_init(const char *config)
 {
-  return 1;
+  int res;
+
+  if (!config) {
+    fprintf(stderr, "udp output not configured\n");
+    return -1;
+  }
+
+  outfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  if (outfd < 0) {
+    fprintf(stderr, "output socket: can't open\n");
+    return -2;
+  }
+
+  res = config_parse(config);
+  if (res < 0) {
+    close(outfd);
+    return -3;
+  }
+
+  return outfd;
 }
+
 
 void chunk_write(int id, const uint8_t *data, int size)
 {
   struct sockaddr_in si_other;
 
-  if (outfd < 0) {
-    outfd = output_stream_init();
-    if (outfd < 0) {
-      fprintf(stderr, "Error: can't open output socket\n");
-      exit(1);
-    }
-  }
-
   bzero(&si_other, sizeof(si_other));
   si_other.sin_family = AF_INET;
-  si_other.sin_port = htons((PLAYER_PORT + ((const struct io_udp_header*)data)->portdiff));
-  if (inet_aton(PLAYER_IP, &si_other.sin_addr) == 0) {
+  si_other.sin_port = htons((base_port + ((const struct io_udp_header*)data)->portdiff));
+  if (inet_aton(ip, &si_other.sin_addr) == 0) {
      fprintf(stderr, " output socket: inet_aton() failed\n");
      return;
   }
