@@ -13,6 +13,11 @@
 
 static int outfd = 1;
 
+int out_stream_init(const char *config)
+{
+  return 1;
+}
+
 void chunk_write(int id, const uint8_t *data, int size)
 {
   const int header_size = VIDEO_PAYLOAD_HEADER_SIZE;

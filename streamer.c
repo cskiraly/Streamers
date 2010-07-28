@@ -36,6 +36,7 @@ static int multiply = 1;
 static int buff_size = 50;
 static int outbuff_size = 25;
 static const char *fname = "input.mpg";
+static const char *output_config;
 static bool loop_input = false;
 unsigned char msgTypes[] = {MSG_TYPE_TOPOLOGY,MSG_TYPE_CHUNK,MSG_TYPE_SIGNALLING};
 
@@ -67,6 +68,7 @@ static void print_usage()
     "Special Source Peer options\n"
     "\t[-m chunks]: set the number of copies the source injects in the overlay.\n"
     "\t[-f filename]: name of the video stream file to transmit.\n"
+    "\t[-F config]: configure the output module\n"
     "\t[-l]: loop the video stream.\n"
     "\n"
     "NOTE: the peer will dump the received video on STDOUT in raw format\n"
@@ -93,7 +95,7 @@ static void cmdline_parse(int argc, char *argv[])
 {
   int o;
 
-  while ((o = getopt(argc, argv, "b:o:c:t:p:i:P:I:f:m:lC:N:")) != -1) {
+  while ((o = getopt(argc, argv, "b:o:c:t:p:i:P:I:f:F:m:lC:N:")) != -1) {
     switch(o) {
       case 'b':
         buff_size = atoi(optarg);
@@ -124,6 +126,9 @@ static void cmdline_parse(int argc, char *argv[])
         break;
       case 'f':
         fname = strdup(optarg);
+        break;
+      case 'F':
+        output_config = strdup(optarg);
         break;
       case 'l':
         loop_input = true;
@@ -176,8 +181,6 @@ static struct nodeID *init(void)
   free(my_addr);
   topInit(myID, NULL, 0, "");
 
-  output_init(outbuff_size);
-
   return myID;
 }
 
@@ -199,6 +202,8 @@ int main(int argc, char *argv[])
   }
   if (srv_port != 0) {
     struct nodeID *srv;
+
+    output_init(outbuff_size, output_config);
 
     srv = create_node(srv_ip, srv_port);
     if (srv == NULL) {

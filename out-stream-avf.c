@@ -87,6 +87,10 @@ static AVFormatContext *format_init(const uint8_t *data)
   return of;
 }
 
+int out_stream_init(const char *config)
+{
+  return 1;
+}
 void chunk_write(int id, const uint8_t *data, int size)
 {
   static AVFormatContext *outctx;

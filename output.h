@@ -9,7 +9,7 @@
 
 struct chunk;
 
-void output_init(int bufsize);
+void output_init(int bufsize, const char *config);
 void output_deliver(const struct chunk *c);
 
 #endif	/* OUTPUT_H */
