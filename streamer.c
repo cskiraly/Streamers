@@ -39,6 +39,7 @@ static const char *fname = "input.mpg";
 static const char *output_config;
 static bool loop_input = false;
 unsigned char msgTypes[] = {MSG_TYPE_TOPOLOGY,MSG_TYPE_CHUNK,MSG_TYPE_SIGNALLING};
+bool log_on = false;
 
 static void print_usage()
 {
@@ -69,7 +70,8 @@ static void print_usage()
     "\t[-m chunks]: set the number of copies the source injects in the overlay.\n"
     "\t[-f filename]: name of the video stream file to transmit.\n"
     "\t[-F config]: configure the output module\n"
-    "\t[-l]: loop the video stream.\n"
+    "\t[--chunk_log]: print log on stderr\n"    
+    "\t[-l]: loop the video getopt_long instead of getoptstream.\n"
     "\n"
     "NOTE: the peer will dump the received video on STDOUT in raw format\n"
     "      it can be played by your favourite player simply using a pipe\n"
@@ -95,8 +97,17 @@ static void cmdline_parse(int argc, char *argv[])
 {
   int o;
 
-  while ((o = getopt(argc, argv, "b:o:c:t:p:i:P:I:f:F:m:lC:N:")) != -1) {
+  int option_index = 0;
+  static struct option long_options[] = {
+         {"chunk_log", 0, 0, 0},
+  };
+
+    while ((o = getopt_long (argc, argv, "b:o:c:t:p:i:P:I:f:F:m:lC:N:",long_options, &option_index)) != -1) { //use this function to manage long option
+ // while ((o = getopt(argc, argv, "b:o:c:t:p:i:P:I:f:F:m:lC:N:")) != -1) {
     switch(o) {
+      case 0: //for long options
+        log_on = true;
+        break;
       case 'b':
         buff_size = atoi(optarg);
         break;

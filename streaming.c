@@ -43,6 +43,7 @@ struct chunk_attributes {
 struct timeval what_time; //to store the epoch time
 uint64_t time_now; //to evaluate system time in us precision
 int hc; //variable for storing the hopcount
+extern bool log_on;
 //____________________________
 
 struct chunk_buffer *cb;
@@ -261,14 +262,14 @@ void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
     gettimeofday(&what_time, NULL);	
     time_now= what_time.tv_sec * 1000000ULL + what_time.tv_usec;
     hc = chunk_get_hopcount(&c);
-    fprintf(stderr, "TEO: Received chunk %d from peer: %s at: %lld hopcount: %i\n", c.id, node_addr(from), time_now, hc);
+    if(log_on){fprintf(stderr, "TEO: Received chunk %d from peer: %s at: %lld hopcount: %i\n", c.id, node_addr(from), time_now, hc);}
     //_________________________________________	    
     output_deliver(&c);
     res = cb_add_chunk(cb, &c);
     cb_print();
     if (res < 0) {
       dprintf("\tchunk too old, buffer full with newer chunks\n");
-      fprintf(stderr, "TEO: Received chunk: %d too old (buffer full with newer chunks) from peer: %s at: %lld\n", c.id, node_addr(from), time_now); //ENST
+      if(log_on){fprintf(stderr, "TEO: Received chunk: %d too old (buffer full with newer chunks) from peer: %s at: %lld\n", c.id, node_addr(from), time_now);} //ENST
       free(c.data);
       free(c.attributes);
     }
@@ -420,7 +421,7 @@ void send_accepted_chunks(struct peer *to, struct chunkID_set *cset_acc, int max
 	//___________________ENST__________________________________
         gettimeofday(&what_time, NULL);	
         time_now = what_time.tv_sec * 1000000ULL + what_time.tv_usec;	
-	fprintf(stderr, "TEO: Sending chunk %d to peer: %s at: %lld Result: %d\n", c->id, node_addr(to->id), time_now, res);
+	if(log_on){fprintf(stderr, "TEO: Sending chunk %d to peer: %s at: %lld Result: %d\n", c->id, node_addr(to->id), time_now, res);}
 	//________________________________________________________
 
       } else {
@@ -497,7 +498,8 @@ void send_chunk()
   int size, res, i, n;
   struct peer *neighbours;
   struct peerset *pset;
-
+  //extern bool log_on;
+	
   pset = get_peers();
   n = peerset_size(pset);
   neighbours = peerset_get_peers(pset);
@@ -534,12 +536,14 @@ void send_chunk()
       //______________ENST_______________________
       gettimeofday(&what_time, NULL);	 	 
       time_now = what_time.tv_sec * 1000000ULL + what_time.tv_usec;
+      if(log_on){
       fprintf(stderr, "TEO: Sending chunk %d to peer: %s at: %lld ", c->id, node_addr(p->id), time_now);
+      }
       //________________________________________
 
       chunk_attributes_update_sending(c);
       res = sendChunk(p->id, c);
-      fprintf(stderr, "Result: %d Size: %d bytes\n", res, c->size); //ENST
+      if(log_on){fprintf(stderr, "Result: %d Size: %d bytes\n", res, c->size);} //ENST
       dprintf("\tResult: %d\n", res);
       if (res>=0) {
         chunkID_set_add_chunk(p->bmap,c->id); //don't send twice ... assuming that it will actually arrive
