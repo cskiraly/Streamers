@@ -65,12 +65,12 @@ static void print_usage()
     "\t         Useful if the host has several interfaces/addresses.\n"
     "\t[-N name]: set the name of the peer.\n"
     "\t         This name will be used when publishing in the repository.\n"
+    "\t[--chunk_log]: print a chunk level log on stderr\n"   
     "\n"
     "Special Source Peer options\n"
     "\t[-m chunks]: set the number of copies the source injects in the overlay.\n"
     "\t[-f filename]: name of the video stream file to transmit.\n"
-    "\t[-F config]: configure the output module\n"
-    "\t[--chunk_log]: print log on stderr\n"    
+    "\t[-F config]: configure the output module\n" 
     "\t[-l]: loop the video getopt_long instead of getoptstream.\n"
     "\n"
     "NOTE: the peer will dump the received video on STDOUT in raw format\n"
@@ -100,9 +100,10 @@ static void cmdline_parse(int argc, char *argv[])
   int option_index = 0;
   static struct option long_options[] = {
          {"chunk_log", 0, 0, 0},
+         {0, 0, 0, 0}
   };
 
-    while ((o = getopt_long (argc, argv, "b:o:c:t:p:i:P:I:f:F:m:lC:N:",long_options, &option_index)) != -1) { //use this function to manage long option
+    while ((o = getopt_long (argc, argv, "b:o:c:t:p:i:P:I:f:F:m:lC:N:",long_options, &option_index)) != -1) { //use this function to manage long options
  // while ((o = getopt(argc, argv, "b:o:c:t:p:i:P:I:f:F:m:lC:N:")) != -1) {
     switch(o) {
       case 0: //for long options
