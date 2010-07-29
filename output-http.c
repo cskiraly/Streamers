@@ -28,7 +28,7 @@ void output_init(int bufsize, const char *config)
      fprintf(stderr, "Error: no http output module configuration issued. Exiting\n");
      exit(1);
   }
-  if(sscanf(config, "%d", base_port) < 1) {
+  if(sscanf(config, "%d", &base_port) < 1) {
      fprintf(stderr, "Error: can't parse http output module configuration string %s. Exiting\n", config);
      exit(1);
   }
