@@ -44,7 +44,7 @@ bool log_on = false;
 static void print_usage()
 {
   fprintf (stderr,
-    "Usage:offerstreamer [-bocmtpiPIflCh]\n"
+    "Usage:offerstreamer [-bocmtpiPIflCh --chunk_log]\n"
     "\n"
     "Peer options\n"
     "\t[-p port]: port of the remote peer to connect at during bootstrap.\n"
@@ -99,16 +99,16 @@ static void cmdline_parse(int argc, char *argv[])
 
   int option_index = 0;
   static struct option long_options[] = {
-         {"chunk_log", 0, 0, 0},
-         {0, 0, 0, 0}
+        {"chunk_log", no_argument, 0, 0},
+	{0, 0, 0, 0}
   };
 
     while ((o = getopt_long (argc, argv, "b:o:c:t:p:i:P:I:f:F:m:lC:N:",long_options, &option_index)) != -1) { //use this function to manage long options
  // while ((o = getopt(argc, argv, "b:o:c:t:p:i:P:I:f:F:m:lC:N:")) != -1) {
     switch(o) {
       case 0: //for long options
-        log_on = true;
-        break;
+        if( strcmp( "chunk_log", long_options[option_index].name ) == 0 ) { log_on = true; }
+	break;
       case 'b':
         buff_size = atoi(optarg);
         break;
