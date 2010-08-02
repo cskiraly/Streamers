@@ -66,6 +66,7 @@ OBJS += chunk_signaling.o
 OBJS += chunklock.o
 OBJS += channel.o
 ifdef THREADS
+CPPFLAGS += -DTHREADS
 OBJS += loop-mt.o
 CFLAGS += -pthread
 LDFLAGS += -pthread
