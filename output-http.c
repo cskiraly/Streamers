@@ -3,6 +3,7 @@
  *
  *  This is free software; see gpl-3.0.txt
  */
+#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
