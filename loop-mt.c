@@ -22,11 +22,12 @@
 #include "loop.h"
 
 #define BUFFSIZE 512 * 1024
+#define FDSSIZE 16
 static int chunks_per_period = 1;
 static int period = 500000;
 static int done;
-static pthread_mutex_t cb_mutex;
-static pthread_mutex_t topology_mutex;
+pthread_mutex_t cb_mutex;
+pthread_mutex_t topology_mutex;
 static struct nodeID *s;
 
 static void *chunk_forging(void *dummy)
@@ -184,9 +185,12 @@ void source_loop(const char *fname, struct nodeID *s1, int csize, int chunks, bo
   chunks_per_period = chunks;
   s = s1;
  
-  sigInit(s);
+  int fds[FDSSIZE];
+  fds[0] = -1;
+
+//  sigInit(s);
   peers_init();
-  if (source_init(fname, s, loop) < 0) {
+  if (source_init(fname, s, loop, fds, FDSSIZE) < 0) {
     fprintf(stderr,"Cannot initialize source, exiting");
     return;
   }
@@ -194,11 +198,15 @@ void source_loop(const char *fname, struct nodeID *s1, int csize, int chunks, bo
   pthread_mutex_init(&topology_mutex, NULL);
   pthread_create(&receive_thread, NULL, source_receive, NULL); 
   pthread_create(&gossiping_thread, NULL, topology_sending, NULL); 
-  pthread_create(&generate_thread, NULL, chunk_forging, NULL); 
+#ifndef HTTPIO
   pthread_create(&distributing_thread, NULL, chunk_sending, NULL); 
+  pthread_create(&generate_thread, NULL, chunk_forging, NULL); 
+#endif
 
+#ifndef HTTPIO
   pthread_join(generate_thread, NULL);
+  pthread_join(distributing_thread, NULL);
+#endif
   pthread_join(receive_thread, NULL);
   pthread_join(gossiping_thread, NULL);
-  pthread_join(distributing_thread, NULL);
 }

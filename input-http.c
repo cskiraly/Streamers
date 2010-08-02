@@ -19,7 +19,13 @@
 #include "input.h"
 
 extern struct chunk_buffer *cb;
+
+#ifdef THREADS
+extern pthread_mutex_t cb_mutex;
+extern pthread_mutex_t topology_mutex;
+#else
 pthread_mutex_t cb_mutex;
+#endif
 
 struct input_desc {
   int dummy;
@@ -42,7 +48,9 @@ struct input_desc *input_open(const char *fname, uint16_t flags, int *fds, int f
 
   res->dummy = 0;
 dprintf("BEFORE INIT! %d\n", res->dummy);
+#ifndef THREADS
   pthread_mutex_init(&cb_mutex, NULL);
+#endif
   //this daemon will listen the network for incoming chunks from a streaming source
   //on the following path and port
   httpd = initChunkPuller(UL_DEFAULT_CHUNKBUFFER_PATH, UL_DEFAULT_CHUNKBUFFER_PORT);
@@ -86,20 +94,26 @@ int enqueueBlock(const uint8_t *block, const int block_size) {
 	}
 
   if(cb) {
+#ifdef THREADS
+  	pthread_mutex_lock(&topology_mutex);
+#endif
   	pthread_mutex_lock(&cb_mutex);
-  	res = cb_add_chunk(cb, gchunk);
-  	free(gchunk);
-  	pthread_mutex_unlock(&cb_mutex);
-  }
-  if (res < 0) { //chunk sequence is older than previous chunk (SHOULD SEND ANYWAY!!!)
-    free(gchunk->data);
-    free(gchunk->attributes);
-    fprintf(stderr, "Chunk %d of %d bytes FAIL res %d\n", gchunk->id, gchunk->size, res);
-  }
-  else {
-    pthread_mutex_lock(&cb_mutex);
-    send_chunk(); //push it
+  	res = add_chunk(gchunk);
+//  	free(gchunk);
+//  	pthread_mutex_unlock(&cb_mutex);
+//  }
+//  if (res < 0) { //chunk sequence is older than previous chunk (SHOULD SEND ANYWAY!!!)
+//    free(gchunk->data);
+//    free(gchunk->attributes);
+//    fprintf(stderr, "Chunk %d of %d bytes FAIL res %d\n", gchunk->id, gchunk->size, res);
+//  }
+//  else {
+//    pthread_mutex_lock(&cb_mutex);
+    if(res) send_chunk(); //push it
     pthread_mutex_unlock(&cb_mutex);
+#ifdef THREADS
+  	pthread_mutex_unlock(&topology_mutex);
+#endif
   }
 
   return 0;
