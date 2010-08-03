@@ -81,13 +81,7 @@ void loop(struct nodeID *s, int csize, int buff_size)
           break;
         case MSG_TYPE_CHUNK:
           dprintf("Chunk message received:\n");
-#ifdef HTTPIO
-          pthread_mutex_lock(&cb_mutex);
-#endif
           received_chunk(remote, buff, len);
-#ifdef HTTPIO
-          pthread_mutex_unlock(&cb_mutex);
-#endif
           break;
         case MSG_TYPE_SIGNALLING:
           sigParseData(remote, buff, len);
@@ -98,7 +92,6 @@ void loop(struct nodeID *s, int csize, int buff_size)
       nodeid_free(remote);
     } else {
       struct timeval tmp;
-
       //send_chunk();
       send_offer();
       if (cnt++ % 10 == 0) {
@@ -153,13 +146,25 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
       switch (buff[0] /* Message Type */) {
         case MSG_TYPE_TOPOLOGY:
           fprintf(stderr, "Top Parse\n");
+#ifdef HTTPIO
+          pthread_mutex_lock(&cb_mutex);
+#endif
           update_peers(remote, buff, len);
+#ifdef HTTPIO
+          pthread_mutex_unlock(&cb_mutex);
+#endif
           break;
         case MSG_TYPE_CHUNK:
           fprintf(stderr, "Some dumb peer pushed a chunk to me! peer:%s\n",node_addr(remote));
           break;
         case MSG_TYPE_SIGNALLING:
+#ifdef HTTPIO
+          pthread_mutex_lock(&cb_mutex);
+#endif
           sigParseData(remote, buff, len);
+#ifdef HTTPIO
+          pthread_mutex_unlock(&cb_mutex);
+#endif
           break;
         default:
           fprintf(stderr, "Bad Message Type %x\n", buff[0]);
