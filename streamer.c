@@ -23,16 +23,17 @@
 const char *peername = NULL;
 
 static const char *my_iface = NULL;
-#ifdef HTTPIO
-int port = 6666;
-#else
 static int port = 6666;
-#endif
 static int srv_port;
 static const char *srv_ip = "";
 static int period = 40;
 static int chunks_per_second = 25;
+#ifdef HTTPIO
+//input-http.c needs this in order to accomplish the -m multiple send_chunk()
+int multiply = 1;
+#else
 static int multiply = 1;
+#endif
 static int buff_size = 50;
 static int outbuff_size = 25;
 static const char *fname = "input.mpg";
