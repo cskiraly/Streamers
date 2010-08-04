@@ -94,7 +94,8 @@ LDLIBS += -lpthread
 LDLIBS += $(call ld-option, -lz)
 LDLIBS += $(call ld-option, -lbz2)
 endif
-ifeq ($(IO), http)
+ifeq ($(IO), httpmhd)
+CPPFLAGS += -DHTTPIO_MHD
 CPPFLAGS += -DHTTPIO
 OBJS += $(ULPLAYER)/chunker_player/chunk_puller.o
 OBJS += $(ULPLAYER)/chunker_streamer/chunk_pusher_curl.o
@@ -108,6 +109,27 @@ LOCAL_MHD=$(ULPLAYER)/$(ULPLAYER_EXTERNAL_LIBS)/libmicrohttpd/temp_mhd_install
 CPPFLAGS += -I$(LOCAL_MHD)/include
 LDFLAGS += -L$(LOCAL_MHD)/lib
 LDLIBS += $(LOCAL_MHD)/lib/libmicrohttpd.a
+
+LOCAL_CURL=$(ULPLAYER)/$(ULPLAYER_EXTERNAL_LIBS)/curl/temp_curl_install
+CPPFLAGS += -I$(LOCAL_CURL)/include
+LDFLAGS += -L$(LOCAL_CURL)/lib
+LDLIBS += $(LOCAL_CURL)/lib/libcurl.a -lrt
+endif
+ifeq ($(IO), httpevent)
+CPPFLAGS += -DHTTPIO_EVENT
+CPPFLAGS += -DHTTPIO
+OBJS += $(ULPLAYER)/event_http/event_http_server.o
+#LDFLAGS += -L$(NAPA)/dclog
+#LDLIBS += -ldclog
+OBJS += $(ULPLAYER)/chunker_streamer/chunk_pusher_curl.o
+CPPFLAGS += -I$(ULPLAYER) -I$(ULPLAYER)/chunk_transcoding -I$(ULPLAYER)/event_http
+OBJS += input-http.o
+OBJS += output-http.o
+
+#LDFLAGS += -L$(LIBEVENT_DIR)/lib
+#CPPFLAGS += -I$(LIBEVENT_DIR)/include
+#LDLIBS += -Wl,-static -levent
+#LDLIBS += -levent
 
 LOCAL_CURL=$(ULPLAYER)/$(ULPLAYER_EXTERNAL_LIBS)/curl/temp_curl_install
 CPPFLAGS += -I$(LOCAL_CURL)/include
@@ -188,3 +210,6 @@ clean:
 	rm -f $(GRAPES)/src/net_helper.o
 	rm -f *.o
 	rm -f Chunkiser/*.o
+	rm -f $(ULPLAYER)/chunker_player/chunk_puller.o
+	rm -f $(ULPLAYER)/chunker_streamer/chunk_pusher_curl.o
+	rm -f $(ULPLAYER)/event_http/event_http_server.o

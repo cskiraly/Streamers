@@ -29,7 +29,7 @@
 static struct timeval period = {0, 500000};
 static struct timeval tnext;
 
-#ifdef HTTPIO
+#ifdef HTTPIO_MHD
 extern pthread_mutex_t cb_mutex;
 #endif
 
@@ -146,11 +146,11 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
       switch (buff[0] /* Message Type */) {
         case MSG_TYPE_TOPOLOGY:
           fprintf(stderr, "Top Parse\n");
-#ifdef HTTPIO
+#ifdef HTTPIO_MHD
           pthread_mutex_lock(&cb_mutex);
 #endif
           update_peers(remote, buff, len);
-#ifdef HTTPIO
+#ifdef HTTPIO_MHD
           pthread_mutex_unlock(&cb_mutex);
 #endif
           break;
@@ -158,11 +158,11 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
           fprintf(stderr, "Some dumb peer pushed a chunk to me! peer:%s\n",node_addr(remote));
           break;
         case MSG_TYPE_SIGNALLING:
-#ifdef HTTPIO
+#ifdef HTTPIO_MHD
           pthread_mutex_lock(&cb_mutex);
 #endif
           sigParseData(remote, buff, len);
-#ifdef HTTPIO
+#ifdef HTTPIO_MHD
           pthread_mutex_unlock(&cb_mutex);
 #endif
           break;
