@@ -90,16 +90,11 @@ static AVFormatContext *format_init(const uint8_t *data)
 
 int out_stream_init(const char *config)
 {
+  output_format = "nut";
   if (config) {
     char *colon;
-    output_format = strdup(config);
-    colon = strchr(output_format, ':');
-    if (colon) {
-      *colon = 0;
-    }
     output_file = strdup(config);
   } else {
-    output_format = "nut";
     output_file = "/dev/stdout";
   }
 
