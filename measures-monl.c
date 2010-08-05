@@ -14,6 +14,7 @@
 #include <mon.h>
 #include <ml.h>
 #include <net_helper.h>
+#include <grapes_msg_types.h>
 
 #include "channel.h"
 #include "dbg.h"
