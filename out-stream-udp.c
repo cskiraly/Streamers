@@ -58,8 +58,8 @@ int out_stream_init(const char *config)
   int res;
 
   if (!config) {
-    fprintf(stderr, "udp output not configured\n");
-    return -1;
+    fprintf(stderr, "udp output not configured, no output. Use udp://127.0.0.1:<port>\n");
+    return 1;
   }
 
   outfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -74,7 +74,7 @@ int out_stream_init(const char *config)
     return -3;
   }
 
-  return outfd;
+  return 1;
 }
 
 void packet_write(const uint8_t *data, int size)
@@ -95,6 +95,10 @@ void packet_write(const uint8_t *data, int size)
 void chunk_write(int id, const uint8_t *data, int size)
 {
   int i = 0;
+
+  if (outfd < 0) {
+    return;
+  }
 
   while (i < size) {
     int psize = ((const struct io_udp_header*)(data + i))->size;
