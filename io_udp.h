@@ -3,6 +3,7 @@
 
 struct io_udp_header {
   uint8_t portdiff;
+  uint16_t size;
 } __attribute__((packed));
 
 #endif

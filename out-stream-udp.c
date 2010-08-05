@@ -77,8 +77,7 @@ int out_stream_init(const char *config)
   return outfd;
 }
 
-
-void chunk_write(int id, const uint8_t *data, int size)
+void packet_write(const uint8_t *data, int size)
 {
   struct sockaddr_in si_other;
 
@@ -91,4 +90,15 @@ void chunk_write(int id, const uint8_t *data, int size)
   }
 
   sendto(outfd, data + sizeof (struct io_udp_header), size - sizeof (struct io_udp_header), 0, (struct sockaddr *) &si_other, sizeof(si_other));
+}
+
+void chunk_write(int id, const uint8_t *data, int size)
+{
+  int i = 0;
+
+  while (i < size) {
+    int psize = ((const struct io_udp_header*)(data + i))->size;
+    packet_write(data + i, sizeof(struct io_udp_header)  + psize);
+    i += sizeof(struct io_udp_header) + psize;
+  }
 }

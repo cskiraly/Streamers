@@ -171,6 +171,7 @@ int input_get_udp(struct input_desc *s, struct chunk *c, int fd_index)
   fprintf(stderr,"\treceived %d bytes\n",msglen);
 
   c->data = malloc(sizeof(struct io_udp_header) + msglen);
+  ((struct io_udp_header*)c->data)->size = msglen;
   ((struct io_udp_header*)c->data)->portdiff = fd_index;
   memcpy(c->data + sizeof(struct io_udp_header), buf, msglen);
   c->size = sizeof(struct io_udp_header) + msglen;
