@@ -6,13 +6,14 @@
 
 #include <libavformat/avformat.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "out-stream.h"
 #include "dbg.h"
 #include "payload.h"
 
-static const char *output_format = "nut";
-static const char *output_file = "/dev/stdout";
+static const char *output_format;
+static const char *output_file;
 
 static int64_t prev_pts, prev_dts;
 
@@ -63,7 +64,7 @@ static AVFormatContext *format_init(const uint8_t *data)
 
   payload_header_parse(data, &codec, &width, &height, &frame_rate_n, &frame_rate_d);
   dprintf("Frame size: %dx%d -- Frame rate: %d / %d\n", width, height, frame_rate_n, frame_rate_d);
-  outfmt = av_guess_format(output_format, NULL, NULL);
+  outfmt = av_guess_format(output_format, output_file, NULL);
   of = avformat_alloc_context();
   if (of == NULL) {
     return NULL;
@@ -89,8 +90,22 @@ static AVFormatContext *format_init(const uint8_t *data)
 
 int out_stream_init(const char *config)
 {
+  if (config) {
+    char *colon;
+    output_format = strdup(config);
+    colon = strchr(output_format, ':');
+    if (colon) {
+      *colon = 0;
+    }
+    output_file = strdup(config);
+  } else {
+    output_format = "nut";
+    output_file = "/dev/stdout";
+  }
+
   return 1;
 }
+
 void chunk_write(int id, const uint8_t *data, int size)
 {
   static AVFormatContext *outctx;
