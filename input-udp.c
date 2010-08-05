@@ -30,6 +30,10 @@ struct input_desc {
   int id;
   int interframe;
   uint64_t start_time;
+  uint8_t *data;
+  int size;
+  int counter;
+  int every;
 };
 
 static int listen_udp(int port)
@@ -87,6 +91,8 @@ static int config_parse(struct input_desc *desc, const char *config)
     }
   }
 
+  desc->every = 1;
+
   return 1;
 }
 
@@ -137,6 +143,10 @@ struct input_desc *input_open(const char *config, uint16_t flags, int *fds, int 
   //res->id = (res->start_time / res->interframe) % INT_MAX; //FIXME
   res->id = 1;
 
+  res->data = NULL;
+  res->size = 0;
+  res->counter = 0;
+
   return res;
 }
 
@@ -157,6 +167,7 @@ int input_get_udp(struct input_desc *s, struct chunk *c, int fd_index)
   size_t buflen = UDP_BUF_SIZE;
   ssize_t msglen;
   struct timeval now;
+  uint8_t *data;
 
   fprintf(stderr,"\treading on fd:%d (index:%d)\n", s->fds[fd_index], fd_index);
   msglen = recv(s->fds[fd_index], buf, buflen, MSG_DONTWAIT);
@@ -170,17 +181,28 @@ int input_get_udp(struct input_desc *s, struct chunk *c, int fd_index)
   }
   fprintf(stderr,"\treceived %d bytes\n",msglen);
 
-  c->data = malloc(sizeof(struct io_udp_header) + msglen);
-  ((struct io_udp_header*)c->data)->size = msglen;
-  ((struct io_udp_header*)c->data)->portdiff = fd_index;
-  memcpy(c->data + sizeof(struct io_udp_header), buf, msglen);
-  c->size = sizeof(struct io_udp_header) + msglen;
+  s->data = realloc(s->data, s->size + sizeof(struct io_udp_header) + msglen);
+  data = s->data + s->size;
+  ((struct io_udp_header*)data)->size = msglen;
+  ((struct io_udp_header*)data)->portdiff = fd_index;
+  memcpy(data + sizeof(struct io_udp_header), buf, msglen);
+  s->size += sizeof(struct io_udp_header) + msglen;
 
+  if (++s->counter % s->every) {
+    c->data = NULL;
+    return 0;
+  }
+
+  c->data = s->data;
+  s->data = NULL;
+  c->size = s->size;
+  s->size = 0;
   c->id = s->id++;
   c->attributes_size = 0;
   c->attributes = NULL;
   gettimeofday(&now, NULL);
   c->timestamp = now.tv_sec * 1000000ULL + now.tv_usec;
+  s->counter = 0;
 
   return 1;
 }
