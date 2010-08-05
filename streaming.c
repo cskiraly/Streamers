@@ -214,7 +214,7 @@ struct chunkID_set *get_chunks_to_accept(struct peer *from, const struct chunkID
 void send_bmap(struct peer *to)
 {
   struct chunkID_set *my_bmap = cb_to_bmap(cb);
-   sendBufferMap(to->id,NULL, my_bmap, cb_size, 0);
+   sendBufferMap(to->id,NULL, my_bmap, input ? 0 : cb_size, 0);
   chunkID_set_free(my_bmap);
 }
 
@@ -341,6 +341,10 @@ int needs(struct nodeID *n, int cid){
 }
 
 int _needs(struct chunkID_set *cset, int cb_size, int cid){
+  if (cb_size == 0) { //if it declared it does not needs chunks
+    return 0;
+  }
+
   if (chunkID_set_check(cset,cid) < 0) { //it might need the chunk
     int missing, min;
     //@TODO: add some bmap_timestamp based logic
@@ -485,7 +489,7 @@ void send_offer()
     for (i=0; i<selectedpeers_len ; i++){
       int max_deliver = offer_max_deliver(selectedpeers[i]);
       struct chunkID_set *my_bmap = cb_to_bmap(cb);
-      dprintf("\t sending offer(%d) to %s\n", transid, node_addr(selectedpeers[i]));
+      dprintf("\t sending offer(%d) to %s, cb_size: %d\n", transid, node_addr(selectedpeers[i]), nodeid_to_peer(selectedpeers[i],0)->cb_size);
       res = offerChunks(selectedpeers[i], my_bmap, max_deliver, transid++);
       chunkID_set_free(my_bmap);
     }
