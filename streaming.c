@@ -27,6 +27,7 @@
 #include "output.h"
 #include "input.h"
 #include "dbg.h"
+#include "chunk_signaling.h"
 #include "chunklock.h"
 #include "topology.h"
 #include "measures.h"
@@ -213,7 +214,7 @@ struct chunkID_set *get_chunks_to_accept(struct peer *from, const struct chunkID
 void send_bmap(struct peer *to)
 {
   struct chunkID_set *my_bmap = cb_to_bmap(cb);
-   sendBufferMap(to->id,NULL, my_bmap, 0); //FIXME: should add cb_size
+   sendBufferMap(to->id,NULL, my_bmap, cb_size, 0);
   chunkID_set_free(my_bmap);
 }
 
@@ -336,7 +337,7 @@ int needs(struct nodeID *n, int cid){
     //dprintf("no bmap\n");
     return 1;	// if we have no bmap information, we assume it needs the chunk (aggressive behaviour!)
   }
-  return _needs(p->bmap, cb_size, cid);	//FIXME: cb_size should be p->cb_size
+  return _needs(p->bmap, p->cb_size, cid);
 }
 
 int _needs(struct chunkID_set *cset, int cb_size, int cid){
