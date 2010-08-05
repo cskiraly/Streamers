@@ -19,7 +19,8 @@
 #include "dbg.h"
 #include "measures.h"
 
-#define PUBLISH_INTERVAL 30 //in seconds
+#define PEER_PUBLISH_INTERVAL 10 //in seconds
+#define P2P_PUBLISH_INTERVAL 60 //in seconds
 
 extern const char *peername;
 
@@ -54,7 +55,7 @@ void reg_chunk_duplicate()
 {
 	if (!chunk_dup) {
 		enum stat_types st[] = {SUM, RATE};
-		add_measure(&chunk_dup, GENERIC, 0, PUBLISH_INTERVAL, "ChunkDuplicates", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[chunks]
+		add_measure(&chunk_dup, GENERIC, 0, PEER_PUBLISH_INTERVAL, "ChunkDuplicates", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[chunks]
 		monNewSample(chunk_dup, 0);	//force publish even if there are no events
 	}
 	monNewSample(chunk_dup, 1);
@@ -72,13 +73,13 @@ void reg_chunk_playout(int id, bool b, uint64_t timestamp)
 
 	if (!chunk_playout && b) {	//don't count losses before the first arrived chunk
 		enum stat_types st[] = {AVG, SUM, RATE};
-		add_measure(&chunk_playout, GENERIC, 0, PUBLISH_INTERVAL, "ChunksPlayed", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[chunks]
+		add_measure(&chunk_playout, GENERIC, 0, PEER_PUBLISH_INTERVAL, "ChunksPlayed", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[chunks]
 	}
 	monNewSample(chunk_playout, b);
 
 	if (!playout_delay) {
 		enum stat_types st[] = {WIN_AVG, WIN_VAR};
-		add_measure(&playout_delay, GENERIC, 0, PUBLISH_INTERVAL, "PlayoutDelay", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
+		add_measure(&playout_delay, GENERIC, 0, PEER_PUBLISH_INTERVAL, "PlayoutDelay", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
 	}
 	if (b) {	//count delay only if chunk has arrived
 		gettimeofday(&tnow, NULL);
@@ -87,7 +88,7 @@ void reg_chunk_playout(int id, bool b, uint64_t timestamp)
 
 	if (!chunk_loss_burst_size) {
 		enum stat_types st[] = {WIN_AVG, WIN_VAR};
-		add_measure(&chunk_loss_burst_size, GENERIC, 0, PUBLISH_INTERVAL, "ChunkLossBurstSize", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
+		add_measure(&chunk_loss_burst_size, GENERIC, 0, PEER_PUBLISH_INTERVAL, "ChunkLossBurstSize", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
 	}
 	if (b) {
 		if (last_arrived_chunk >= 0) {
@@ -105,7 +106,7 @@ void reg_neigh_size(int s)
 {
 	if (!neigh_size) {
 		enum stat_types st[] = {LAST};
-		add_measure(&neigh_size, GENERIC, 0, PUBLISH_INTERVAL, "NeighSize", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
+		add_measure(&neigh_size, GENERIC, 0, PEER_PUBLISH_INTERVAL, "NeighSize", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
 	}
 	monNewSample(neigh_size, s);
 }
@@ -119,20 +120,20 @@ void reg_chunk_receive(int id, uint64_t timestamp, int hopcount)
 
 	if (!chunk_receive) {
 		enum stat_types st[] = {RATE};
-		add_measure(&chunk_receive, GENERIC, 0, PUBLISH_INTERVAL, "RxChunkAll", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
+		add_measure(&chunk_receive, GENERIC, 0, PEER_PUBLISH_INTERVAL, "RxChunkAll", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
 		monNewSample(chunk_receive, 0);	//force publish even if there are no events
 	}
 	monNewSample(chunk_receive, 1);
 
 	if (!chunk_hops) {
 		enum stat_types st[] = {WIN_AVG, WIN_VAR};
-		add_measure(&chunk_hops, GENERIC, 0, PUBLISH_INTERVAL, "Hops", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
+		add_measure(&chunk_hops, GENERIC, 0, PEER_PUBLISH_INTERVAL, "Hops", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
 	}
 	monNewSample(chunk_hops, hopcount);
 
 	if (!chunk_delay) {
 		enum stat_types st[] = {WIN_AVG, WIN_VAR};
-		add_measure(&chunk_delay, GENERIC, 0, PUBLISH_INTERVAL, "ReceiveDelay", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
+		add_measure(&chunk_delay, GENERIC, 0, PEER_PUBLISH_INTERVAL, "ReceiveDelay", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
 	}
 	gettimeofday(&tnow, NULL);
 	monNewSample(chunk_delay, ((int64_t)(tnow.tv_usec + tnow.tv_sec * 1000000ULL) - (int64_t)timestamp) / 1000000.0);
@@ -145,7 +146,7 @@ void reg_chunk_send(int id)
 {
 	if (!chunk_send) {
 		enum stat_types st[] = {RATE};
-		add_measure(&chunk_send, GENERIC, 0, PUBLISH_INTERVAL, "TxChunkAll", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
+		add_measure(&chunk_send, GENERIC, 0, PEER_PUBLISH_INTERVAL, "TxChunkAll", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
 		monNewSample(chunk_send, 0);	//force publish even if there are no events
 	}
 	monNewSample(chunk_send, 1);
@@ -158,7 +159,7 @@ void reg_offer_accept(bool b)
 {
 	if (!offer_accept) {
 		enum stat_types st[] = {AVG};
-		add_measure(&offer_accept, GENERIC, 0, PUBLISH_INTERVAL, "OfferAccept", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
+		add_measure(&offer_accept, GENERIC, 0, PEER_PUBLISH_INTERVAL, "OfferAccept", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
 	}
 	monNewSample(offer_accept, b);
 }
@@ -174,14 +175,14 @@ void init_measures()
 	if (peername) monSetPeerName(peername);
 
 	// Traffic
-       //add_measure(&rx_bytes_chunk_per_sec, BULK_TRANSFER, RXONLY | PACKET | TIMER_BASED, PUBLISH_INTERVAL, "RxBytesChunkPSec", stavg, sizeof(stavg)/sizeof(enum stat_types), NULL, MSG_TYPE_CHUNK);	//[bytes/s]
-       //add_measure(&tx_bytes_chunk_per_sec, BULK_TRANSFER, TXONLY | PACKET | TIMER_BASED, PUBLISH_INTERVAL, "TxBytesChunkPSec", stavg, sizeof(stavg)/sizeof(enum stat_types), NULL, MSG_TYPE_CHUNK);	//[bytes/s]
-       //add_measure(&rx_bytes_sig_per_sec, BULK_TRANSFER, RXONLY | PACKET | TIMER_BASED, PUBLISH_INTERVAL, "RxBytesSigPSec", stavg, sizeof(stavg)/sizeof(enum stat_types), NULL, MSG_TYPE_SIGNALLING);	//[bytes/s]
-       //add_measure(&tx_bytes_sig_per_sec, BULK_TRANSFER, TXONLY | PACKET | TIMER_BASED, PUBLISH_INTERVAL, "TxBytesSigPSec", stavg, sizeof(stavg)/sizeof(enum stat_types), NULL, MSG_TYPE_SIGNALLING);	//[bytes/s]
+       //add_measure(&rx_bytes_chunk_per_sec, BULK_TRANSFER, RXONLY | PACKET | TIMER_BASED, PEER_PUBLISH_INTERVAL, "RxBytesChunkPSec", stavg, sizeof(stavg)/sizeof(enum stat_types), NULL, MSG_TYPE_CHUNK);	//[bytes/s]
+       //add_measure(&tx_bytes_chunk_per_sec, BULK_TRANSFER, TXONLY | PACKET | TIMER_BASED, PEER_PUBLISH_INTERVAL, "TxBytesChunkPSec", stavg, sizeof(stavg)/sizeof(enum stat_types), NULL, MSG_TYPE_CHUNK);	//[bytes/s]
+       //add_measure(&rx_bytes_sig_per_sec, BULK_TRANSFER, RXONLY | PACKET | TIMER_BASED, PEER_PUBLISH_INTERVAL, "RxBytesSigPSec", stavg, sizeof(stavg)/sizeof(enum stat_types), NULL, MSG_TYPE_SIGNALLING);	//[bytes/s]
+       //add_measure(&tx_bytes_sig_per_sec, BULK_TRANSFER, TXONLY | PACKET | TIMER_BASED, PEER_PUBLISH_INTERVAL, "TxBytesSigPSec", stavg, sizeof(stavg)/sizeof(enum stat_types), NULL, MSG_TYPE_SIGNALLING);	//[bytes/s]
 
 	// Chunks
-       // replaced by reg_chun_receive add_measure(&rx_chunks, COUNTER, RXONLY | DATA | IN_BAND, PUBLISH_INTERVAL, "RxChunksAll", stsum, sizeof(stsum)/sizeof(enum stat_types), NULL, MSG_TYPE_CHUNK);	//[chunks]
-       // replaced by reg_chun_send add_measure(&tx_chunks, COUNTER, TXONLY | DATA | IN_BAND, PUBLISH_INTERVAL, "TxChunksAll", stsum, sizeof(stsum)/sizeof(enum stat_types), NULL, MSG_TYPE_CHUNK);	//[chunks]
+       // replaced by reg_chun_receive add_measure(&rx_chunks, COUNTER, RXONLY | DATA | IN_BAND, PEER_PUBLISH_INTERVAL, "RxChunksAll", stsum, sizeof(stsum)/sizeof(enum stat_types), NULL, MSG_TYPE_CHUNK);	//[chunks]
+       // replaced by reg_chun_send add_measure(&tx_chunks, COUNTER, TXONLY | DATA | IN_BAND, PEER_PUBLISH_INTERVAL, "TxChunksAll", stsum, sizeof(stsum)/sizeof(enum stat_types), NULL, MSG_TYPE_CHUNK);	//[chunks]
 }
 
 /*
@@ -199,36 +200,35 @@ void add_measures(struct nodeID *id)
 	dprintf("adding measures to %s\n",node_addr(id));
 
 	/* HopCount */
-       add_measure(&id->mhs[j++], HOPCOUNT, PACKET | IN_BAND, PUBLISH_INTERVAL, "HopCount", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//[IP hops]
+       add_measure(&id->mhs[j++], HOPCOUNT, PACKET | IN_BAND, P2P_PUBLISH_INTERVAL, "HopCount", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//[IP hops]
 
 	/* Round Trip Time */
-       add_measure(&id->mhs[j++], RTT, PACKET | IN_BAND, PUBLISH_INTERVAL, "RoundTripDelay", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_SIGNALLING);	//[seconds]
+       add_measure(&id->mhs[j++], RTT, PACKET | IN_BAND, P2P_PUBLISH_INTERVAL, "RoundTripDelay", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_SIGNALLING);	//[seconds]
 
 	/* Loss */
        add_measure(&id->mhs[j++], SEQWIN, PACKET | IN_BAND, 0, NULL, NULL, 0, id->addr, MSG_TYPE_CHUNK);
-       add_measure(&id->mhs[j++], LOSS, PACKET | IN_BAND, PUBLISH_INTERVAL, "LossRate", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//LossRate_avg [probability 0..1] LossRate_rate [lost_pkts/sec]
+       add_measure(&id->mhs[j++], LOSS, PACKET | IN_BAND, P2P_PUBLISH_INTERVAL, "LossRate", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//LossRate_avg [probability 0..1] LossRate_rate [lost_pkts/sec]
 
 	// Cumulative Traffic
-       //add_measure(&id->mhs[j++], BYTE, RXONLY | PACKET | IN_BAND, PUBLISH_INTERVAL, "RxBytes", stsum, sizeof(stsum)/sizeof(enum stat_types), id->addr, MSG_TYPE_ANY);
-       //add_measure(&id->mhs[j++], BYTE, TXONLY | PACKET | IN_BAND, PUBLISH_INTERVAL, "TxBytes", stsum, sizeof(stsum)/sizeof(enum stat_types), id->addr, MSG_TYPE_ANY);
-       add_measure(&id->mhs[j++], RX_BYTE, PACKET | IN_BAND, PUBLISH_INTERVAL, "RxBytesChunk", stsum, sizeof(stsum)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//[bytes]
-       add_measure(&id->mhs[j++], TX_BYTE, PACKET | IN_BAND, PUBLISH_INTERVAL, "TxBytesChunk", stsum, sizeof(stsum)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//[bytes]
+       //add_measure(&id->mhs[j++], BYTE, RXONLY | PACKET | IN_BAND, P2P_PUBLISH_INTERVAL, "RxBytes", stsum, sizeof(stsum)/sizeof(enum stat_types), id->addr, MSG_TYPE_ANY);
+       //add_measure(&id->mhs[j++], BYTE, TXONLY | PACKET | IN_BAND, P2P_PUBLISH_INTERVAL, "TxBytes", stsum, sizeof(stsum)/sizeof(enum stat_types), id->addr, MSG_TYPE_ANY);
+       add_measure(&id->mhs[j++], RX_BYTE, PACKET | IN_BAND, P2P_PUBLISH_INTERVAL, "RxBytesChunk", stsum, sizeof(stsum)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//[bytes]
+       add_measure(&id->mhs[j++], TX_BYTE, PACKET | IN_BAND, P2P_PUBLISH_INTERVAL, "TxBytesChunk", stsum, sizeof(stsum)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//[bytes]
 
 	// Traffic
-       add_measure(&id->mhs[j++], RX_BULK_TRANSFER, PACKET | TIMER_BASED, PUBLISH_INTERVAL, "RxBytesChunkPSec", stavg, sizeof(stavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//[bytes/s]
-       add_measure(&id->mhs[j++], TX_BULK_TRANSFER, PACKET | TIMER_BASED, PUBLISH_INTERVAL, "TxBytesChunkPSec", stavg, sizeof(stavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//[bytes/s]
-       add_measure(&id->mhs[j++], RX_BULK_TRANSFER, PACKET | TIMER_BASED, PUBLISH_INTERVAL, "RxBytesSigPSec", stavg, sizeof(stavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_SIGNALLING);	//[bytes/s]
-       add_measure(&id->mhs[j++], TX_BULK_TRANSFER, PACKET | TIMER_BASED, PUBLISH_INTERVAL, "TxBytesSigPSec", stavg, sizeof(stavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_SIGNALLING);	//[bytes/s]
+       add_measure(&id->mhs[j++], RX_BULK_TRANSFER, PACKET | TIMER_BASED, P2P_PUBLISH_INTERVAL, "RxBytesChunkPSec", stavg, sizeof(stavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//[bytes/s]
+       add_measure(&id->mhs[j++], TX_BULK_TRANSFER, PACKET | TIMER_BASED, P2P_PUBLISH_INTERVAL, "TxBytesChunkPSec", stavg, sizeof(stavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//[bytes/s]
+       add_measure(&id->mhs[j++], RX_BULK_TRANSFER, PACKET | TIMER_BASED, P2P_PUBLISH_INTERVAL, "RxBytesSigPSec", stavg, sizeof(stavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_SIGNALLING);	//[bytes/s]
+       add_measure(&id->mhs[j++], TX_BULK_TRANSFER, PACKET | TIMER_BASED, P2P_PUBLISH_INTERVAL, "TxBytesSigPSec", stavg, sizeof(stavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_SIGNALLING);	//[bytes/s]
 
 	// Chunks
-       add_measure(&id->mhs[j++], RX_PACKET, DATA | IN_BAND, PUBLISH_INTERVAL, "RxChunks", stsumrate, sizeof(stsumrate)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//RxChunks_sum [chunks] RxChunks_rate [chunks/sec]
-       add_measure(&id->mhs[j++], TX_PACKET, DATA | IN_BAND, PUBLISH_INTERVAL, "TxChunks", stsumrate, sizeof(stsumrate)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//TxChunks_sum [chunks] TxChunks_rate [chunks/sec]
-
+       add_measure(&id->mhs[j++], RX_PACKET, DATA | IN_BAND, P2P_PUBLISH_INTERVAL, "RxChunks", stsumrate, sizeof(stsumrate)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//RxChunks_sum [chunks] RxChunks_rate [chunks/sec]
+       add_measure(&id->mhs[j++], TX_PACKET, DATA | IN_BAND, P2P_PUBLISH_INTERVAL, "TxChunks", stsumrate, sizeof(stsumrate)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//TxChunks_sum [chunks] TxChunks_rate [chunks/sec]
 //	// Capacity
        add_measure(&id->mhs[j++], CLOCKDRIFT, PACKET | IN_BAND, 0, NULL, NULL, 0, id->addr, MSG_TYPE_CHUNK);
 	monSetParameter (id->mhs[j], P_CLOCKDRIFT_ALGORITHM, 1);
        add_measure(&id->mhs[j++], CORRECTED_DELAY, PACKET | IN_BAND, 0, NULL, NULL, 0, id->addr, MSG_TYPE_CHUNK);
-       add_measure(&id->mhs[j++], CAPACITY_CAPPROBE, PACKET | IN_BAND, PUBLISH_INTERVAL, "Capacity", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//[bytes/s]
+       add_measure(&id->mhs[j++], CAPACITY_CAPPROBE, PACKET | IN_BAND, P2P_PUBLISH_INTERVAL, "Capacity", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//[bytes/s]
 	monSetParameter (id->mhs[j], P_CAPPROBE_DELAY_TH, -1);
 //	monSetParameter (mh, P_CAPPROBE_PKT_TH, 100);
 //	monSetParameter (mh, P_CAPPROBE_IPD_TH, 60);
@@ -295,7 +295,7 @@ double get_average_rtt(struct nodeID **ids, int len){
  * loss ratio from a given peer as 0..1
 */
 double get_lossrate(struct nodeID *id){
-	return get_measure(id, 2, WIN_AVG);
+	return get_measure(id, 3, WIN_AVG);
 }
 
 /*
