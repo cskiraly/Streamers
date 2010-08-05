@@ -27,7 +27,7 @@ static int config_parse(const char *config)
 {
   int res, i;
 
-  res = sscanf(config, "udp://%15[0-9.]:%d%n", ip, base_port, &i);
+  res = sscanf(config, "udp://%15[0-9.]:%d%n", ip, &base_port, &i);
   if (res < 2) {
     fprintf(stderr,"error parsing output config: %s\n", config);
     return -1;
