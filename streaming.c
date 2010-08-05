@@ -166,7 +166,7 @@ struct chunkID_set *cb_to_bmap(struct chunk_buffer *chbuf)
 {
   struct chunk *chunks;
   int num_chunks, i;
-  struct chunkID_set *my_bmap = chunkID_set_init("type=1");
+  struct chunkID_set *my_bmap = chunkID_set_init("type=bitmap");
   chunks = cb_get_chunks(chbuf, &num_chunks);
 
   for(i=num_chunks-1; i>=0; i--) {
