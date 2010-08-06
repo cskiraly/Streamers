@@ -157,6 +157,22 @@ static void *chunk_sending(void *dummy)
   return NULL;
 }
 
+static void *chunk_trading(void *dummy)
+{
+  int chunk_period = period / chunks_per_period;
+
+  while(!done) {
+    pthread_mutex_lock(&topology_mutex);
+    pthread_mutex_lock(&cb_mutex);
+    send_offer();
+    pthread_mutex_unlock(&cb_mutex);
+    pthread_mutex_unlock(&topology_mutex);
+    usleep(chunk_period);
+  }
+
+  return NULL;
+}
+
 void loop(struct nodeID *s1, int csize, int buff_size)
 {
   pthread_t receive_thread, gossiping_thread, distributing_thread;
@@ -170,7 +186,7 @@ void loop(struct nodeID *s1, int csize, int buff_size)
   pthread_mutex_init(&topology_mutex, NULL);
   pthread_create(&receive_thread, NULL, receive, NULL); 
   pthread_create(&gossiping_thread, NULL, topology_sending, NULL); 
-  pthread_create(&distributing_thread, NULL, chunk_sending, NULL); 
+  pthread_create(&distributing_thread, NULL, chunk_trading, NULL); 
 
   pthread_join(receive_thread, NULL);
   pthread_join(gossiping_thread, NULL);
