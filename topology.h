@@ -6,7 +6,10 @@
  */
 #include <stdint.h>
 
-int peers_init();
-struct peerset *get_peers();
+int peers_init(void);
+struct peerset *get_peers(void);
 void update_peers(struct nodeID *from, const uint8_t *buff, int len);
 struct peer *nodeid_to_peer(const struct nodeID* id, int reg);
+int topoAddNeighbour(struct nodeID *neighbour, void *metadata, int metadata_size);
+int topologyInit(struct nodeID *myID, const char *config);
+void topologyShutdown(void);
