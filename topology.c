@@ -152,7 +152,7 @@ void remove_peer(struct nodeID *id)
 void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 {
   int n_ids, i;
-  const struct nodeID **ids;
+  static const struct nodeID **ids;
   struct peer *peers;
   struct timeval tnow, told;
 
