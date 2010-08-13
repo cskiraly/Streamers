@@ -39,7 +39,7 @@ static int outbuff_size = 25;
 static const char *fname = "input.mpg";
 static const char *output_config;
 static bool loop_input = false;
-unsigned char msgTypes[] = {MSG_TYPE_TOPOLOGY,MSG_TYPE_CHUNK,MSG_TYPE_SIGNALLING};
+unsigned char msgTypes[] = {MSG_TYPE_CHUNK,MSG_TYPE_SIGNALLING};
 bool log_on = false;
 
 static void print_usage()
@@ -182,7 +182,7 @@ static struct nodeID *init(void)
 
     return NULL;
   }
-  for (i=0;i<3;i++)
+  for (i=0;i<2;i++)
 	  bind_msg_type(msgTypes[i]);
   myID = net_helper_init(my_addr, port);
   if (myID == NULL) {

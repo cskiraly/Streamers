@@ -14,7 +14,7 @@
 #include <net_helper.h>
 #include <peerset.h>
 #include <peer.h>
-#include <msg_types.h>
+#include <grapes_msg_types.h>
 #include <topmanager.h>
 #include <tman.h>
 
@@ -34,6 +34,7 @@ static tmanRankingFunction rankFunct = simpleRanker;
 static double my_metadata;
 static int cnt = 0;
 static struct nodeID *me = NULL;
+static unsigned char mTypes[] = {MSG_TYPE_TOPOLOGY,MSG_TYPE_TMAN};
 
 static void update_metadata(void) {
 
@@ -61,6 +62,9 @@ static int simpleRanker (const void *tin, const void *p1in, const void *p2in) {
 
 int topologyInit(struct nodeID *myID, const char *config)
 {
+	int i;
+	for (i=0;i<2;i++)
+		bind_msg_type(mTypes[i]);
 	update_metadata();
 	me = myID;
 	return (topInit(myID, &my_metadata, sizeof(my_metadata), config) && tmanInit(myID,&my_metadata, sizeof(my_metadata),rankFunct,0));
