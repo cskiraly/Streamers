@@ -13,12 +13,12 @@
 #include <signal.h>
 #include <grapes_msg_types.h>
 #include <net_helper.h>
-#include <topmanager.h>
 
 #include "net_helpers.h"
 #include "loop.h"
 #include "output.h"
 #include "channel.h"
+#include "topology.h"
 
 const char *peername = NULL;
 
@@ -192,7 +192,7 @@ static struct nodeID *init(void)
     return NULL;
   }
   free(my_addr);
-  topInit(myID, NULL, 0, "");
+  topologyInit(myID, "");
 
   return myID;
 }
@@ -224,7 +224,7 @@ int main(int argc, char *argv[])
 
       return -1;
     }
-    topAddNeighbour(srv, NULL, 0);
+    topoAddNeighbour(srv, NULL, 0);
 
     loop(my_sock, 1000000 / chunks_per_second, buff_size);
   }
