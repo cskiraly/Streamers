@@ -119,8 +119,8 @@ ifeq ($(IO), httpevent)
 CPPFLAGS += -DHTTPIO_EVENT
 CPPFLAGS += -DHTTPIO
 OBJS += $(ULPLAYER)/event_http/event_http_server.o
-#LDFLAGS += -L$(NAPA)/dclog
-#LDLIBS += -ldclog
+LDFLAGS += -L$(NAPA)/dclog
+LDLIBS += -ldclog
 OBJS += $(ULPLAYER)/chunker_streamer/chunk_pusher_curl.o
 CPPFLAGS += -I$(ULPLAYER) -I$(ULPLAYER)/chunk_transcoding -I$(ULPLAYER)/event_http
 OBJS += input-http.o
