@@ -24,7 +24,7 @@
 #include "measures.h"
 
 #define NEIGHBORHOOD_TARGET_SIZE 0
-#define TMAN_MAX_IDLE 5
+#define TMAN_MAX_IDLE 10
 
 static struct peerset *pset;
 static struct timeval tout_bmap = {10, 0};
