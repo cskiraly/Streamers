@@ -39,6 +39,7 @@ static int outbuff_size = 25;
 static const char *fname = "input.mpg";
 static const char *output_config;
 static bool loop_input = false;
+static const char *net_helper_config = "";
 unsigned char msgTypes[] = {MSG_TYPE_CHUNK,MSG_TYPE_SIGNALLING};
 bool log_on = false;
 
@@ -66,6 +67,7 @@ static void print_usage()
     "\t         Useful if the host has several interfaces/addresses.\n"
     "\t[-N name]: set the name of the peer.\n"
     "\t         This name will be used when publishing in the repository.\n"
+    "\t[-n options]: pass configuration options to the net-helper\n"
     "\t[--chunk_log]: print a chunk level log on stderr\n"   
     "\n"
     "Special Source Peer options\n"
@@ -104,7 +106,7 @@ static void cmdline_parse(int argc, char *argv[])
 	{0, 0, 0, 0}
   };
 
-    while ((o = getopt_long (argc, argv, "b:o:c:t:p:i:P:I:f:F:m:lC:N:",long_options, &option_index)) != -1) { //use this function to manage long options
+    while ((o = getopt_long (argc, argv, "b:o:c:t:p:i:P:I:f:F:m:lC:N:n:",long_options, &option_index)) != -1) { //use this function to manage long options
     switch(o) {
       case 0: //for long options
         if( strcmp( "chunk_log", long_options[option_index].name ) == 0 ) { log_on = true; }
@@ -147,6 +149,8 @@ static void cmdline_parse(int argc, char *argv[])
         break;
       case 'C':
         channel_set_name(optarg);
+      case 'n':
+        net_helper_config = strdup(optarg);
         break;
       case 'N':
         peername = strdup(optarg);
@@ -183,7 +187,7 @@ static struct nodeID *init(void)
   }
   for (i=0;i<2;i++)
 	  bind_msg_type(msgTypes[i]);
-  myID = net_helper_init(my_addr, port);
+  myID = net_helper_init(my_addr, port, net_helper_config);
   if (myID == NULL) {
     fprintf(stderr, "Error creating my socket (%s:%d)!\n", my_addr, port);
     free(my_addr);
