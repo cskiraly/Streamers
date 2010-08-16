@@ -88,8 +88,8 @@ static int topoParseData(const uint8_t *buff, int len)
 	const struct nodeID **n; const void *m;
 	if (!buff || buff[0] == MSG_TYPE_TOPOLOGY) {
 		res = topParseData(buff,len);
-		if (counter <= TMAN_MAX_IDLE)
-			counter++;
+//		if (counter <= TMAN_MAX_IDLE)
+//			counter++;
 	}
 	if (counter >= TMAN_MAX_IDLE && (!buff || buff[0] == MSG_TYPE_TMAN))
 	{
@@ -192,7 +192,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     if ( (!timerisset(&peers[i].bmap_timestamp) && timercmp(&peers[i].creation_timestamp, &told, <) ) ||
          ( timerisset(&peers[i].bmap_timestamp) && timercmp(&peers[i].bmap_timestamp, &told, <)     )   ) {
       //if (peerset_size(pset) > 1) {	// avoid dropping our last link to the world
-//        topRemoveNeighbour(peers[i].id);
+		topRemoveNeighbour(peers[i].id);
         remove_peer(peers[i--].id);
       //}
     }
