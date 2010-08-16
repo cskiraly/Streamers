@@ -23,7 +23,7 @@
 #include "dbg.h"
 #include "measures.h"
 
-#define NEIGHBORHOOD_TARGET_SIZE 0
+#define NEIGHBORHOOD_TARGET_SIZE 20
 #define TMAN_MAX_IDLE 10
 
 static struct peerset *pset;
