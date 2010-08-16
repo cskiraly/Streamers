@@ -72,7 +72,7 @@ static void print_usage()
     "\t[-m chunks]: set the number of copies the source injects in the overlay.\n"
     "\t[-f filename]: name of the video stream file to transmit.\n"
     "\t[-F config]: configure the output module\n" 
-    "\t[-l]: loop the video getopt_long instead of getoptstream.\n"
+    "\t[-l]: loop the video stream.\n"
     "\n"
     "NOTE: the peer will dump the received video on STDOUT in raw format\n"
     "      it can be played by your favourite player simply using a pipe\n"
@@ -105,7 +105,6 @@ static void cmdline_parse(int argc, char *argv[])
   };
 
     while ((o = getopt_long (argc, argv, "b:o:c:t:p:i:P:I:f:F:m:lC:N:",long_options, &option_index)) != -1) { //use this function to manage long options
- // while ((o = getopt(argc, argv, "b:o:c:t:p:i:P:I:f:F:m:lC:N:")) != -1) {
     switch(o) {
       case 0: //for long options
         if( strcmp( "chunk_log", long_options[option_index].name ) == 0 ) { log_on = true; }
