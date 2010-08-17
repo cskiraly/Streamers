@@ -25,7 +25,7 @@
 
 #define NEIGHBORHOOD_TARGET_SIZE 20
 #define TMAN_MAX_IDLE 10
-#define TMAN_LOG_EVERY 5
+#define TMAN_LOG_EVERY 1000
 
 static struct peerset *pset;
 static struct timeval tout_bmap = {10, 0};
