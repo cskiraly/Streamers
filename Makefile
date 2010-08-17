@@ -54,9 +54,7 @@ ifdef STATIC
 LINKER=g++
 endif
 endif
-LDLIBS += -Wl,-static -levent $(if $(STATIC), , -Wl,-Bdynamic) -lrt
 LDLIBS += -levent -lrt
-#LDLIBS += $(LIBEVENT_DIR)/lib/libevent.a -lrt
 endif
 
 OBJS += streaming.o
