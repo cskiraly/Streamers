@@ -25,6 +25,7 @@
 
 #define NEIGHBORHOOD_TARGET_SIZE 20
 #define TMAN_MAX_IDLE 10
+#define TMAN_LOG_EVERY 5
 
 static struct peerset *pset;
 static struct timeval tout_bmap = {10, 0};
@@ -113,7 +114,7 @@ static const struct nodeID **topoGetNeighbourhood(int *n)
 		mdata = calloc(*n,msize);
 		tmanGivePeers(*n,neighbors,(void *)mdata);
 
-		if (cnt % 5 == 0) {
+		if (cnt % TMAN_LOG_EVERY == 0) {
 			fprintf(stderr,"abouttopublish,%s,%s,,Tman_chunk_delay,%f\n",node_addr(me),node_addr(me),my_metadata);
 			for (i=0;i<(*n) && i<NEIGHBORHOOD_TARGET_SIZE;i++) {
 				d = *((double *)(mdata+i*msize));
