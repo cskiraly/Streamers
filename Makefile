@@ -48,6 +48,7 @@ LDFLAGS += -L$(LIBXML2_DIR)/lib
 LDLIBS += -lALTO -lxml2
 CFLAGS += -pthread
 LDFLAGS += -pthread
+LDLIBS += $(call ld-option, -lz)
 endif
 ifdef ML
 LDFLAGS += -L$(NAPA)/ml -L$(LIBEVENT_DIR)/lib
