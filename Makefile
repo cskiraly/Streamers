@@ -46,6 +46,8 @@ ifdef ALTO
 LDFLAGS += -L$(NAPA)/ALTOclient
 LDFLAGS += -L$(LIBXML2_DIR)/lib
 LDLIBS += -lALTO -lxml2
+CFLAGS += -pthread
+LDFLAGS += -pthread
 endif
 ifdef ML
 LDFLAGS += -L$(NAPA)/ml -L$(LIBEVENT_DIR)/lib
@@ -98,9 +100,10 @@ OBJS += output.o
 OBJS += out-stream-avf.o
 CPPFLAGS += -I$(FFMPEG_DIR)/include
 LDFLAGS += -L$(FFMPEG_DIR)/lib
+CFLAGS += -pthread
+LDFLAGS += -pthread
 LDLIBS += -lavformat -lavcodec -lavutil
 LDLIBS += -lm
-LDLIBS += -lpthread
 LDLIBS += $(call ld-option, -lz)
 LDLIBS += $(call ld-option, -lbz2)
 endif
