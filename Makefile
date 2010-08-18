@@ -42,6 +42,10 @@ endif
 
 LDFLAGS += -L$(GRAPES)/src
 LDLIBS += -lgrapes
+ifdef ALTO
+LDFLAGS += -L$(NAPA)/ALTOclient
+LDLIBS += -lALTO -lxml2
+endif
 ifdef ML
 LDFLAGS += -L$(NAPA)/ml -L$(LIBEVENT_DIR)/lib
 LDLIBS += -lml -lm
@@ -59,7 +63,14 @@ endif
 
 OBJS += streaming.o
 OBJS += net_helpers.o 
+
+ifdef ALTO
+OBJS += topology-ALTO.o
+OBJS += config.o
+else
 OBJS += topology.o
+endif
+
 OBJS += chunk_signaling.o
 OBJS += chunklock.o
 OBJS += channel.o
@@ -152,6 +163,9 @@ EXECTARGET := $(EXECTARGET)-ml
 endif
 ifdef MONL
 EXECTARGET := $(EXECTARGET)-monl
+endif
+ifdef ALTO
+EXECTARGET := $(EXECTARGET)-alto
 endif
 ifdef THREADS
 EXECTARGET := $(EXECTARGET)-threads
