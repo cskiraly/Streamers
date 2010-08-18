@@ -44,6 +44,7 @@ LDFLAGS += -L$(GRAPES)/src
 LDLIBS += -lgrapes
 ifdef ALTO
 LDFLAGS += -L$(NAPA)/ALTOclient
+LDFLAGS += -L$(LIBXML2_DIR)/lib
 LDLIBS += -lALTO -lxml2
 endif
 ifdef ML
