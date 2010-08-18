@@ -37,7 +37,7 @@ static struct nodeID *me;
 static unsigned char mTypes[] = {MSG_TYPE_TOPOLOGY};
 static uint64_t currtime;
 static struct nodeID **altoList;
-static int altoList_size, g_neigh_size, newAltoQuery;
+static int altoList_size, g_neigh_size, newAltoResults=2;
 static struct nodeID **gossipNeighborhood;
 
 /* ALTO begin --> */
@@ -169,7 +169,7 @@ void PeerSelectorALTO(void)
 	gettimeofday(&tnow, NULL);
 	timenow = (tnow.tv_usec + tnow.tv_sec * 1000000ull);
 	if ((timenow - currtime > (g_config.update_interval * 1000000)) &&
-			(!newAltoQuery)) {
+			(newAltoResults)) {
 
 		/* fill the temporary peer list (used for ALTO query) */
 		for (p=0; p < g_neigh_size; p++) {
@@ -197,16 +197,16 @@ void PeerSelectorALTO(void)
 		/*assert(rescode == 1);*/
 		if (rescode != 1) {
 			fprintf(stderr,"WARNING: ALTO query FAILED!\n");
-			newAltoQuery = 0;
+			newAltoResults = 1;
 		}
 		else {
-			newAltoQuery = 1;
+			newAltoResults = 0;
 		}
 	}
 
 	if (ALTO_query_state() == ALTO_QUERY_READY) {
 
-		if (newAltoQuery) {
+		if (!newAltoResults) {
 			gettimeofday(&tnow, NULL);
 			currtime = (tnow.tv_usec + tnow.tv_sec * 1000000ull);
 			fprintf(stderr,"Received ALTO server reply at : %u\n",(unsigned int)(((unsigned long)currtime)/1000000));
@@ -251,8 +251,7 @@ void PeerSelectorALTO(void)
 
 				fprintf(stderr,"ALTO peer %d: id  = %s ; rating = %d\n ", (i+1), node_addr(altoList[i]), ALTOInfo.peers[i].rating);
 			}
-			newAltoQuery = 0;
-		}
+
 		/* add remaining peers randomly */
 		fprintf(stderr,"\nMore ALTO randomly picked peers:\n");
 		for (j = ALTO_bucket_size; j < ALTO_bucket_size + RAND_bucket_size; j++) {
@@ -264,6 +263,8 @@ void PeerSelectorALTO(void)
 			gossipNeighborhood[p] = NULL;
 			fprintf(stderr,"ALTO peer %d: id  = %s\n ", (j+1), node_addr(altoList[j]));
 		}
+		newAltoResults = 1;
+	}
 	}
 
 }
@@ -296,7 +297,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 	dprintf("before:%d, ",peerset_size(pset));
 	topParseData(buff, len);
 	nbrs = topGetNeighbourhood(&npeers);
-	if (!newAltoQuery) {
+	if (newAltoResults) {
 		for (i=0; i < g_neigh_size; i++) {
 			nodeid_free(gossipNeighborhood[i]);
 		}
@@ -311,6 +312,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 		PeerSelectorALTO();
 	}
 
+	if (ALTO_query_state() == ALTO_QUERY_READY && newAltoResults==1) {
 	//	fprintf(stderr,"Composing peerset from ALTO selection\n");
 	for (i=0; i<altoList_size; i++) {
 		if(peerset_check(pset, altoList[i]) < 0) {
@@ -319,7 +321,8 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 			}
 		}
 	}
-
+	newAltoResults = 2;
+	}
 	if (peerset_size(pset) < NEIGHBORHOOD_TARGET_SIZE) { // ALTO selection didn't fill the peerset
 		//	fprintf(stderr,"Composing peerset from ncast neighborhood\n");
 		for (i=0;i<g_neigh_size;i++) {
@@ -347,6 +350,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 		if ( (!timerisset(&peers[i].bmap_timestamp) && timercmp(&peers[i].creation_timestamp, &told, <) ) ||
 				( timerisset(&peers[i].bmap_timestamp) && timercmp(&peers[i].bmap_timestamp, &told, <)     )   ) {
 			//if (peerset_size(pset) > 1) {	// avoid dropping our last link to the world
+			topRemoveNeighbour(peers[i].id);
 			remove_peer(peers[i--].id);
 			//}
 		}
