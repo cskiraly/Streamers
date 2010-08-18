@@ -290,11 +290,12 @@ int topologyInit(struct nodeID *myID, const char *config)
 // currently it just makes the peerset grow
 void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 {
-	int i,j,npeers;
+	int i,j,npeers,psize;
 	struct peer *peers; static const struct nodeID **nbrs;
 	struct timeval told,tnow;
 
-	dprintf("before:%d, ",peerset_size(pset));
+	psize = peerset_size(pset);
+	dprintf("before:%d, ",psize);
 	topParseData(buff, len);
 	nbrs = topGetNeighbourhood(&npeers);
 	if (newAltoResults) {
@@ -302,9 +303,9 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 			nodeid_free(currentNeighborhood[i]);
 		}
 		free(currentNeighborhood);
-		c_neigh_size = npeers + peerset_size(pset);
+		c_neigh_size = npeers + psize;
 		currentNeighborhood = calloc(c_neigh_size,sizeof(struct nodeID *));
-		for (i=0; i < peerset_size(pset); i++) {
+		for (i=0; i < psize; i++) {
 			currentNeighborhood[i] = nodeid_dup((peerset_get_peers(pset)[i]).id);
 		}
 		for (j=0; j < npeers; j++) {
@@ -321,10 +322,15 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 	}
 
 	if (ALTO_query_state() == ALTO_QUERY_READY && newAltoResults==1) {
+		j = 0;
 	//	fprintf(stderr,"Composing peerset from ALTO selection\n");
 	for (i=0; i<altoList_size; i++) {
 		if(peerset_check(pset, altoList[i]) < 0) {
 			if (!NEIGHBORHOOD_TARGET_SIZE || peerset_size(pset) < NEIGHBORHOOD_TARGET_SIZE) {
+				if (j < psize) {
+					remove_peer(peerset_get_peers(pset)[0].id);
+					j++;
+				}
 				add_peer(altoList[i]);
 			}
 		}
