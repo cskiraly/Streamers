@@ -37,8 +37,8 @@ static struct nodeID *me;
 static unsigned char mTypes[] = {MSG_TYPE_TOPOLOGY};
 static uint64_t currtime;
 static struct nodeID **altoList;
-static int altoList_size, g_neigh_size, newAltoResults=2;
-static struct nodeID **gossipNeighborhood;
+static int altoList_size, c_neigh_size, newAltoResults=2;
+static struct nodeID **currentNeighborhood;
 
 /* ALTO begin --> */
 #define ALTO_MAX_PEERS	1024
@@ -172,9 +172,9 @@ void PeerSelectorALTO(void)
 			(newAltoResults)) {
 
 		/* fill the temporary peer list (used for ALTO query) */
-		for (p=0; p < g_neigh_size; p++) {
+		for (p=0; p < c_neigh_size; p++) {
 			/* copy/convert nodeID IP address into ALTO struct */
-			node_convert_addr(gossipNeighborhood[p], &ALTOInfo.peers[p].alto_host);
+			node_convert_addr(currentNeighborhood[p], &ALTOInfo.peers[p].alto_host);
 
 			ALTOInfo.peers[p].prefix = 32;
 			ALTOInfo.peers[p].rating = -1; /* init to dummy rating */
@@ -188,7 +188,7 @@ void PeerSelectorALTO(void)
 		fprintf(stderr,"Calling ALTO server at : %u\n",(unsigned int)(((unsigned long)timenow)/1000000)); //
 		rescode = ALTO_query_exec( // get_ALTO_guidance_for_list(
 				ALTOInfo.peers,
-				g_neigh_size,
+				c_neigh_size,
 				ALTOInfo.localIPAddr,
 				g_config.alto_pri_criterion,
 				g_config.alto_sec_criterion
@@ -212,11 +212,11 @@ void PeerSelectorALTO(void)
 			fprintf(stderr,"Received ALTO server reply at : %u\n",(unsigned int)(((unsigned long)currtime)/1000000));
 
 			/* Build sorted list of ALTO-rated peers */
-			qsort(ALTOInfo.peers, g_neigh_size, sizeof(ALTO_GUIDANCE_T), qsort_compare_ALTO_ranking);
+			qsort(ALTOInfo.peers, c_neigh_size, sizeof(ALTO_GUIDANCE_T), qsort_compare_ALTO_ranking);
 
 #ifdef LOG_ALTO_RATINGS
 			dprintf("\nSorted ALTO ratings:\n");
-			for (p=0; p < g_neigh_size; p++) {
+			for (p=0; p < c_neigh_size; p++) {
 				dprintf("ALTO peer %d: rating = %d\n ", p, ALTOInfo.peers[p].rating);
 			}
 #endif
@@ -228,26 +228,26 @@ void PeerSelectorALTO(void)
     and fill the rest with random neighbours
 			 */
 
-			if ((NEIGHBORHOOD_TARGET_SIZE > 0) && (NEIGHBORHOOD_TARGET_SIZE < g_neigh_size)) {
+			if ((NEIGHBORHOOD_TARGET_SIZE > 0) && (NEIGHBORHOOD_TARGET_SIZE < c_neigh_size)) {
 				ALTO_bucket_size = NEIGHBORHOOD_TARGET_SIZE * g_config.alto_factor;
 				RAND_bucket_size = NEIGHBORHOOD_TARGET_SIZE - ALTO_bucket_size;
 			} else {
-				ALTO_bucket_size = g_neigh_size * g_config.alto_factor;
-				RAND_bucket_size = g_neigh_size - ALTO_bucket_size;
+				ALTO_bucket_size = c_neigh_size * g_config.alto_factor;
+				RAND_bucket_size = c_neigh_size - ALTO_bucket_size;
 			}
 
 			for (i=0; i < altoList_size; i++) {
 				nodeid_free(altoList[i]);
 			}
 
-			altoList = realloc(altoList,g_neigh_size*sizeof(struct nodeID *));
-			altoList = memset(altoList,0,g_neigh_size*sizeof(struct nodeID *));
-			altoList_size = g_neigh_size;
+			altoList = realloc(altoList,c_neigh_size*sizeof(struct nodeID *));
+			altoList = memset(altoList,0,c_neigh_size*sizeof(struct nodeID *));
+			altoList_size = c_neigh_size;
 
 			/* add ALTO peers */
 			fprintf(stderr,"\nSorted ALTO peers:\n");
 			for (i = 0; i < ALTO_bucket_size; i++) {
-				altoList[i] = findALTOPeerInNeighbourList(gossipNeighborhood, g_neigh_size, i);
+				altoList[i] = findALTOPeerInNeighbourList(currentNeighborhood, c_neigh_size, i);
 
 				fprintf(stderr,"ALTO peer %d: id  = %s ; rating = %d\n ", (i+1), node_addr(altoList[i]), ALTOInfo.peers[i].rating);
 			}
@@ -256,11 +256,11 @@ void PeerSelectorALTO(void)
 		fprintf(stderr,"\nMore ALTO randomly picked peers:\n");
 		for (j = ALTO_bucket_size; j < ALTO_bucket_size + RAND_bucket_size; j++) {
 			do { // FIXME: it works only if gossipNeighborhood is realloc'ed for sure between two queries...
-				p = rand() % g_neigh_size;
-			} while (!gossipNeighborhood[p]);
+				p = rand() % c_neigh_size;
+			} while (!currentNeighborhood[p]);
 
-			altoList[j] = gossipNeighborhood[p];
-			gossipNeighborhood[p] = NULL;
+			altoList[j] = currentNeighborhood[p];
+			currentNeighborhood[p] = NULL;
 			fprintf(stderr,"ALTO peer %d: id  = %s\n ", (j+1), node_addr(altoList[j]));
 		}
 		newAltoResults = 1;
@@ -290,7 +290,7 @@ int topologyInit(struct nodeID *myID, const char *config)
 // currently it just makes the peerset grow
 void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 {
-	int i,npeers;
+	int i,j,npeers;
 	struct peer *peers; static const struct nodeID **nbrs;
 	struct timeval told,tnow;
 
@@ -298,17 +298,25 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 	topParseData(buff, len);
 	nbrs = topGetNeighbourhood(&npeers);
 	if (newAltoResults) {
-		for (i=0; i < g_neigh_size; i++) {
-			nodeid_free(gossipNeighborhood[i]);
+		for (i=0; i < c_neigh_size; i++) {
+			nodeid_free(currentNeighborhood[i]);
 		}
-		free(gossipNeighborhood);
-		g_neigh_size = npeers;
-		gossipNeighborhood = calloc(g_neigh_size,sizeof(struct nodeID *));
-		for (i=0; i < g_neigh_size; i++) {
-			gossipNeighborhood[i] = nodeid_dup(nbrs[i]);
+		free(currentNeighborhood);
+		c_neigh_size = npeers + peerset_size(pset);
+		currentNeighborhood = calloc(c_neigh_size,sizeof(struct nodeID *));
+		for (i=0; i < peerset_size(pset); i++) {
+			currentNeighborhood[i] = nodeid_dup((peerset_get_peers(pset)[i]).id);
 		}
+		for (j=0; j < npeers; j++) {
+			if (peerset_check(pset, nbrs[j]) < 0) {
+				currentNeighborhood[i] = nodeid_dup(nbrs[j]);
+				i++;
+			}
+		}
+		c_neigh_size = i;
+		currentNeighborhood = i?realloc(currentNeighborhood,c_neigh_size * sizeof(struct nodeID *)):NULL;
 	}
-	if (g_neigh_size > 1) {
+	if (c_neigh_size > 1) {
 		PeerSelectorALTO();
 	}
 
@@ -325,10 +333,10 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 	}
 	if (peerset_size(pset) < NEIGHBORHOOD_TARGET_SIZE) { // ALTO selection didn't fill the peerset
 		//	fprintf(stderr,"Composing peerset from ncast neighborhood\n");
-		for (i=0;i<g_neigh_size;i++) {
-			if(gossipNeighborhood[i] && peerset_check(pset, gossipNeighborhood[i]) < 0) {
+		for (i=0;i<npeers;i++) {
+			if(peerset_check(pset, nbrs[i]) < 0) {
 				if (!NEIGHBORHOOD_TARGET_SIZE || peerset_size(pset) < NEIGHBORHOOD_TARGET_SIZE) {
-					add_peer(gossipNeighborhood[i]);
+					add_peer(nbrs[i]);
 				}
 			}
 		}
