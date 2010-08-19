@@ -14,6 +14,7 @@
 #include "http_default_urls.h"
 #include "external_chunk_transcoding.h"
 
+#include "measures.h"
 #include "output.h"
 #include "dbg.h"
 
@@ -49,4 +50,5 @@ void output_deliver(const struct chunk *c)
   	ret = sendViaCurl(*c, GRAPES_ENCODED_CHUNK_HEADER_SIZE + c->size + c->attributes_size, url);
   	dprintf("Chunk %d delivered to %s\n", c->id, url);
 	}
+	reg_chunk_playout(c->id, true, c->timestamp);
 }
