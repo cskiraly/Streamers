@@ -228,21 +228,20 @@ void PeerSelectorALTO(void)
     and fill the rest with random neighbours
 			 */
 
-			if ((NEIGHBORHOOD_TARGET_SIZE > 0) && (NEIGHBORHOOD_TARGET_SIZE < c_neigh_size)) {
-				ALTO_bucket_size = NEIGHBORHOOD_TARGET_SIZE * g_config.alto_factor;
-				RAND_bucket_size = NEIGHBORHOOD_TARGET_SIZE - ALTO_bucket_size;
-			} else {
-				ALTO_bucket_size = c_neigh_size * g_config.alto_factor;
-				RAND_bucket_size = c_neigh_size - ALTO_bucket_size;
-			}
-
 			for (i=0; i < altoList_size; i++) {
 				nodeid_free(altoList[i]);
 			}
 
-			altoList = realloc(altoList,c_neigh_size*sizeof(struct nodeID *));
-			altoList = memset(altoList,0,c_neigh_size*sizeof(struct nodeID *));
-			altoList_size = c_neigh_size;
+			if ((NEIGHBORHOOD_TARGET_SIZE > 0) && (NEIGHBORHOOD_TARGET_SIZE < c_neigh_size)) {
+				altoList_size = NEIGHBORHOOD_TARGET_SIZE;
+			} else {
+				altoList_size = c_neigh_size;
+			}
+			ALTO_bucket_size = altoList_size * g_config.alto_factor;
+			RAND_bucket_size = altoList_size - ALTO_bucket_size;
+
+			altoList = realloc(altoList,altoList_size*sizeof(struct nodeID *));
+			altoList = memset(altoList,0,altoList_size*sizeof(struct nodeID *));
 
 			/* add ALTO peers */
 			fprintf(stderr,"\nSorted ALTO peers:\n");
