@@ -63,6 +63,12 @@ int enqueueBlock(const uint8_t *block, const int block_size) {
 		return -1;
 	}
 
+	if (gchunk->attributes) {
+		free(gchunk->attributes);
+		gchunk->attributes_size = 0;
+	}
+	chunk_attributes_fill(gchunk);
+
 	if(cb) {
 		int cnt = 0;
 		int i = 0;
