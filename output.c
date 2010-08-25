@@ -17,6 +17,10 @@
 #include "out-stream.h"
 #include "dbg.h"
 
+#ifdef CRAP
+#define chunk_write(a,b,c)
+#endif
+
 static int next_chunk = -1;
 static int buff_size;
 
@@ -30,11 +34,14 @@ static struct outbuf *buff;
 
 void output_init(int bufsize, const char *config)
 {
+#ifdef CRAP
+  output_init1(bufsize, config);
+#else
   if (out_stream_init(config) < 0) {
      fprintf(stderr, "Error: can't initialize output module\n");
      exit(1);
   }
-
+#endif
   if (!buff) {
     int i;
 
@@ -104,6 +111,9 @@ void output_deliver(const struct chunk *c)
     fprintf(stderr, "Warning: code should use output_init!!! Setting output buffer to 8\n");
     output_init(8, NULL);
   }
+#ifdef CRAP
+  output_deliver1(c);
+#endif
 
   dprintf("Chunk %d delivered\n", c->id);
   buffer_print();

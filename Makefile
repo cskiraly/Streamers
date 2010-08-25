@@ -113,11 +113,11 @@ CPPFLAGS += -DHTTPIO_MHD
 CPPFLAGS += -DHTTPIO
 OBJS += $(ULPLAYER)/chunker_player/chunk_puller.o
 OBJS += $(ULPLAYER)/chunker_streamer/chunk_pusher_curl.o
-CPPFLAGS += -I$(ULPLAYER) -I$(ULPLAYER)/chunk_transcoding
+CPPFLAGS += -DCRAP -I$(ULPLAYER) -I$(ULPLAYER)/chunk_transcoding
 CFLAGS += -pthread
 LDFLAGS += -pthread
 OBJS += input-http.o
-OBJS += output-http.o
+OBJS += output-http.o output.o
 
 LOCAL_MHD=$(ULPLAYER)/$(ULPLAYER_EXTERNAL_LIBS)/libmicrohttpd/temp_mhd_install
 CPPFLAGS += -I$(LOCAL_MHD)/include
@@ -136,9 +136,9 @@ OBJS += $(ULPLAYER)/event_http/event_http_server.o
 LDFLAGS += -L$(NAPA)/dclog
 LDLIBS += -ldclog
 OBJS += $(ULPLAYER)/chunker_streamer/chunk_pusher_curl.o
-CPPFLAGS += -I$(ULPLAYER) -I$(ULPLAYER)/chunk_transcoding -I$(ULPLAYER)/event_http
+CPPFLAGS += -I$(ULPLAYER) -I$(ULPLAYER)/chunk_transcoding -I$(ULPLAYER)/event_http -DCRAP
 OBJS += input-http.o
-OBJS += output-http.o
+OBJS += output-http.o output.o
 
 #LDFLAGS += -L$(LIBEVENT_DIR)/lib
 #CPPFLAGS += -I$(LIBEVENT_DIR)/include

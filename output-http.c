@@ -24,7 +24,7 @@ struct nodeID *streamer;
 static char url[256];
 static int base_port = 0;
 
-void output_init(int bufsize, const char *config)
+void output_init1(int bufsize, const char *config)
 {
   if(!config) {
      fprintf(stderr, "Error: no http output module configuration issued. Exiting\n");
@@ -38,7 +38,7 @@ void output_init(int bufsize, const char *config)
 	sprintf(url, "http://%s:%d%s", PLAYER_IP, base_port, UL_DEFAULT_EXTERNALPLAYER_PATH);
 }
 
-void output_deliver(const struct chunk *c)
+void output_deliver1(const struct chunk *c)
 {
   int ret = -1;
 

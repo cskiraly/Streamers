@@ -86,7 +86,7 @@ void cb_print()
 
 void stream_init(int size, struct nodeID *myID)
 {
-  char conf[32];
+  static char conf[32];
 
   cb_size = size;
 
