@@ -286,10 +286,10 @@ int topologyInit(struct nodeID *myID, const char *config)
 	return (topInit(myID, NULL, 0, config));
 }
 
-// currently it just makes the peerset grow
+
 void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 {
-	int i,j,npeers,psize;
+	int i,j,k,npeers,doAdd,psize;
 	struct peer *peers; static const struct nodeID **nbrs;
 	struct timeval told,tnow;
 
@@ -321,20 +321,35 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 	}
 
 	if (ALTO_query_state() == ALTO_QUERY_READY && newAltoResults==1) {
-		j = 0;
 	//	fprintf(stderr,"Composing peerset from ALTO selection\n");
-	for (i=0; i<altoList_size; i++) {
-		if(peerset_check(pset, altoList[i]) < 0) {
-			if (!NEIGHBORHOOD_TARGET_SIZE || peerset_size(pset) < NEIGHBORHOOD_TARGET_SIZE) {
-				if (j < psize) {
-					remove_peer(peerset_get_peers(pset)[0].id);
-					j++;
+		for (i=0; i < altoList_size; i++) { /* first goal : add all new ALTO-ranked peers
+											second goal : do not increase current peerset size
+											third goal : make space by deleting only peers that
+												are not in the current ALTO-reply */
+			if (peerset_check(pset, altoList[i]) < 0) {
+				doAdd = 1;
+				if (NEIGHBORHOOD_TARGET_SIZE &&
+					peerset_size(pset) >= NEIGHBORHOOD_TARGET_SIZE) {
+					doAdd = 0;
+					for (j = 0; j < peerset_size(pset); j++) {
+						for (k = 0; k < altoList_size; k++) {
+							if (k!=i && nodeid_equal(peerset_get_peers(pset)[j].id, altoList[k])) {
+								break;
+							}
+						}
+						if (k == altoList_size) {
+							remove_peer(peerset_get_peers(pset)[j].id);
+							doAdd = 1;
+							break; // without this, peerset size would possibly decrease
+						}
+					}
 				}
-				add_peer(altoList[i]);
+				if (doAdd) {
+					add_peer(altoList[i]);
+				}
 			}
 		}
-	}
-	newAltoResults = 2;
+		newAltoResults = 2;
 	}
 	if (peerset_size(pset) < NEIGHBORHOOD_TARGET_SIZE) { // ALTO selection didn't fill the peerset
 		//	fprintf(stderr,"Composing peerset from ncast neighborhood\n");
@@ -346,15 +361,16 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 			}
 		}
 	}
-	dprintf("after:%d, ",peerset_size(pset));
+	psize = peerset_size(pset);
+	dprintf("after:%d, ",psize);
 
 	gettimeofday(&tnow, NULL);
 	timersub(&tnow, &tout_bmap, &told);
 	peers = peerset_get_peers(pset);
 
 	if (++cnt % 10 == 0) {
-		fprintf(stderr,"\nMy peerset : size = %d\n",peerset_size(pset));
-		for (i=0;i<peerset_size(pset);i++) {
+		fprintf(stderr,"\nMy peerset : size = %d\n",psize);
+		for (i=0;i<psize;i++) {
 			fprintf(stderr,"\t%d : %s\n",i,node_addr(peers[i].id));
 		}
 	}
