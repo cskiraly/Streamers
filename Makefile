@@ -140,11 +140,6 @@ CPPFLAGS += -I$(ULPLAYER) -I$(ULPLAYER)/chunk_transcoding -I$(ULPLAYER)/event_ht
 OBJS += input-http.o
 OBJS += output-http.o output.o
 
-#LDFLAGS += -L$(LIBEVENT_DIR)/lib
-#CPPFLAGS += -I$(LIBEVENT_DIR)/include
-#LDLIBS += -Wl,-static -levent
-#LDLIBS += -levent
-
 LOCAL_CURL=$(ULPLAYER)/$(ULPLAYER_EXTERNAL_LIBS)/curl/temp_curl_install
 CPPFLAGS += -I$(LOCAL_CURL)/include
 LDFLAGS += -L$(LOCAL_CURL)/lib
