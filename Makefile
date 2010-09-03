@@ -15,6 +15,7 @@ CFLAGS += $(call cc-option, -Wundef)
 CFLAGS += $(call cc-option, -funit-at-a-time)
 
 LINKER = $(CC)
+STATIC ?= 0
 
 NAPA ?= ../../NAPA-BASELIBS
 GRAPES ?= ../../GRAPES
@@ -58,7 +59,7 @@ ifdef MONL
 LDFLAGS += -L$(NAPA)/dclog -L$(NAPA)/rep -L$(NAPA)/monl -L$(NAPA)/common
 LDLIBS += -lstdc++ -lmon -lrep -ldclog -lcommon
 CPPFLAGS += -DMONL
-ifdef STATIC
+ifneq ($(STATIC), 0)
 LINKER=g++
 endif
 endif
@@ -174,9 +175,14 @@ ifdef IO
 EXECTARGET := $(EXECTARGET)-$(IO)
 endif
 
-ifdef STATIC
-LDFLAGS += -static -v
+ifeq ($(STATIC), 1)
+EXECTARGET := $(EXECTARGET)-halfstatic
+LDFLAGS += -Wl,-static
+LDFLAGSPOST += -Wl,-Bdynamic
+endif
+ifeq ($(STATIC), 2)
 EXECTARGET := $(EXECTARGET)-static
+LDFLAGS += -static
 endif
 
 ifdef DEBUG
@@ -194,7 +200,7 @@ $(EXECTARGET): $(OBJS) $(GRAPES)/src/net_helper.o $(EXECTARGET).o
 else
 $(EXECTARGET): $(OBJS) $(GRAPES)/src/net_helper-ml.o $(EXECTARGET).o
 endif
-	$(LINKER) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
+	$(LINKER) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(LDFLAGSPOST) -o $@
 
 $(EXECTARGET).o: streamer.o
 	ln -sf streamer.o $(EXECTARGET).o
