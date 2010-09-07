@@ -27,12 +27,15 @@
 #include "measures.h"
 #include "config.h"
 
+
 static int NEIGHBORHOOD_TARGET_SIZE;
 
 static struct peerset *pset;
 static struct timeval tout_bmap = {10, 0};
 
+#define LOG_EVERY	1000
 static int cnt = 0;
+
 static struct nodeID *me;
 static unsigned char mTypes[] = {MSG_TYPE_TOPOLOGY};
 static uint64_t currtime;
@@ -368,7 +371,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 	timersub(&tnow, &tout_bmap, &told);
 	peers = peerset_get_peers(pset);
 
-	if (++cnt % 10 == 0) {
+	if (LOG_EVERY && ++cnt % LOG_EVERY == 0) {
 		fprintf(stderr,"\nMy peerset : size = %d\n",psize);
 		for (i=0;i<psize;i++) {
 			fprintf(stderr,"\t%d : %s\n",i,node_addr(peers[i].id));
