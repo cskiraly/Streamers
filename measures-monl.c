@@ -35,8 +35,8 @@ typedef struct nodeID {
 } nodeID;
 
 static MonHandler chunk_dup, chunk_playout, neigh_size, chunk_receive, chunk_send, offer_accept, chunk_hops, chunk_delay, playout_delay;
-static MonHandler rx_bytes_chunk_per_sec, tx_bytes_chunk_per_sec, rx_bytes_sig_per_sec, tx_bytes_sig_per_sec;
-static MonHandler rx_chunks, tx_chunks;
+//static MonHandler rx_bytes_chunk_per_sec, tx_bytes_chunk_per_sec, rx_bytes_sig_per_sec, tx_bytes_sig_per_sec;
+//static MonHandler rx_chunks, tx_chunks;
 
 /*
  * Initialize one measure
@@ -170,8 +170,8 @@ void reg_offer_accept(bool b)
 */
 void init_measures()
 {
-	enum stat_types stavg[] = {WIN_AVG};
-	enum stat_types stsum[] = {SUM};
+	//enum stat_types stavg[] = {WIN_AVG};
+	//enum stat_types stsum[] = {SUM};
 
 	if (peername) monSetPeerName(peername);
 
@@ -244,7 +244,6 @@ void add_measures(struct nodeID *id)
 */
 void delete_measures(struct nodeID *id)
 {
-	int j;
 	dprintf("deleting measures from %s\n",node_addr(id));
 	while(id->n_mhs) {
 		monDestroyMeasure(id->mhs[--(id->n_mhs)]);
