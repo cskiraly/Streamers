@@ -88,18 +88,14 @@ void remove_peer(struct nodeID *id)
  * IP string returned by node_addr() via inet_aton().
  */
 static void node_convert_addr(const struct nodeID* node, struct in_addr* addr) {
-  int len, rescode;
-  char peerIP[64];
-  const char* peerAddr = node_addr(node);
+  int rescode;
+
+//  const char* peerAddr = node_addr(node);
 
   /* extract IP string without port */
-  const char* tmp = strstr(peerAddr, ":");
-  if (tmp) len = tmp-peerAddr;	/* calc len of IP string */
-  else len = strlen(peerAddr)+1;
-  memcpy(peerIP, peerAddr, len);
-  peerIP[len] = 0;	/* trailing zero */
+  const char *peerIP = node_ip(node);
 
-  /*dprintf("%d. peer addr = %s IP = %s\n", p, peerAddr, peerIP);*/
+//  fprintf(stderr,"peer addr = %s IP = %s\n", peerAddr, peerIP);
 
   /* fill in IP addr */
   rescode = inet_aton(peerIP, addr);
