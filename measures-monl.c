@@ -80,7 +80,7 @@ void reg_chunk_playout(int id, bool b, uint64_t timestamp)
 
 	if (!playout_delay) {
 		enum stat_types st[] = {WIN_AVG, WIN_VAR};
-		add_measure(&playout_delay, GENERIC, 0, PEER_PUBLISH_INTERVAL, "PlayoutDelay", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
+		add_measure(&playout_delay, GENERIC, 0, PEER_PUBLISH_INTERVAL, "ReorderDelay", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
 	}
 	if (b) {	//count delay only if chunk has arrived
 		gettimeofday(&tnow, NULL);
