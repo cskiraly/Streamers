@@ -132,13 +132,9 @@ static int qsort_compare_ALTO_ranking(const void* a, const void* b)
   return r1->rating - r2->rating;
 }
 
-static void topo_ALTO_init(void)
+static void topo_ALTO_init(char* myIP)
 {
-	char* myIP;
-
 	NEIGHBORHOOD_TARGET_SIZE = g_config.neighborhood_target_size;
-
-	myIP = default_ip_addr();
 	dprintf("myIP: %s\n", myIP);
 	assert(inet_aton(myIP, &ALTOInfo.localIPAddr) != 0);
 	start_ALTO_client();
@@ -286,7 +282,7 @@ int topologyInit(struct nodeID *myID, const char *config)
 	config_init();
 	config_load("streamer.conf");
 	//config_dump();
-	topo_ALTO_init();
+	topo_ALTO_init(node_ip(myID));
 	return (topInit(myID, NULL, 0, config));
 }
 
