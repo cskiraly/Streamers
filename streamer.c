@@ -41,7 +41,7 @@ static const char *output_config;
 static bool loop_input = false;
 static const char *net_helper_config = "";
 unsigned char msgTypes[] = {MSG_TYPE_CHUNK,MSG_TYPE_SIGNALLING};
-bool log_on = false;
+bool chunk_log = false;
 
 static void print_usage()
 {
@@ -68,12 +68,12 @@ static void print_usage()
     "\t[-N name]: set the name of the peer.\n"
     "\t         This name will be used when publishing in the repository.\n"
     "\t[-n options]: pass configuration options to the net-helper\n"
-    "\t[--chunk_log]: print a chunk level log on stderr\n"   
+    "\t[--chunk_log]: print a chunk level log on stderr\n"
     "\n"
     "Special Source Peer options\n"
     "\t[-m chunks]: set the number of copies the source injects in the overlay.\n"
     "\t[-f filename]: name of the video stream file to transmit.\n"
-    "\t[-F config]: configure the output module\n" 
+    "\t[-F config]: configure the output module\n"
     "\t[-l]: loop the video stream.\n"
     "\n"
     "NOTE: the peer will dump the received video on STDOUT in raw format\n"
@@ -109,8 +109,8 @@ static void cmdline_parse(int argc, char *argv[])
     while ((o = getopt_long (argc, argv, "b:o:c:t:p:i:P:I:f:F:m:lC:N:n:",long_options, &option_index)) != -1) { //use this function to manage long options
     switch(o) {
       case 0: //for long options
-        if( strcmp( "chunk_log", long_options[option_index].name ) == 0 ) { log_on = true; }
-	break;
+        if( strcmp( "chunk_log", long_options[option_index].name ) == 0 ) { chunk_log = true; }
+        break;
       case 'b':
         buff_size = atoi(optarg);
         break;

@@ -23,6 +23,7 @@
 
 static int next_chunk = -1;
 static int buff_size;
+extern bool chunk_log;
 
 struct outbuf {
   void *data;
@@ -156,8 +157,7 @@ void output_deliver(const struct chunk *c)
     if (buff[c->id % buff_size].data) {
       if (buff[c->id % buff_size].id == c->id) {
         /* Duplicate of a stored chunk */
-	extern bool log_on; //ENST
-	if(log_on){fprintf(stderr,"Duplicate! chunkID: %d\n", c->id);} // ENST
+        if(chunk_log){fprintf(stderr,"Duplicate! chunkID: %d\n", c->id);}
         dprintf("\tDuplicate!\n");
         reg_chunk_duplicate();
         return;
