@@ -36,6 +36,7 @@ static double my_metadata;
 static int cnt = 0;
 static struct nodeID *me = NULL;
 static unsigned char mTypes[] = {MSG_TYPE_TOPOLOGY,MSG_TYPE_TMAN};
+static struct nodeID ** neighbors;
 
 static void update_metadata(void) {
 
@@ -107,8 +108,9 @@ static const struct nodeID **topoGetNeighbourhood(int *n)
 {
 	int i; double d;
 	if (counter > TMAN_MAX_IDLE) {
-		struct nodeID ** neighbors; uint8_t *mdata; int msize;
+		uint8_t *mdata; int msize;
 		*n = tmanGetNeighbourhoodSize();
+		if (neighbors) free(neighbors);
 		neighbors = calloc(*n,sizeof(struct nodeID *));
 		tmanGetMetadata(&msize);
 		mdata = calloc(*n,msize);
