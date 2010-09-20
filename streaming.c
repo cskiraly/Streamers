@@ -530,11 +530,10 @@ void send_chunk()
       dprintf("%s\n", node_addr(p->id));
 
       send_bmap(p);
-      if(chunk_log){fprintf(stderr, "TEO: Sending chunk %d to peer: %s at: %lld ", c->id, node_addr(p->id), gettimeofday_in_us());}
 
       chunk_attributes_update_sending(c);
       res = sendChunk(p->id, c);
-      if(chunk_log){fprintf(stderr, "Result: %d Size: %d bytes\n", res, c->size);}
+      if(chunk_log){fprintf(stderr, "TEO: Sending chunk %d to peer: %s at: %lld Result: %d Size: %d bytes\n", c->id, node_addr(p->id), gettimeofday_in_us(), res, c->size);}
       dprintf("\tResult: %d\n", res);
       if (res>=0) {
         chunkID_set_add_chunk(p->bmap,c->id); //don't send twice ... assuming that it will actually arrive
