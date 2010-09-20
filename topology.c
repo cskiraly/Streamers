@@ -177,8 +177,6 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 //    }
 //  }
 
-  dprintf("before:%d, ",peerset_size(pset));
-
   if (cnt++ % 100 == 0) {
 	update_metadata();
 	tmanChangeMetadata(&my_metadata,sizeof(my_metadata));
@@ -193,7 +191,6 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
       }
     }
   }
-  dprintf("after:%d, ",peerset_size(pset));
 
   gettimeofday(&tnow, NULL);
   timersub(&tnow, &tout_bmap, &told);
@@ -209,8 +206,6 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
   }
 
   reg_neigh_size(peerset_size(pset));
-
-  dprintf("after timer check:%d\n",peerset_size(pset));
 }
 
 struct peer *nodeid_to_peer(const struct nodeID* id, int reg)
