@@ -31,6 +31,7 @@
 #include "chunklock.h"
 #include "topology.h"
 #include "measures.h"
+#include "scheduling.h"
 
 #include "scheduler_la.h"
 
@@ -477,7 +478,7 @@ void send_offer()
 
     for (i = 0;i < size; i++) chunkids[size - 1 - i] = (buff+i)->id;
     for (i = 0; i<n; i++) nodeids[i] = (neighbours+i)->id;
-    selectPeersForChunks(SCHED_WEIGHTED, nodeids, n, chunkids, size, selectedpeers, &selectedpeers_len, needs, (transid % 2) ? peerWeightReceivedfrom : peerWeightRtt);	//select a peer that needs at least one of our chunks
+    selectPeersForChunks(SCHED_BEST, nodeids, n, chunkids, size, selectedpeers, &selectedpeers_len, needs, (transid % 2) ? peerWeightReceivedfrom : peerWeightRtt);	//select a peer that needs at least one of our chunks
 
     for (i=0; i<selectedpeers_len ; i++){
       int max_deliver = offer_max_deliver(selectedpeers[i]);
@@ -520,7 +521,7 @@ void send_chunk()
   
     for (i = 0;i < size; i++) chunkids[i] = (buff+i)->id;
     for (i = 0; i<n; i++) nodeids[i] = (neighbours+i)->id;
-    schedSelectPeerFirst(SCHED_WEIGHTED, nodeids, n, chunkids, size, selectedpairs, &selectedpairs_len, needs, peerWeightRtt, getChunkTimestamp);
+    SCHED_TYPE(SCHED_WEIGHTING, nodeids, n, chunkids, size, selectedpairs, &selectedpairs_len, SCHED_NEEDS, SCHED_PEER, SCHED_CHUNK);
   /************ /USE SCHEDULER ****************/
 
     for (i=0; i<selectedpairs_len ; i++){
