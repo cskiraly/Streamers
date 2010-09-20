@@ -3,6 +3,7 @@
  *
  *  This is free software; see gpl-3.0.txt
  */
+#include <stdio.h>
 #include <stdint.h>
 #include <math.h>
 #ifndef NAN	//NAN is missing in some old math.h versions
@@ -26,6 +27,8 @@ static int neighsize = 0;
 void reg_chunk_duplicate()
 {
   duplicates++;
+
+  fprintf(stderr,"DuplicateRatio,%f\n", (double)duplicates/chunks);
 }
 
 /*
@@ -35,6 +38,8 @@ void reg_chunk_playout(int id, bool b, uint64_t timestamp)
 {
   played += b ? 1 : 0;
   chunks++;
+
+  fprintf(stderr,"PlayoutRatio,%f\n", (double)played/chunks);
 }
 
 /*
@@ -43,6 +48,8 @@ void reg_chunk_playout(int id, bool b, uint64_t timestamp)
 void reg_neigh_size(int s)
 {
   neighsize = s;
+
+  fprintf(stderr,"NeighSize,%d\n", neighsize);
 }
 
 /*
