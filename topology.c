@@ -196,7 +196,6 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
   dprintf("after:%d, ",peerset_size(pset));
 
   if timerisset(&tout_bmap) {
-    dprintf("tcheck");
     gettimeofday(&tnow, NULL);
     timersub(&tnow, &tout_bmap, &told);
     peers = peerset_get_peers(pset);
