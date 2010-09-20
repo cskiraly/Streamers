@@ -14,13 +14,17 @@
 
 #include "measures.h"
 
+static int duplicates = 0;
+static int chunks = 0;
+static int played = 0;
+
+static int neighsize = 0;
+
 /*
  * Register duplicate arrival
 */
 void reg_chunk_duplicate()
 {
-  static int duplicates = 0;
-
   duplicates++;
 }
 
@@ -29,10 +33,7 @@ void reg_chunk_duplicate()
 */
 void reg_chunk_playout(int id, bool b, uint64_t timestamp)
 {
-  static int chunks = 0;
-  static int sum = 0;
-
-  sum += b ? 1 : 0;
+  played += b ? 1 : 0;
   chunks++;
 }
 
@@ -41,6 +42,7 @@ void reg_chunk_playout(int id, bool b, uint64_t timestamp)
 */
 void reg_neigh_size(int s)
 {
+  neighsize = s;
 }
 
 /*
