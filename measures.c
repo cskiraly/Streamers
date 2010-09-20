@@ -12,8 +12,11 @@
 #ifndef INFINITY
 #define INFINITY       (1.0/0.0)
 #endif
+#include <sys/time.h>
 
 #include "measures.h"
+
+static struct timeval print_tdiff = {1, 0};
 
 static int duplicates = 0;
 static int chunks = 0;
@@ -21,14 +24,36 @@ static int played = 0;
 
 static int neighsize = 0;
 
+void print_measures()
+{
+  if (chunks) fprintf(stderr,"DuplicateRatio,%f\n", (double)duplicates/chunks);
+  if (chunks) fprintf(stderr,"PlayoutRatio,%f\n", (double)played/chunks);
+  fprintf(stderr,"NeighSize,%d\n", neighsize);
+}
+
+void print_every()
+{
+  static struct timeval tnext;
+  struct timeval tnow;
+
+  gettimeofday(&tnow, NULL);
+  if (!timerisset(&tnext)) {
+    tnext = tnow;
+  }
+  if (!timercmp(&tnow, &tnext, <)) {
+    print_measures();
+    timeradd(&tnext, &print_tdiff, &tnext);
+  }
+}
+
 /*
  * Register duplicate arrival
 */
 void reg_chunk_duplicate()
 {
-  duplicates++;
+  print_every();
 
-  fprintf(stderr,"DuplicateRatio,%f\n", (double)duplicates/chunks);
+  duplicates++;
 }
 
 /*
@@ -36,10 +61,10 @@ void reg_chunk_duplicate()
 */
 void reg_chunk_playout(int id, bool b, uint64_t timestamp)
 {
+  print_every();
+
   played += b ? 1 : 0;
   chunks++;
-
-  fprintf(stderr,"PlayoutRatio,%f\n", (double)played/chunks);
 }
 
 /*
@@ -47,9 +72,9 @@ void reg_chunk_playout(int id, bool b, uint64_t timestamp)
 */
 void reg_neigh_size(int s)
 {
-  neighsize = s;
+  print_every();
 
-  fprintf(stderr,"NeighSize,%d\n", neighsize);
+  neighsize = s;
 }
 
 /*
