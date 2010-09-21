@@ -35,6 +35,7 @@
 #include "scheduler_la.h"
 
 static bool heuristics_distance_maxdeliver = true;
+static int bcast_after_receive_every = 0;
 
 struct chunk_attributes {
   uint64_t deadline;
@@ -223,6 +224,21 @@ void send_bmap(struct peer *to)
   chunkID_set_free(my_bmap);
 }
 
+void bcast_bmap()
+{
+  int i, n;
+  struct peer *neighbours;
+  struct peerset *pset;
+
+  pset = get_peers();
+  n = peerset_size(pset);
+  neighbours = peerset_get_peers(pset);
+
+  for (i = 0; i<n; i++) {
+    send_bmap(&neighbours[i]);
+  }
+}
+
 double get_average_lossrate_pset(struct peerset *pset)
 {
   int i, n;
@@ -257,6 +273,7 @@ void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
   int res;
   static struct chunk c;
   struct peer *p;
+  static int bcast_cnt;
 
   res = decodeChunk(&c, buff + 1, len - 1);
   if (res > 0) {
@@ -278,6 +295,9 @@ void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
     if (p) {	//now we have it almost sure
       chunkID_set_add_chunk(p->bmap,c.id);	//don't send it back
       ack_chunk(&c,p);	//send explicit ack
+    }
+    if (bcast_after_receive_every && bcast_cnt % bcast_after_receive_every == 0) {
+       bcast_bmap();
     }
   } else {
     fprintf(stderr,"\tError: can't decode chunk!\n");
