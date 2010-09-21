@@ -35,7 +35,7 @@
 
 #include "scheduler_la.h"
 
-static bool heuristics_distance_maxdeliver = true;
+static bool heuristics_distance_maxdeliver = false;
 static int bcast_after_receive_every = 0;
 
 struct chunk_attributes {
