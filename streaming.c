@@ -34,6 +34,8 @@
 
 #include "scheduler_la.h"
 
+static bool heuristics_distance_maxdeliver = true;
+
 struct chunk_attributes {
   uint64_t deadline;
   uint16_t deadline_increment;
@@ -436,6 +438,9 @@ int offer_peer_count()
 
 int offer_max_deliver(struct nodeID *n)
 {
+
+  if (!heuristics_distance_maxdeliver) return 1;
+
 #ifdef MONL
   switch (get_hopcount(n)) {
     case 0: return 5;
