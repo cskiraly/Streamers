@@ -40,7 +40,7 @@ double tdiff_sec(const struct timeval *a, const struct timeval *b)
 
 void print_measure(const char *name, double value)
 {
-  fprintf(stderr,"%s,%f\n", name, value);
+  fprintf(stderr,"abouttopublish,,,,%s,%f,,,\n", name, value);
 }
 
 void print_measures()
