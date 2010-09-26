@@ -9,7 +9,7 @@
 #define SCHED_TYPE	schedSelectPeerFirst
 #define SCHED_WEIGHTING	SCHED_WEIGHTED
 #define SCHED_NEEDS	needs
-#define SCHED_PEER	peerWeightRtt
+#define SCHED_PEER	peerWeightUniform
 #define SCHED_CHUNK	chunkScoreChunkID
 
 #endif	/* SCHEDULING_H */
