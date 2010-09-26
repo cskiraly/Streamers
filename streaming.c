@@ -475,8 +475,8 @@ void send_offer()
     }
 
     for (i = 0;i < size; i++) chunkids[size - 1 - i] = (buff+i)->id;
+    selectPeersForChunks(SCHED_WEIGHTING, nodeids, n, chunkids, size, selectedpeers, &selectedpeers_len, SCHED_NEEDS, SCHED_PEER);
     for (i = 0; i<n; i++) nodeids[i] = (neighbours+i)->id;
-    selectPeersForChunks(SCHED_BEST, nodeids, n, chunkids, size, selectedpeers, &selectedpeers_len, needs, (transid % 2) ? peerWeightReceivedfrom : peerWeightRtt);	//select a peer that needs at least one of our chunks
 
     for (i=0; i<selectedpeers_len ; i++){
       int max_deliver = offer_max_deliver(selectedpeers[i]);
