@@ -23,9 +23,11 @@ static struct timeval print_tstart;
 static int duplicates = 0;
 static int chunks = 0;
 static int played = 0;
+static uint64_t sum_reorder_delay = 0;
 
 static int chunks_received = 0;
 static int sum_hopcount = 0;
+static uint64_t sum_receive_delay = 0;
 
 static int chunks_sent = 0;
 
@@ -50,8 +52,10 @@ void print_measures()
   if (chunks) print_measure("ChunksPlayed", (double)chunks);
   if (chunks) print_measure("DuplicateRatio", (double)duplicates / chunks);
   if (chunks) print_measure("PlayoutRatio", (double)played / chunks);
+  if (chunks) print_measure("ReorderDelay", (double)sum_reorder_delay / 1e6 / chunks);
   print_measure("NeighSize", (double)neighsize);
   if (chunks_received) print_measure("OverlayDistance", (double)sum_hopcount / chunks_received);
+  if (chunks_received) print_measure("ReceiveDelay", (double)sum_receive_delay / 1e6 / chunks_received);
 
   gettimeofday(&tnow, NULL);
   if (timerisset(&print_tstart)) print_measure("ChunkReceiveRate", (double) chunks_received / tdiff_sec(&tnow, &print_tstart));
@@ -101,10 +105,14 @@ void reg_chunk_duplicate()
 */
 void reg_chunk_playout(int id, bool b, uint64_t timestamp)
 {
+  struct timeval tnow;
+
   if (!print_every()) return;
 
   played += b ? 1 : 0;
   chunks++;
+  gettimeofday(&tnow, NULL);
+  sum_reorder_delay += (tnow.tv_usec + tnow.tv_sec * 1000000ULL) - timestamp;
 }
 
 /*
@@ -122,10 +130,14 @@ void reg_neigh_size(int s)
 */
 void reg_chunk_receive(int id, uint64_t timestamp, int hopcount)
 {
+  struct timeval tnow;
+
   if (!print_every()) return;
 
   chunks_received++;
   sum_hopcount += hopcount;
+  gettimeofday(&tnow, NULL);
+  sum_receive_delay += (tnow.tv_usec + tnow.tv_sec * 1000000ULL) - timestamp;
 }
 
 /*
