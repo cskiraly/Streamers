@@ -17,6 +17,8 @@
 #include "measures.h"
 
 static struct timeval print_tdiff = {1, 0};
+static struct timeval print_tstartdiff = {20, 0};
+static struct timeval print_tstart;
 
 static int duplicates = 0;
 static int chunks = 0;
@@ -31,19 +33,32 @@ void print_measures()
   fprintf(stderr,"NeighSize,%d\n", neighsize);
 }
 
-void print_every()
+bool print_every()
 {
   static struct timeval tnext;
+  static bool startup = true;
   struct timeval tnow;
 
   gettimeofday(&tnow, NULL);
+  if (startup) {
+    if (!timerisset(&print_tstart)) {
+      timeradd(&tnow, &print_tstartdiff, &print_tstart);
+    }
+    if (timercmp(&tnow, &print_tstart, <)) {
+      return false;
+    } else {
+      startup = false;
+    }
+  }
+
   if (!timerisset(&tnext)) {
-    tnext = tnow;
+    timeradd(&print_tstart, &print_tdiff, &tnext);
   }
   if (!timercmp(&tnow, &tnext, <)) {
     print_measures();
     timeradd(&tnext, &print_tdiff, &tnext);
   }
+  return true;
 }
 
 /*
@@ -51,7 +66,7 @@ void print_every()
 */
 void reg_chunk_duplicate()
 {
-  print_every();
+  if (!print_every()) return;
 
   duplicates++;
 }
@@ -61,7 +76,7 @@ void reg_chunk_duplicate()
 */
 void reg_chunk_playout(int id, bool b, uint64_t timestamp)
 {
-  print_every();
+  if (!print_every()) return;
 
   played += b ? 1 : 0;
   chunks++;
@@ -72,7 +87,7 @@ void reg_chunk_playout(int id, bool b, uint64_t timestamp)
 */
 void reg_neigh_size(int s)
 {
-  print_every();
+  if (!print_every()) return;
 
   neighsize = s;
 }
