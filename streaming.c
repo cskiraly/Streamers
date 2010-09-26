@@ -422,6 +422,10 @@ double peerScoreELpID(struct nodeID **n){
   return -latest;
 }
 
+double chunkScoreChunkID(int *cid){
+  return (double) *cid;
+}
+
 double getChunkTimestamp(int *cid){
   struct chunk *c = cb_get_chunk(cb, *cid);
   if (!c) return 0;

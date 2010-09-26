@@ -10,6 +10,6 @@
 #define SCHED_WEIGHTING	SCHED_WEIGHTED
 #define SCHED_NEEDS	needs
 #define SCHED_PEER	peerWeightRtt
-#define SCHED_CHUNK	getChunkTimestamp
+#define SCHED_CHUNK	chunkScoreChunkID
 
 #endif	/* SCHEDULING_H */
