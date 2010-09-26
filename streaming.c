@@ -367,7 +367,7 @@ double peerWeightReceivedfrom(struct peer **n){
   return timerisset(&p->bmap_timestamp) ? 1 : 0.1;
 }
 
-double peerWeightUniform(struct nodeID **n){
+double peerWeightUniform(struct peer **n){
   return 1;
 }
 
@@ -464,8 +464,8 @@ void send_offer()
   {
     size_t selectedpeers_len = offer_peer_count();
     int chunkids[size];
-    struct nodeID *nodeids[n];
-    struct nodeID *selectedpeers[selectedpeers_len];
+    struct peer *nodeids[n];
+    struct peer *selectedpeers[selectedpeers_len];
 
     //reduce load a little bit if there are losses on the path from this guy
     double average_lossrate = get_average_lossrate_pset(pset);
@@ -475,14 +475,14 @@ void send_offer()
     }
 
     for (i = 0;i < size; i++) chunkids[size - 1 - i] = (buff+i)->id;
+    for (i = 0; i<n; i++) nodeids[i] = (neighbours+i);
     selectPeersForChunks(SCHED_WEIGHTING, nodeids, n, chunkids, size, selectedpeers, &selectedpeers_len, SCHED_NEEDS, SCHED_PEER);
-    for (i = 0; i<n; i++) nodeids[i] = (neighbours+i)->id;
 
     for (i=0; i<selectedpeers_len ; i++){
-      int max_deliver = offer_max_deliver(selectedpeers[i]);
+      int max_deliver = offer_max_deliver(selectedpeers[i]->id);
       struct chunkID_set *my_bmap = cb_to_bmap(cb);
-      dprintf("\t sending offer(%d) to %s, cb_size: %d\n", transid, node_addr(selectedpeers[i]), nodeid_to_peer(selectedpeers[i],0)->cb_size);
-      res = offerChunks(selectedpeers[i], my_bmap, max_deliver, transid++);
+      dprintf("\t sending offer(%d) to %s, cb_size: %d\n", transid, node_addr(selectedpeers[i]->id), selectedpeers[i]->cb_size);
+      res = offerChunks(selectedpeers[i]->id, my_bmap, max_deliver, transid++);
       chunkID_set_free(my_bmap);
     }
   }
