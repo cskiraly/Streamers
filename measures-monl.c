@@ -115,7 +115,7 @@ void reg_neigh_size(int s)
 /*
  * Register chunk receive event
 */
-void reg_chunk_receive(int id, uint64_t timestamp, int hopcount)
+void reg_chunk_receive(int id, uint64_t timestamp, int hopcount, bool old, bool dup)
 {
 	struct timeval tnow;
 
@@ -184,6 +184,13 @@ void init_measures()
 	// Chunks
        // replaced by reg_chun_receive add_measure(&rx_chunks, COUNTER, RXONLY | DATA | IN_BAND, PEER_PUBLISH_INTERVAL, "RxChunksAll", stsum, sizeof(stsum)/sizeof(enum stat_types), NULL, MSG_TYPE_CHUNK);	//[chunks]
        // replaced by reg_chun_send add_measure(&tx_chunks, COUNTER, TXONLY | DATA | IN_BAND, PEER_PUBLISH_INTERVAL, "TxChunksAll", stsum, sizeof(stsum)/sizeof(enum stat_types), NULL, MSG_TYPE_CHUNK);	//[chunks]
+}
+
+/*
+ * End peer level measurements
+*/
+void end_measures()
+{
 }
 
 /*

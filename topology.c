@@ -23,7 +23,7 @@
 #include "dbg.h"
 #include "measures.h"
 
-#define NEIGHBORHOOD_TARGET_SIZE 20
+int NEIGHBORHOOD_TARGET_SIZE = 20;
 #define TMAN_MAX_IDLE 10
 #define TMAN_LOG_EVERY 1000
 
@@ -192,16 +192,18 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     }
   }
 
-  gettimeofday(&tnow, NULL);
-  timersub(&tnow, &tout_bmap, &told);
-  peers = peerset_get_peers(pset);
-  for (i = 0; i < peerset_size(pset); i++) {
-    if ( (!timerisset(&peers[i].bmap_timestamp) && timercmp(&peers[i].creation_timestamp, &told, <) ) ||
-         ( timerisset(&peers[i].bmap_timestamp) && timercmp(&peers[i].bmap_timestamp, &told, <)     )   ) {
-      //if (peerset_size(pset) > 1) {	// avoid dropping our last link to the world
-		topoAddToBL(peers[i].id);
+  if timerisset(&tout_bmap) {
+    gettimeofday(&tnow, NULL);
+    timersub(&tnow, &tout_bmap, &told);
+    peers = peerset_get_peers(pset);
+    for (i = 0; i < peerset_size(pset); i++) {
+      if ( (!timerisset(&peers[i].bmap_timestamp) && timercmp(&peers[i].creation_timestamp, &told, <) ) ||
+           ( timerisset(&peers[i].bmap_timestamp) && timercmp(&peers[i].bmap_timestamp, &told, <)     )   ) {
+        //if (peerset_size(pset) > 1) {	// avoid dropping our last link to the world
+        topoAddToBL(peers[i].id);
         remove_peer(peers[i--].id);
-      //}
+        //}
+      }
     }
   }
 
