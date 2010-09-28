@@ -128,7 +128,7 @@ void reg_neigh_size(int s)
 /*
  * Register chunk receive event
 */
-void reg_chunk_receive(int id, uint64_t timestamp, int hopcount)
+void reg_chunk_receive(int id, uint64_t timestamp, int hopcount, bool old, bool dup)
 {
   struct timeval tnow;
 

@@ -259,12 +259,12 @@ void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
   res = decodeChunk(&c, buff + 1, len - 1);
   if (res > 0) {
     chunk_attributes_update_received(&c);
-    reg_chunk_receive(c.id, c.timestamp, chunk_get_hopcount(&c));
     chunk_unlock(c.id);
     dprintf("Received chunk %d from peer: %s\n", c.id, node_addr(from));
     if(chunk_log){fprintf(stderr, "TEO: Received chunk %d from peer: %s at: %lld hopcount: %i\n", c.id, node_addr(from), gettimeofday_in_us(), chunk_get_hopcount(&c));}
     output_deliver(&c);
     res = cb_add_chunk(cb, &c);
+    reg_chunk_receive(c.id, c.timestamp, chunk_get_hopcount(&c), res==E_CB_OLD, res==E_CB_DUPLICATE);
     cb_print();
     if (res < 0) {
       dprintf("\tchunk too old, buffer full with newer chunks\n");
