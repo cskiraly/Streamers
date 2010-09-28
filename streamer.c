@@ -19,6 +19,7 @@
 #include "output.h"
 #include "channel.h"
 #include "topology.h"
+#include "measures.h"
 
 const char *peername = NULL;
 
@@ -201,6 +202,7 @@ static struct nodeID *init(void)
 }
 
 void leave(int sig) {
+  end_measures();
   exit(sig);
 }
 

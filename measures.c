@@ -158,6 +158,14 @@ void init_measures()
 }
 
 /*
+ * End peer level measurements
+*/
+void end_measures()
+{
+  print_measures();
+}
+
+/*
  * Initialize p2p measurements towards a peer
 */
 void add_measures(struct nodeID *id)
