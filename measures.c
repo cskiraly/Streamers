@@ -17,7 +17,7 @@
 #include "measures.h"
 
 static struct timeval print_tdiff = {3600, 0};
-static struct timeval print_tstartdiff = {20, 0};
+static struct timeval print_tstartdiff = {60, 0};
 static struct timeval print_tstart;
 
 static int duplicates = 0;
