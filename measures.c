@@ -25,7 +25,7 @@ static int chunks = 0;
 static int played = 0;
 static uint64_t sum_reorder_delay = 0;
 
-static int chunks_received = 0;
+static int chunks_received_dup = 0, chunks_received_nodup = 0, chunks_received_old = 0;
 static int sum_hopcount = 0;
 static uint64_t sum_receive_delay = 0;
 
@@ -49,17 +49,21 @@ void print_measures()
 {
   struct timeval tnow;
 
-  if (chunks) print_measure("ChunksPlayed", (double)chunks);
-  if (chunks) print_measure("DuplicateRatio", (double)duplicates / chunks);
   if (chunks) print_measure("PlayoutRatio", (double)played / chunks);
-  if (chunks) print_measure("ReorderDelay", (double)sum_reorder_delay / 1e6 / chunks);
+  if (chunks) print_measure("ReorderDelay(ok&lost)", (double)sum_reorder_delay / 1e6 / chunks);
   print_measure("NeighSize", (double)neighsize);
-  if (chunks_received) print_measure("OverlayDistance", (double)sum_hopcount / chunks_received);
-  if (chunks_received) print_measure("ReceiveDelay", (double)sum_receive_delay / 1e6 / chunks_received);
+  if (chunks_received_nodup) print_measure("OverlayDistance(intime&nodup)", (double)sum_hopcount / chunks_received_nodup);
+  if (chunks_received_nodup) print_measure("ReceiveDelay(intime&nodup)", (double)sum_receive_delay / 1e6 / chunks_received_nodup);
 
   gettimeofday(&tnow, NULL);
-  if (timerisset(&print_tstart)) print_measure("ChunkReceiveRate", (double) chunks_received / tdiff_sec(&tnow, &print_tstart));
+  if (timerisset(&print_tstart)) print_measure("ChunkRate", (double) chunks / tdiff_sec(&tnow, &print_tstart));
+  if (timerisset(&print_tstart)) print_measure("ChunkReceiveRate(all)", (double) (chunks_received_old + chunks_received_nodup + chunks_received_dup)  / tdiff_sec(&tnow, &print_tstart));
+  if (timerisset(&print_tstart)) print_measure("ChunkReceiveRate(old)", (double) chunks_received_old / tdiff_sec(&tnow, &print_tstart));
+  if (timerisset(&print_tstart)) print_measure("ChunkReceiveRate(intime&nodup)", (double) chunks_received_nodup / tdiff_sec(&tnow, &print_tstart));
+  if (timerisset(&print_tstart)) print_measure("ChunkReceiveRate(intime&dup)", (double) chunks_received_dup / tdiff_sec(&tnow, &print_tstart));
   if (timerisset(&print_tstart)) print_measure("ChunkSendRate", (double) chunks_sent / tdiff_sec(&tnow, &print_tstart));
+
+  if (chunks_received_old + chunks_received_nodup + chunks_received_dup) print_measure("ReceiveRatio(intime&nodup-vs-all)", (double)chunks_received_nodup / (chunks_received_old + chunks_received_nodup + chunks_received_dup));
 }
 
 bool print_every()
@@ -134,10 +138,18 @@ void reg_chunk_receive(int id, uint64_t timestamp, int hopcount, bool old, bool 
 
   if (!print_every()) return;
 
-  chunks_received++;
-  sum_hopcount += hopcount;
-  gettimeofday(&tnow, NULL);
-  sum_receive_delay += (tnow.tv_usec + tnow.tv_sec * 1000000ULL) - timestamp;
+  if (old) {
+    chunks_received_old++;
+  } else {
+    if (dup) { //duplicate detection works only for in-time arrival
+      chunks_received_dup++;
+    } else {
+      chunks_received_nodup++;
+      sum_hopcount += hopcount;
+      gettimeofday(&tnow, NULL);
+      sum_receive_delay += (tnow.tv_usec + tnow.tv_sec * 1000000ULL) - timestamp;
+    }
+  }
 }
 
 /*
