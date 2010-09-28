@@ -43,6 +43,8 @@ static const char *net_helper_config = "";
 unsigned char msgTypes[] = {MSG_TYPE_CHUNK,MSG_TYPE_SIGNALLING};
 bool chunk_log = false;
 
+extern int NEIGHBORHOOD_TARGET_SIZE;
+
 static void print_usage()
 {
   fprintf (stderr,
@@ -61,6 +63,7 @@ static void print_usage()
     "\t[-o size]: set the Output Buffer size.\n"
     "\t[-c chunks]: set the number of chunks a peer can send per seconds.\n"
     "\t             it controls the upload capacity of peer as well.\n"
+    "\t[-M peers]: neighbourhood target size.\n"
     "\t[-t time]: chunk emission period. STILL NEEDED??\n"
     "\t[-P port]: local UDP port to be used by the peer.\n"
     "\t[-I IP]: local IP address to be used by the peer.\n"
@@ -106,7 +109,7 @@ static void cmdline_parse(int argc, char *argv[])
 	{0, 0, 0, 0}
   };
 
-    while ((o = getopt_long (argc, argv, "b:o:c:t:p:i:P:I:f:F:m:lC:N:n:",long_options, &option_index)) != -1) { //use this function to manage long options
+    while ((o = getopt_long (argc, argv, "b:o:c:t:p:i:P:I:f:F:m:lC:N:n:M:",long_options, &option_index)) != -1) { //use this function to manage long options
     switch(o) {
       case 0: //for long options
         if( strcmp( "chunk_log", long_options[option_index].name ) == 0 ) { chunk_log = true; }
@@ -154,6 +157,9 @@ static void cmdline_parse(int argc, char *argv[])
         break;
       case 'N':
         peername = strdup(optarg);
+        break;
+      case 'M':
+        NEIGHBORHOOD_TARGET_SIZE = atoi(optarg);
         break;
       default:
         fprintf(stderr, "Error: unknown option %c\n", o);
