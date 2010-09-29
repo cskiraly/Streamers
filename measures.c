@@ -15,6 +15,7 @@
 #include <sys/time.h>
 
 #include "measures.h"
+#include "grapes_msg_types.h"
 
 static struct timeval print_tdiff = {1, 0};
 static struct timeval print_tstartdiff = {20, 0};
@@ -32,6 +33,12 @@ static uint64_t sum_receive_delay = 0;
 static int chunks_sent = 0;
 
 static int neighsize = 0;
+
+static uint64_t bytes_sent, bytes_sent_chunk, bytes_sent_sign, bytes_sent_topo;
+static int msgs_sent, msgs_sent_chunk, msgs_sent_sign, msgs_sent_topo;
+
+static uint64_t bytes_recvd, bytes_recvd_chunk, bytes_recvd_sign, bytes_recvd_topo;
+static int msgs_recvd, msgs_recvd_chunk, msgs_recvd_sign, msgs_recvd_topo;
 
 double tdiff_sec(const struct timeval *a, const struct timeval *b)
 {
@@ -62,6 +69,32 @@ void print_measures()
   if (timerisset(&print_tstart)) print_measure("ChunkReceiveRate(intime&nodup)", (double) chunks_received_nodup / tdiff_sec(&tnow, &print_tstart));
   if (timerisset(&print_tstart)) print_measure("ChunkReceiveRate(intime&dup)", (double) chunks_received_dup / tdiff_sec(&tnow, &print_tstart));
   if (timerisset(&print_tstart)) print_measure("ChunkSendRate", (double) chunks_sent / tdiff_sec(&tnow, &print_tstart));
+
+  if (timerisset(&print_tstart)) {
+    print_measure("SendRateMsgs(all)", (double) msgs_sent / tdiff_sec(&tnow, &print_tstart));
+    print_measure("SendRateMsgs(chunk)", (double) msgs_sent_chunk / tdiff_sec(&tnow, &print_tstart));
+    print_measure("SendRateMsgs(sign)", (double) msgs_sent_sign / tdiff_sec(&tnow, &print_tstart));
+    print_measure("SendRateMsgs(topo)", (double) msgs_sent_topo / tdiff_sec(&tnow, &print_tstart));
+    print_measure("SendRateMsgs(other)", (double) (msgs_sent - msgs_sent_chunk - msgs_sent_sign - msgs_sent_topo) / tdiff_sec(&tnow, &print_tstart));
+
+    print_measure("SendRateBytes(all)", (double) bytes_sent / tdiff_sec(&tnow, &print_tstart));
+    print_measure("SendRateBytes(chunk)", (double) bytes_sent_chunk / tdiff_sec(&tnow, &print_tstart));
+    print_measure("SendRateBytes(sign)", (double) bytes_sent_sign / tdiff_sec(&tnow, &print_tstart));
+    print_measure("SendRateBytes(topo)", (double) bytes_sent_topo / tdiff_sec(&tnow, &print_tstart));
+    print_measure("SendRateBytes(other)", (double) (bytes_sent - bytes_sent_chunk - bytes_sent_sign - bytes_sent_topo) / tdiff_sec(&tnow, &print_tstart));
+
+    print_measure("RecvRateMsgs(all)", (double) msgs_recvd / tdiff_sec(&tnow, &print_tstart));
+    print_measure("RecvRateMsgs(chunk)", (double) msgs_recvd_chunk / tdiff_sec(&tnow, &print_tstart));
+    print_measure("RecvRateMsgs(sign)", (double) msgs_recvd_sign / tdiff_sec(&tnow, &print_tstart));
+    print_measure("RecvRateMsgs(topo)", (double) msgs_recvd_topo / tdiff_sec(&tnow, &print_tstart));
+    print_measure("RecvRateMsgs(other)", (double) (msgs_recvd - msgs_recvd_chunk - msgs_recvd_sign - msgs_recvd_topo) / tdiff_sec(&tnow, &print_tstart));
+
+    print_measure("RecvRateBytes(all)", (double) bytes_recvd / tdiff_sec(&tnow, &print_tstart));
+    print_measure("RecvRateBytes(chunk)", (double) bytes_recvd_chunk / tdiff_sec(&tnow, &print_tstart));
+    print_measure("RecvRateBytes(sign)", (double) bytes_recvd_sign / tdiff_sec(&tnow, &print_tstart));
+    print_measure("RecvRateBytes(topo)", (double) bytes_recvd_topo / tdiff_sec(&tnow, &print_tstart));
+    print_measure("RecvRateBytes(other)", (double) (bytes_recvd - bytes_recvd_chunk - bytes_recvd_sign - bytes_recvd_topo) / tdiff_sec(&tnow, &print_tstart));
+  }
 
   if (chunks_received_old + chunks_received_nodup + chunks_received_dup) print_measure("ReceiveRatio(intime&nodup-vs-all)", (double)chunks_received_nodup / (chunks_received_old + chunks_received_nodup + chunks_received_dup));
 }
@@ -172,6 +205,64 @@ void reg_offer_accept(bool b)
 
   offers++;
   if (b) accepts++;
+}
+
+/*
+ * messages sent (bytes vounted at message content level)
+*/
+void reg_message_send(int size, uint8_t type)
+{
+  if (!print_every()) return;
+
+  bytes_sent += size;
+  msgs_sent++;
+
+  switch (type) {
+   case MSG_TYPE_CHUNK:
+     bytes_sent_chunk+= size;
+     msgs_sent_chunk++;
+     break;
+   case MSG_TYPE_SIGNALLING:
+     bytes_sent_sign+= size;
+     msgs_sent_sign++;
+     break;
+   case MSG_TYPE_TOPOLOGY:
+   case MSG_TYPE_TMAN:
+     bytes_sent_topo+= size;
+     msgs_sent_topo++;
+     break;
+   default:
+     break;
+  }
+}
+
+/*
+ * messages sent (bytes vounted at message content level)
+*/
+void reg_message_recv(int size, uint8_t type)
+{
+  if (!print_every()) return;
+
+  bytes_recvd += size;
+  msgs_recvd++;
+
+  switch (type) {
+   case MSG_TYPE_CHUNK:
+     bytes_recvd_chunk+= size;
+     msgs_recvd_chunk++;
+     break;
+   case MSG_TYPE_SIGNALLING:
+     bytes_recvd_sign+= size;
+     msgs_recvd_sign++;
+     break;
+   case MSG_TYPE_TOPOLOGY:
+   case MSG_TYPE_TMAN:
+     bytes_recvd_topo+= size;
+     msgs_recvd_topo++;
+     break;
+   default:
+     break;
+  }
 }
 
 /*
