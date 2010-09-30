@@ -177,7 +177,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 //    }
 //  }
 
-  if (cnt++ % 100 == 0) {
+  if (cnt++ % 10000 == 0) {
 	update_metadata();
 	tmanChangeMetadata(&my_metadata,sizeof(my_metadata));
   }
