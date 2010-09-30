@@ -183,6 +183,9 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
   }
 
   topoParseData(buff, len);
+
+  if (!buff) return;
+
   ids = topoGetNeighbourhood(&n_ids);
   for(i = 0; i < n_ids; i++) {
     if(peerset_check(pset, ids[i]) < 0) {
