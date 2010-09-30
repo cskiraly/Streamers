@@ -24,6 +24,7 @@
 #include "measures.h"
 
 int NEIGHBORHOOD_TARGET_SIZE = 20;
+double NEIGHBORHOOD_ROTATE_RATIO = 1.0;
 #define TMAN_MAX_IDLE 10
 #define TMAN_LOG_EVERY 1000
 
@@ -177,17 +178,24 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 //    }
 //  }
 
-  if (cnt++ % 100 == 0) {
+  if (cnt++ % 10000 == 0) {
 	update_metadata();
 	tmanChangeMetadata(&my_metadata,sizeof(my_metadata));
   }
 
   topoParseData(buff, len);
+
+  if (!buff) return;
+
   ids = topoGetNeighbourhood(&n_ids);
   for(i = 0; i < n_ids; i++) {
     if(peerset_check(pset, ids[i]) < 0) {
       if (!NEIGHBORHOOD_TARGET_SIZE || peerset_size(pset) < NEIGHBORHOOD_TARGET_SIZE) {
         add_peer(ids[i]);
+      } else {  //rotate neighbourhood
+        if (rand()/((double)RAND_MAX + 1) < NEIGHBORHOOD_ROTATE_RATIO) {
+          add_peer(ids[i]);
+        }
       }
     }
   }
@@ -205,6 +213,11 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
         //}
       }
     }
+  }
+
+  while (NEIGHBORHOOD_TARGET_SIZE && peerset_size(pset) > NEIGHBORHOOD_TARGET_SIZE) { //reduce back neighbourhood to target size
+    peers = peerset_get_peers(pset);
+    remove_peer(peers[rand() % peerset_size(pset)].id);
   }
 
   reg_neigh_size(peerset_size(pset));
