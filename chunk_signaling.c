@@ -50,26 +50,26 @@ void bmap_received(const struct nodeID *fromid, const struct nodeID *ownerid, st
 }
 
 void offer_received(const struct nodeID *fromid, struct chunkID_set *cset, int max_deliver, int trans_id) {
+  struct chunkID_set *cset_acc;
+
   struct peer *from = nodeid_to_peer(fromid, neigh_on_sign_recv);
   dprintf("The peer %s offers %d chunks, max deliver %d.\n", node_addr(fromid), chunkID_set_size(cset), max_deliver);
 
   if (from) {
-    struct chunkID_set *cset_acc;
-
     //register these chunks in the buffermap. Warning: this should be changed when offers become selective.
     chunkID_set_clear(from->bmap,0);	//TODO: some better solution might be needed to keep info about chunks we sent in flight.
     chunkID_set_union(from->bmap,cset);
     gettimeofday(&from->bmap_timestamp, NULL);
+  }
 
     //decide what to accept
     cset_acc = get_chunks_to_accept(from, cset, max_deliver, trans_id);
 
     //send accept message
-    dprintf("\t accept %d chunks from peer %s, trans_id %d\n", chunkID_set_size(cset_acc), node_addr(from->id), trans_id);
+    dprintf("\t accept %d chunks from peer %s, trans_id %d\n", chunkID_set_size(cset_acc), node_addr(fromid), trans_id);
     acceptChunks(fromid, cset_acc, trans_id);
 
     chunkID_set_free(cset_acc);
-  }
 }
 
 void accept_received(const struct nodeID *fromid, struct chunkID_set *cset, int max_deliver, int trans_id) {

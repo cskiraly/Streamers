@@ -203,9 +203,9 @@ struct chunkID_set *get_chunks_to_accept(struct peer *from, const struct chunkID
       if (!chunk_islocked(chunkid) && _needs(my_bmap, cb_size, chunkid)) {
         chunkID_set_add_chunk(cset_acc, chunkid);
         chunk_lock(chunkid,from);
-        dtprintf("accepting %d from %s", chunkid, node_addr(from->id));
+        dtprintf("accepting %d from %s", chunkid, from ? node_addr(from->id) : NULL);
 #ifdef MONL
-        dprintf(", loss:%f rtt:%f", get_lossrate(from->id), get_rtt(from->id));
+        dprintf(", loss:%f rtt:%f", get_lossrate(from->id), from ? get_rtt(from->id) : NULL);
 #endif
         dprintf("\n");
         d++;
