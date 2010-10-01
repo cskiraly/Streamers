@@ -184,10 +184,11 @@ struct chunkID_set *cb_to_bmap(struct chunk_buffer *chbuf)
 }
 
 // a simple implementation that request everything that we miss ... up to max deliver
-struct chunkID_set *get_chunks_to_accept(struct peer *from, const struct chunkID_set *cset_off, int max_deliver, int trans_id){
+struct chunkID_set *get_chunks_to_accept(struct nodeID *fromid, const struct chunkID_set *cset_off, int max_deliver, int trans_id){
   struct chunkID_set *cset_acc, *my_bmap;
   int i, d, cset_off_size;
   //double lossrate;
+  struct peer *from = nodeid_to_peer(fromid, 0);
 
   cset_acc = chunkID_set_init("size=0");
 
@@ -203,9 +204,9 @@ struct chunkID_set *get_chunks_to_accept(struct peer *from, const struct chunkID
       if (!chunk_islocked(chunkid) && _needs(my_bmap, cb_size, chunkid)) {
         chunkID_set_add_chunk(cset_acc, chunkid);
         chunk_lock(chunkid,from);
-        dtprintf("accepting %d from %s", chunkid, node_addr(from->id));
+        dtprintf("accepting %d from %s", chunkid, node_addr(fromid));
 #ifdef MONL
-        dprintf(", loss:%f rtt:%f", get_lossrate(from->id), get_rtt(from->id));
+        dprintf(", loss:%f rtt:%f", get_lossrate(fromid), get_rtt(fromid));
 #endif
         dprintf("\n");
         d++;
@@ -213,7 +214,7 @@ struct chunkID_set *get_chunks_to_accept(struct peer *from, const struct chunkID
     }
     chunkID_set_free(my_bmap);
   //} else {
-  //    dtprintf("accepting -- from %s loss:%f rtt:%f\n", node_addr(from->id), lossrate, get_rtt(from->id));
+  //    dtprintf("accepting -- from %s loss:%f rtt:%f\n", node_addr(fromid), lossrate, get_rtt(fromid));
   //}
 
   return cset_acc;

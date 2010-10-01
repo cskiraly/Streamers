@@ -74,7 +74,7 @@ void chunk_locks_cleanup(){
 void chunk_lock(int chunkid,struct peer *from){
   locks_init();
   locks[lcount].chunkid = chunkid;
-  locks[lcount].peer = nodeid_dup(from->id);
+  locks[lcount].peer = from ? nodeid_dup(from->id) : NULL;
   gettimeofday(&locks[lcount].timestamp,NULL);
   lcount++;
 }
