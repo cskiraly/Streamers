@@ -230,7 +230,7 @@ struct peer *nodeid_to_peer(const struct nodeID* id, int reg)
 {
   struct peer *p = peerset_get_peer(pset, id);
   if (!p) {
-    fprintf(stderr,"warning: received message from unknown peer: %s!%s\n",node_addr(id), reg ? " Adding it to pset." : "");
+    //fprintf(stderr,"warning: received message from unknown peer: %s!%s\n",node_addr(id), reg ? " Adding it to pset." : "");
     if (reg) {
       topoAddNeighbour(id, NULL, 0);
       add_peer(id);
