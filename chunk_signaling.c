@@ -29,14 +29,16 @@
 #include "topology.h"
 #include "dbg.h"
 
+static bool neigh_on_sign_recv = true;
+
 void bmap_received(const struct nodeID *fromid, const struct nodeID *ownerid, struct chunkID_set *c_set, int cb_size, int trans_id) {
   struct peer *owner;
   if (nodeid_equal(fromid, ownerid)) {
-    owner = nodeid_to_peer(ownerid,1);
+    owner = nodeid_to_peer(ownerid, neigh_on_sign_recv);
   } else {
     dprintf("%s might be behind ",node_addr(ownerid));
     dprintf("NAT:%s\n",node_addr(fromid));
-    owner = nodeid_to_peer(fromid,1);
+    owner = nodeid_to_peer(fromid, neigh_on_sign_recv);
   }
   
   if (owner) {	//now we have it almost sure
@@ -48,7 +50,7 @@ void bmap_received(const struct nodeID *fromid, const struct nodeID *ownerid, st
 }
 
 void offer_received(const struct nodeID *fromid, struct chunkID_set *cset, int max_deliver, int trans_id) {
-  struct peer *from = nodeid_to_peer(fromid,1);
+  struct peer *from = nodeid_to_peer(fromid, neigh_on_sign_recv);
   dprintf("The peer %s offers %d chunks, max deliver %d.\n", node_addr(fromid), chunkID_set_size(cset), max_deliver);
 
   if (from) {

@@ -394,7 +394,7 @@ struct peer *nodeid_to_peer(const struct nodeID* id, int reg)
 {
 	struct peer *p = peerset_get_peer(pset, id);
 	if (!p) {
-		fprintf(stderr,"warning: received message from unknown peer: %s!\n",node_addr(id));
+		//fprintf(stderr,"warning: received message from unknown peer: %s!\n",node_addr(id));
 		if (reg && peerset_size(pset) < NEIGHBORHOOD_TARGET_SIZE) {
 	//      topoAddNeighbour(id, NULL, 0);	//@TODO: this is agressive
 			add_peer(id);
