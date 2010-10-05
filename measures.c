@@ -45,6 +45,9 @@ static int samples_offers_in_flight;
 static double sum_queue_delay;
 static int samples_queue_delay;
 
+static int offers;
+static int accepts;
+
 
 double tdiff_sec(const struct timeval *a, const struct timeval *b)
 {
@@ -107,6 +110,11 @@ void print_measures()
   if (samples_offers_in_flight) print_measure("OffersInFlight", (double)sum_offers_in_flight / samples_offers_in_flight);
   if (samples_queue_delay) print_measure("QueueDelay", sum_queue_delay / samples_queue_delay);
 
+  if (timerisset(&print_tstart)) {
+    print_measure("OfferRate", (double) offers / tdiff_sec(&tnow, &print_tstart));
+    print_measure("AcceptRate", (double) accepts / tdiff_sec(&tnow, &print_tstart));
+  }
+  if (offers) print_measure("OfferAcceptRatio", (double)accepts / offers);
 }
 
 bool print_every()
@@ -210,9 +218,6 @@ void reg_chunk_send(int id)
 */
 void reg_offer_accept(bool b)
 {
-  static int offers = 0;
-  static int accepts = 0;
-
   offers++;
   if (b) accepts++;
 }
