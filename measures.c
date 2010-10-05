@@ -40,6 +40,12 @@ static int msgs_sent, msgs_sent_chunk, msgs_sent_sign, msgs_sent_topo;
 static uint64_t bytes_recvd, bytes_recvd_chunk, bytes_recvd_sign, bytes_recvd_topo;
 static int msgs_recvd, msgs_recvd_chunk, msgs_recvd_sign, msgs_recvd_topo;
 
+static uint64_t sum_offers_in_flight;
+static int samples_offers_in_flight;
+static double sum_queue_delay;
+static int samples_queue_delay;
+
+
 double tdiff_sec(const struct timeval *a, const struct timeval *b)
 {
   struct timeval tdiff;
@@ -97,6 +103,10 @@ void print_measures()
   }
 
   if (chunks_received_old + chunks_received_nodup + chunks_received_dup) print_measure("ReceiveRatio(intime&nodup-vs-all)", (double)chunks_received_nodup / (chunks_received_old + chunks_received_nodup + chunks_received_dup));
+
+  if (samples_offers_in_flight) print_measure("OffersInFlight", (double)sum_offers_in_flight / samples_offers_in_flight);
+  if (samples_queue_delay) print_measure("QueueDelay", sum_queue_delay / samples_queue_delay);
+
 }
 
 bool print_every()
@@ -263,6 +273,28 @@ void reg_message_recv(int size, uint8_t type)
    default:
      break;
   }
+}
+
+/*
+ * Register the number of offers in flight
+*/
+void reg_offers_in_flight(int running_offers_threads)
+{
+  if (!print_every()) return;
+
+  sum_offers_in_flight += running_offers_threads;
+  samples_offers_in_flight++;
+}
+
+/*
+ * Register the sample for RTT
+*/
+void reg_queue_delay(double last_queue_delay)
+{
+  if (!print_every()) return;
+
+  sum_queue_delay += last_queue_delay;
+  samples_queue_delay++;
 }
 
 /*
