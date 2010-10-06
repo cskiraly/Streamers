@@ -5,6 +5,7 @@
  */
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 #include <math.h>
 #ifndef NAN	//NAN is missing in some old math.h versions
 #define NAN            (0.0/0.0)
@@ -18,36 +19,47 @@
 #include "grapes_msg_types.h"
 
 static struct timeval print_tdiff = {3600, 0};
-static struct timeval print_tstartdiff = {60, 0};
+static struct timeval tstartdiff = {60, 0};
+static struct timeval tstart;
 static struct timeval print_tstart;
+static struct timeval tnext;
 
-static int duplicates = 0;
-static int chunks = 0;
-static int played = 0;
-static uint64_t sum_reorder_delay = 0;
+struct measures {
+  int duplicates;
+  int chunks;
+  int played;
+  uint64_t sum_reorder_delay;
 
-static int chunks_received_dup = 0, chunks_received_nodup = 0, chunks_received_old = 0;
-static int sum_hopcount = 0;
-static uint64_t sum_receive_delay = 0;
+  int chunks_received_dup, chunks_received_nodup, chunks_received_old;
+  int sum_hopcount;
+  uint64_t sum_receive_delay;
 
-static int chunks_sent = 0;
+  int chunks_sent;
 
-static int neighsize = 0;
+  uint64_t sum_neighsize;
+  int samples_neighsize;
 
-static uint64_t bytes_sent, bytes_sent_chunk, bytes_sent_sign, bytes_sent_topo;
-static int msgs_sent, msgs_sent_chunk, msgs_sent_sign, msgs_sent_topo;
+  uint64_t bytes_sent, bytes_sent_chunk, bytes_sent_sign, bytes_sent_topo;
+  int msgs_sent, msgs_sent_chunk, msgs_sent_sign, msgs_sent_topo;
 
-static uint64_t bytes_recvd, bytes_recvd_chunk, bytes_recvd_sign, bytes_recvd_topo;
-static int msgs_recvd, msgs_recvd_chunk, msgs_recvd_sign, msgs_recvd_topo;
+  uint64_t bytes_recvd, bytes_recvd_chunk, bytes_recvd_sign, bytes_recvd_topo;
+  int msgs_recvd, msgs_recvd_chunk, msgs_recvd_sign, msgs_recvd_topo;
 
-static uint64_t sum_offers_in_flight;
-static int samples_offers_in_flight;
-static double sum_queue_delay;
-static int samples_queue_delay;
+  uint64_t sum_offers_in_flight;
+  int samples_offers_in_flight;
+  double sum_queue_delay;
+  int samples_queue_delay;
 
-static int offers;
-static int accepts;
+  int offers;
+  int accepts;
+};
 
+static struct measures m;
+
+void clean_measures()
+{
+  memset(&m, 0, sizeof(m));
+}
 
 double tdiff_sec(const struct timeval *a, const struct timeval *b)
 {
@@ -58,77 +70,77 @@ double tdiff_sec(const struct timeval *a, const struct timeval *b)
 
 void print_measure(const char *name, double value)
 {
-  fprintf(stderr,"abouttopublish,,,,%s,%f,,,\n", name, value);
+  fprintf(stderr,"abouttopublish,,,,%s,%f,,,%f\n", name, value, tdiff_sec(&tnext, &tstart));
 }
 
 void print_measures()
 {
   struct timeval tnow;
 
-  if (chunks) print_measure("PlayoutRatio", (double)played / chunks);
-  if (chunks) print_measure("ReorderDelay(ok&lost)", (double)sum_reorder_delay / 1e6 / chunks);
-  print_measure("NeighSize", (double)neighsize);
-  if (chunks_received_nodup) print_measure("OverlayDistance(intime&nodup)", (double)sum_hopcount / chunks_received_nodup);
-  if (chunks_received_nodup) print_measure("ReceiveDelay(intime&nodup)", (double)sum_receive_delay / 1e6 / chunks_received_nodup);
+  if (m.chunks) print_measure("PlayoutRatio", (double)m.played / m.chunks);
+  if (m.chunks) print_measure("ReorderDelay(ok&lost)", (double)m.sum_reorder_delay / 1e6 / m.chunks);
+  if (m.samples_neighsize) print_measure("NeighSize", (double)m.sum_neighsize / m.samples_neighsize);
+  if (m.chunks_received_nodup) print_measure("OverlayDistance(intime&nodup)", (double)m.sum_hopcount / m.chunks_received_nodup);
+  if (m.chunks_received_nodup) print_measure("ReceiveDelay(intime&nodup)", (double)m.sum_receive_delay / 1e6 / m.chunks_received_nodup);
 
   gettimeofday(&tnow, NULL);
-  if (timerisset(&print_tstart)) print_measure("ChunkRate", (double) chunks / tdiff_sec(&tnow, &print_tstart));
-  if (timerisset(&print_tstart)) print_measure("ChunkReceiveRate(all)", (double) (chunks_received_old + chunks_received_nodup + chunks_received_dup)  / tdiff_sec(&tnow, &print_tstart));
-  if (timerisset(&print_tstart)) print_measure("ChunkReceiveRate(old)", (double) chunks_received_old / tdiff_sec(&tnow, &print_tstart));
-  if (timerisset(&print_tstart)) print_measure("ChunkReceiveRate(intime&nodup)", (double) chunks_received_nodup / tdiff_sec(&tnow, &print_tstart));
-  if (timerisset(&print_tstart)) print_measure("ChunkReceiveRate(intime&dup)", (double) chunks_received_dup / tdiff_sec(&tnow, &print_tstart));
-  if (timerisset(&print_tstart)) print_measure("ChunkSendRate", (double) chunks_sent / tdiff_sec(&tnow, &print_tstart));
+  if (timerisset(&print_tstart)) print_measure("ChunkRate", (double) m.chunks / tdiff_sec(&tnow, &print_tstart));
+  if (timerisset(&print_tstart)) print_measure("ChunkReceiveRate(all)", (double) (m.chunks_received_old + m.chunks_received_nodup + m.chunks_received_dup)  / tdiff_sec(&tnow, &print_tstart));
+  if (timerisset(&print_tstart)) print_measure("ChunkReceiveRate(old)", (double) m.chunks_received_old / tdiff_sec(&tnow, &print_tstart));
+  if (timerisset(&print_tstart)) print_measure("ChunkReceiveRate(intime&nodup)", (double) m.chunks_received_nodup / tdiff_sec(&tnow, &print_tstart));
+  if (timerisset(&print_tstart)) print_measure("ChunkReceiveRate(intime&dup)", (double) m.chunks_received_dup / tdiff_sec(&tnow, &print_tstart));
+  if (timerisset(&print_tstart)) print_measure("ChunkSendRate", (double) m.chunks_sent / tdiff_sec(&tnow, &print_tstart));
 
   if (timerisset(&print_tstart)) {
-    print_measure("SendRateMsgs(all)", (double) msgs_sent / tdiff_sec(&tnow, &print_tstart));
-    print_measure("SendRateMsgs(chunk)", (double) msgs_sent_chunk / tdiff_sec(&tnow, &print_tstart));
-    print_measure("SendRateMsgs(sign)", (double) msgs_sent_sign / tdiff_sec(&tnow, &print_tstart));
-    print_measure("SendRateMsgs(topo)", (double) msgs_sent_topo / tdiff_sec(&tnow, &print_tstart));
-    print_measure("SendRateMsgs(other)", (double) (msgs_sent - msgs_sent_chunk - msgs_sent_sign - msgs_sent_topo) / tdiff_sec(&tnow, &print_tstart));
+    print_measure("SendRateMsgs(all)", (double) m.msgs_sent / tdiff_sec(&tnow, &print_tstart));
+    print_measure("SendRateMsgs(chunk)", (double) m.msgs_sent_chunk / tdiff_sec(&tnow, &print_tstart));
+    print_measure("SendRateMsgs(sign)", (double) m.msgs_sent_sign / tdiff_sec(&tnow, &print_tstart));
+    print_measure("SendRateMsgs(topo)", (double) m.msgs_sent_topo / tdiff_sec(&tnow, &print_tstart));
+    print_measure("SendRateMsgs(other)", (double) (m.msgs_sent - m.msgs_sent_chunk - m.msgs_sent_sign - m.msgs_sent_topo) / tdiff_sec(&tnow, &print_tstart));
 
-    print_measure("SendRateBytes(all)", (double) bytes_sent / tdiff_sec(&tnow, &print_tstart));
-    print_measure("SendRateBytes(chunk)", (double) bytes_sent_chunk / tdiff_sec(&tnow, &print_tstart));
-    print_measure("SendRateBytes(sign)", (double) bytes_sent_sign / tdiff_sec(&tnow, &print_tstart));
-    print_measure("SendRateBytes(topo)", (double) bytes_sent_topo / tdiff_sec(&tnow, &print_tstart));
-    print_measure("SendRateBytes(other)", (double) (bytes_sent - bytes_sent_chunk - bytes_sent_sign - bytes_sent_topo) / tdiff_sec(&tnow, &print_tstart));
+    print_measure("SendRateBytes(all)", (double) m.bytes_sent / tdiff_sec(&tnow, &print_tstart));
+    print_measure("SendRateBytes(chunk)", (double) m.bytes_sent_chunk / tdiff_sec(&tnow, &print_tstart));
+    print_measure("SendRateBytes(sign)", (double) m.bytes_sent_sign / tdiff_sec(&tnow, &print_tstart));
+    print_measure("SendRateBytes(topo)", (double) m.bytes_sent_topo / tdiff_sec(&tnow, &print_tstart));
+    print_measure("SendRateBytes(other)", (double) (m.bytes_sent - m.bytes_sent_chunk - m.bytes_sent_sign - m.bytes_sent_topo) / tdiff_sec(&tnow, &print_tstart));
 
-    print_measure("RecvRateMsgs(all)", (double) msgs_recvd / tdiff_sec(&tnow, &print_tstart));
-    print_measure("RecvRateMsgs(chunk)", (double) msgs_recvd_chunk / tdiff_sec(&tnow, &print_tstart));
-    print_measure("RecvRateMsgs(sign)", (double) msgs_recvd_sign / tdiff_sec(&tnow, &print_tstart));
-    print_measure("RecvRateMsgs(topo)", (double) msgs_recvd_topo / tdiff_sec(&tnow, &print_tstart));
-    print_measure("RecvRateMsgs(other)", (double) (msgs_recvd - msgs_recvd_chunk - msgs_recvd_sign - msgs_recvd_topo) / tdiff_sec(&tnow, &print_tstart));
+    print_measure("RecvRateMsgs(all)", (double) m.msgs_recvd / tdiff_sec(&tnow, &print_tstart));
+    print_measure("RecvRateMsgs(chunk)", (double) m.msgs_recvd_chunk / tdiff_sec(&tnow, &print_tstart));
+    print_measure("RecvRateMsgs(sign)", (double) m.msgs_recvd_sign / tdiff_sec(&tnow, &print_tstart));
+    print_measure("RecvRateMsgs(topo)", (double) m.msgs_recvd_topo / tdiff_sec(&tnow, &print_tstart));
+    print_measure("RecvRateMsgs(other)", (double) (m.msgs_recvd - m.msgs_recvd_chunk - m.msgs_recvd_sign - m.msgs_recvd_topo) / tdiff_sec(&tnow, &print_tstart));
 
-    print_measure("RecvRateBytes(all)", (double) bytes_recvd / tdiff_sec(&tnow, &print_tstart));
-    print_measure("RecvRateBytes(chunk)", (double) bytes_recvd_chunk / tdiff_sec(&tnow, &print_tstart));
-    print_measure("RecvRateBytes(sign)", (double) bytes_recvd_sign / tdiff_sec(&tnow, &print_tstart));
-    print_measure("RecvRateBytes(topo)", (double) bytes_recvd_topo / tdiff_sec(&tnow, &print_tstart));
-    print_measure("RecvRateBytes(other)", (double) (bytes_recvd - bytes_recvd_chunk - bytes_recvd_sign - bytes_recvd_topo) / tdiff_sec(&tnow, &print_tstart));
+    print_measure("RecvRateBytes(all)", (double) m.bytes_recvd / tdiff_sec(&tnow, &print_tstart));
+    print_measure("RecvRateBytes(chunk)", (double) m.bytes_recvd_chunk / tdiff_sec(&tnow, &print_tstart));
+    print_measure("RecvRateBytes(sign)", (double) m.bytes_recvd_sign / tdiff_sec(&tnow, &print_tstart));
+    print_measure("RecvRateBytes(topo)", (double) m.bytes_recvd_topo / tdiff_sec(&tnow, &print_tstart));
+    print_measure("RecvRateBytes(other)", (double) (m.bytes_recvd - m.bytes_recvd_chunk - m.bytes_recvd_sign - m.bytes_recvd_topo) / tdiff_sec(&tnow, &print_tstart));
   }
 
-  if (chunks_received_old + chunks_received_nodup + chunks_received_dup) print_measure("ReceiveRatio(intime&nodup-vs-all)", (double)chunks_received_nodup / (chunks_received_old + chunks_received_nodup + chunks_received_dup));
+  if (m.chunks_received_old + m.chunks_received_nodup + m.chunks_received_dup) print_measure("ReceiveRatio(intime&nodup-vs-all)", (double)m.chunks_received_nodup / (m.chunks_received_old + m.chunks_received_nodup + m.chunks_received_dup));
 
-  if (samples_offers_in_flight) print_measure("OffersInFlight", (double)sum_offers_in_flight / samples_offers_in_flight);
-  if (samples_queue_delay) print_measure("QueueDelay", sum_queue_delay / samples_queue_delay);
+  if (m.samples_offers_in_flight) print_measure("OffersInFlight", (double)m.sum_offers_in_flight / m.samples_offers_in_flight);
+  if (m.samples_queue_delay) print_measure("QueueDelay", m.sum_queue_delay / m.samples_queue_delay);
 
   if (timerisset(&print_tstart)) {
-    print_measure("OfferRate", (double) offers / tdiff_sec(&tnow, &print_tstart));
-    print_measure("AcceptRate", (double) accepts / tdiff_sec(&tnow, &print_tstart));
+    print_measure("OfferRate", (double) m.offers / tdiff_sec(&tnow, &print_tstart));
+    print_measure("AcceptRate", (double) m.accepts / tdiff_sec(&tnow, &print_tstart));
   }
-  if (offers) print_measure("OfferAcceptRatio", (double)accepts / offers);
+  if (m.offers) print_measure("OfferAcceptRatio", (double)m.accepts / m.offers);
 }
 
 bool print_every()
 {
-  static struct timeval tnext;
   static bool startup = true;
   struct timeval tnow;
 
   gettimeofday(&tnow, NULL);
   if (startup) {
-    if (!timerisset(&print_tstart)) {
-      timeradd(&tnow, &print_tstartdiff, &print_tstart);
+    if (!timerisset(&tstart)) {
+      timeradd(&tnow, &tstartdiff, &tstart);
+      print_tstart = tstart;
     }
-    if (timercmp(&tnow, &print_tstart, <)) {
+    if (timercmp(&tnow, &tstart, <)) {
       return false;
     } else {
       startup = false;
@@ -136,10 +148,12 @@ bool print_every()
   }
 
   if (!timerisset(&tnext)) {
-    timeradd(&print_tstart, &print_tdiff, &tnext);
+    timeradd(&tstart, &print_tdiff, &tnext);
   }
   if (!timercmp(&tnow, &tnext, <)) {
     print_measures();
+    clean_measures();
+    print_tstart = tnext;
     timeradd(&tnext, &print_tdiff, &tnext);
   }
   return true;
@@ -152,7 +166,7 @@ void reg_chunk_duplicate()
 {
   if (!print_every()) return;
 
-  duplicates++;
+  m.duplicates++;
 }
 
 /*
@@ -164,10 +178,10 @@ void reg_chunk_playout(int id, bool b, uint64_t timestamp)
 
   if (!print_every()) return;
 
-  played += b ? 1 : 0;
-  chunks++;
+  m.played += b ? 1 : 0;
+  m.chunks++;
   gettimeofday(&tnow, NULL);
-  sum_reorder_delay += (tnow.tv_usec + tnow.tv_sec * 1000000ULL) - timestamp;
+  m.sum_reorder_delay += (tnow.tv_usec + tnow.tv_sec * 1000000ULL) - timestamp;
 }
 
 /*
@@ -177,7 +191,8 @@ void reg_neigh_size(int s)
 {
   if (!print_every()) return;
 
-  neighsize = s;
+  m.sum_neighsize += s;
+  m.samples_neighsize++;
 }
 
 /*
@@ -190,15 +205,15 @@ void reg_chunk_receive(int id, uint64_t timestamp, int hopcount, bool old, bool 
   if (!print_every()) return;
 
   if (old) {
-    chunks_received_old++;
+    m.chunks_received_old++;
   } else {
     if (dup) { //duplicate detection works only for in-time arrival
-      chunks_received_dup++;
+      m.chunks_received_dup++;
     } else {
-      chunks_received_nodup++;
-      sum_hopcount += hopcount;
+      m.chunks_received_nodup++;
+      m.sum_hopcount += hopcount;
       gettimeofday(&tnow, NULL);
-      sum_receive_delay += (tnow.tv_usec + tnow.tv_sec * 1000000ULL) - timestamp;
+      m.sum_receive_delay += (tnow.tv_usec + tnow.tv_sec * 1000000ULL) - timestamp;
     }
   }
 }
@@ -210,7 +225,7 @@ void reg_chunk_send(int id)
 {
   if (!print_every()) return;
 
-  chunks_sent++;
+  m.chunks_sent++;
 }
 
 /*
@@ -218,8 +233,8 @@ void reg_chunk_send(int id)
 */
 void reg_offer_accept(bool b)
 {
-  offers++;
-  if (b) accepts++;
+  m.offers++;
+  if (b) m.accepts++;
 }
 
 /*
@@ -229,22 +244,22 @@ void reg_message_send(int size, uint8_t type)
 {
   if (!print_every()) return;
 
-  bytes_sent += size;
-  msgs_sent++;
+  m.bytes_sent += size;
+  m.msgs_sent++;
 
   switch (type) {
    case MSG_TYPE_CHUNK:
-     bytes_sent_chunk+= size;
-     msgs_sent_chunk++;
+     m.bytes_sent_chunk+= size;
+     m.msgs_sent_chunk++;
      break;
    case MSG_TYPE_SIGNALLING:
-     bytes_sent_sign+= size;
-     msgs_sent_sign++;
+     m.bytes_sent_sign+= size;
+     m.msgs_sent_sign++;
      break;
    case MSG_TYPE_TOPOLOGY:
    case MSG_TYPE_TMAN:
-     bytes_sent_topo+= size;
-     msgs_sent_topo++;
+     m.bytes_sent_topo+= size;
+     m.msgs_sent_topo++;
      break;
    default:
      break;
@@ -258,22 +273,22 @@ void reg_message_recv(int size, uint8_t type)
 {
   if (!print_every()) return;
 
-  bytes_recvd += size;
-  msgs_recvd++;
+  m.bytes_recvd += size;
+  m.msgs_recvd++;
 
   switch (type) {
    case MSG_TYPE_CHUNK:
-     bytes_recvd_chunk+= size;
-     msgs_recvd_chunk++;
+     m.bytes_recvd_chunk+= size;
+     m.msgs_recvd_chunk++;
      break;
    case MSG_TYPE_SIGNALLING:
-     bytes_recvd_sign+= size;
-     msgs_recvd_sign++;
+     m.bytes_recvd_sign+= size;
+     m.msgs_recvd_sign++;
      break;
    case MSG_TYPE_TOPOLOGY:
    case MSG_TYPE_TMAN:
-     bytes_recvd_topo+= size;
-     msgs_recvd_topo++;
+     m.bytes_recvd_topo+= size;
+     m.msgs_recvd_topo++;
      break;
    default:
      break;
@@ -287,8 +302,8 @@ void reg_offers_in_flight(int running_offers_threads)
 {
   if (!print_every()) return;
 
-  sum_offers_in_flight += running_offers_threads;
-  samples_offers_in_flight++;
+  m.sum_offers_in_flight += running_offers_threads;
+  m.samples_offers_in_flight++;
 }
 
 /*
@@ -298,8 +313,8 @@ void reg_queue_delay(double last_queue_delay)
 {
   if (!print_every()) return;
 
-  sum_queue_delay += last_queue_delay;
-  samples_queue_delay++;
+  m.sum_queue_delay += last_queue_delay;
+  m.samples_queue_delay++;
 }
 
 /*
