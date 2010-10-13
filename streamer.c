@@ -61,7 +61,6 @@ static void print_usage(int argc, char *argv[])
     "\t[-o size]: set the Output Buffer size.\n"
     "\t[-c chunks]: set the number of chunks a peer can send per seconds.\n"
     "\t             it controls the upload capacity of peer as well.\n"
-    "\t[-t time]: chunk emission period. STILL NEEDED??\n"
     "\t[-P port]: local UDP port to be used by the peer.\n"
     "\t[-I IP]: local IP address to be used by the peer.\n"
     "\t         Useful if the host has several interfaces/addresses.\n"
@@ -105,7 +104,7 @@ static void cmdline_parse(int argc, char *argv[])
 	{0, 0, 0, 0}
   };
 
-    while ((o = getopt_long (argc, argv, "b:o:c:t:p:i:P:I:f:F:m:lC:N:n:",long_options, &option_index)) != -1) { //use this function to manage long options
+    while ((o = getopt_long (argc, argv, "b:o:c:p:i:P:I:f:F:m:lC:N:n:",long_options, &option_index)) != -1) { //use this function to manage long options
     switch(o) {
       case 0: //for long options
         if( strcmp( "chunk_log", long_options[option_index].name ) == 0 ) { chunk_log = true; }
@@ -121,9 +120,6 @@ static void cmdline_parse(int argc, char *argv[])
         break;
       case 'm':
         multiply = atoi(optarg);
-        break;
-      case 't':
-        period = atoi(optarg);
         break;
       case 'p':
         srv_port = atoi(optarg);
