@@ -97,7 +97,7 @@ int sigParseData(const struct nodeID *fromid, uint8_t *buff, int buff_len) {
     enum signaling_type sig_type;
     int max_deliver = 0, trans_id = 0;
     int ret = 1;
-    dprintf("Decoding signaling message...");
+    dprintf("Decoding signaling message...\n");
 
     ret = parseSignaling(buff + 1, buff_len-1, &ownerid, &c_set, &max_deliver, &trans_id, &sig_type);
     if (ret < 0) {
