@@ -30,13 +30,13 @@ static int period = 40;
 static int chunks_per_second = 25;
 #ifdef HTTPIO
 //input-http.c needs this in order to accomplish the -m multiple send_chunk()
-int multiply = 1;
+int multiply = 3;
 #else
-static int multiply = 1;
+static int multiply = 3;
 #endif
 static int buff_size = 50;
-static int outbuff_size = 25;
 static const char *fname = "input.mpg";
+static int outbuff_size = 50;
 static const char *output_config;
 static bool loop_input = false;
 static const char *net_helper_config = "";
