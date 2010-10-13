@@ -22,7 +22,7 @@ typedef struct {
 /* NOTE: Add additional entries here */
 ConfigEntry_t config_entries[] = {
     { &g_config.neighborhood_target_size, "neighborhood_target_size", CONFIG_TYPE_INT, "15" },
-    { &g_config.alto_server,        "alto_server",        CONFIG_TYPE_STRING, "http://www.napa-wine-alto.eu/cgi-bin/alto-server.cgi" },
+    { &g_config.alto_server,        "alto_server",        CONFIG_TYPE_STRING, "" },
     { &g_config.alto_factor,        "alto_factor",        CONFIG_TYPE_FLOAT,  "0.8" },
     { &g_config.alto_pri_criterion, "alto_pri_criterion", CONFIG_TYPE_INT,    "1" },
     { &g_config.alto_sec_criterion, "alto_sec_criterion", CONFIG_TYPE_INT,    "0" },
