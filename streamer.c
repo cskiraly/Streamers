@@ -46,7 +46,7 @@ bool chunk_log = false;
 static void print_usage(int argc, char *argv[])
 {
   fprintf (stderr,
-    "Usage:offerstreamer [-bocmtpiPIflCh --chunk_log]\n"
+    "Usage:%s [options]\n"
     "\n"
     "Peer options\n"
     "\t[-p port]: port of the remote peer to connect at during bootstrap.\n"
@@ -62,33 +62,33 @@ static void print_usage(int argc, char *argv[])
     "\t[-c chunks]: set the number of chunks a peer can send per seconds.\n"
     "\t             it controls the upload capacity of peer as well.\n"
     "\t[-P port]: local UDP port to be used by the peer.\n"
-    "\t[-I IP]: local IP address to be used by the peer.\n"
+    "\t[-I iface]: local netwok interface to be used by the peer.\n"
     "\t         Useful if the host has several interfaces/addresses.\n"
     "\t[-N name]: set the name of the peer.\n"
     "\t         This name will be used when publishing in the repository.\n"
     "\t[-n options]: pass configuration options to the net-helper\n"
     "\t[--chunk_log]: print a chunk level log on stderr\n"
+    "\t[-F config]: configure the output module\n"
     "\n"
     "Special Source Peer options\n"
     "\t[-m chunks]: set the number of copies the source injects in the overlay.\n"
     "\t[-f filename]: name of the video stream file to transmit.\n"
-    "\t[-F config]: configure the output module\n"
     "\t[-l]: loop the video stream.\n"
     "\n"
-    "NOTE: the peer will dump the received video on STDOUT in raw format\n"
+    "NOTE: by deafult the peer will dump the received video on STDOUT in raw format\n"
     "      it can be played by your favourite player simply using a pipe\n"
-    "      e.g., | vlc -\n"
+    "      e.g., | cvlc /dev/stdin\n"
     "\n"
     "Examples:\n"
     "\n"
     "Start a source peer on port 6600:\n"
     "\n"
-    "%s -m 3 -C MyTest -l -f foreman.avi -P 6600\n"
+    "%s -l -f foreman.mpg -P 6600\n"
     "\n"
     "Start a peer connecting to the previous source, and using videolan as player:\n"
     "\n"
-    "%s -i 130.192.9.140 -p 6600 |vlc -\n"
-    "\n", argv[0], argv[0], argv[0]
+    "%s -i <sourceIP> -p <sourcePort> | cvlc /dev/stdin\n"
+    "=======================================================\n", argv[0], argv[0], argv[0]
     );
   }
 
