@@ -13,7 +13,7 @@
 #include "../input.h"		//TODO: for flags. Check if we can do something smarter
 
 #define STATIC_BUFF_SIZE 1000 * 1024
-#define HEADER_REFRESH_PERIOD 50
+static int header_refresh_period;
 
 struct input_stream {
   AVFormatContext *s;
@@ -39,6 +39,7 @@ static uint8_t codec_type(enum CodecID cid)
     case CODEC_ID_MJPEG:
       return 4;
     case CODEC_ID_MPEG4:
+      header_refresh_period = 50;
       return 5;
     case CODEC_ID_FLV1:
       return 6;
@@ -47,6 +48,7 @@ static uint8_t codec_type(enum CodecID cid)
     case CODEC_ID_DVVIDEO:
       return 8;
     case CODEC_ID_H264:
+      header_refresh_period = 50;
       return 9;
     case CODEC_ID_THEORA:
     case CODEC_ID_VP3:
@@ -277,13 +279,17 @@ uint8_t *chunkise(struct input_stream *s, int id, int *size, uint64_t *ts)
     if (s->s->streams[pkt.stream_index]->codec->codec_type == CODEC_TYPE_VIDEO) {
       header_size = VIDEO_PAYLOAD_HEADER_SIZE;
     }
-    header_out = (pkt.flags & PKT_FLAG_KEY) != 0;
-    if (header_out == 0) {
-      s->frames_since_global_headers++;
-      if (s->frames_since_global_headers == HEADER_REFRESH_PERIOD) {
-        s->frames_since_global_headers = 0;
-        header_out = 1;
+    if (header_refresh_period) {
+      header_out = (pkt.flags & PKT_FLAG_KEY) != 0;
+      if (header_out == 0) {
+        s->frames_since_global_headers++;
+        if (s->frames_since_global_headers == header_refresh_period) {
+          s->frames_since_global_headers = 0;
+          header_out = 1;
+        }
       }
+    } else {
+      header_out = 0;
     }
     *size = pkt.size + s->s->streams[pkt.stream_index]->codec->extradata_size * header_out + header_size + FRAME_HEADER_SIZE;
     data = malloc(*size);
