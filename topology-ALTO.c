@@ -303,7 +303,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 		}
 		free(currentNeighborhood);
 		c_neigh_size = npeers + psize;
-		currentNeighborhood = calloc(c_neigh_size,sizeof(struct nodeID *));
+		currentNeighborhood = c_neigh_size ? calloc(c_neigh_size,sizeof(struct nodeID *)) : NULL;
 		for (i=0; i < psize; i++) {
 			currentNeighborhood[i] = nodeid_dup((peerset_get_peers(pset)[i]).id);
 		}
