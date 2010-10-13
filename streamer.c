@@ -35,8 +35,8 @@ int multiply = 3;
 static int multiply = 3;
 #endif
 static int buff_size = 50;
-static const char *fname = "input.mpg";
 static int outbuff_size = 50;
+static const char *fname = "/dev/stdin";
 static const char *output_config;
 static bool loop_input = false;
 static const char *net_helper_config = "";
