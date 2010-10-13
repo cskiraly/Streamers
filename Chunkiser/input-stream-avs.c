@@ -127,6 +127,7 @@ struct input_stream *input_stream_open(const char *fname, int *period, uint16_t 
     return NULL;
   }
 
+  desc->s->flags |= AVFMT_FLAG_GENPTS;
   res = av_find_stream_info(desc->s);
   if (res < 0) {
     fprintf(stderr, "Cannot find codec parameters for %s\n", fname);
