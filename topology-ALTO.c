@@ -351,13 +351,12 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 		}
 		newAltoResults = 2;
 	}
-	if (peerset_size(pset) < NEIGHBORHOOD_TARGET_SIZE) { // ALTO selection didn't fill the peerset
+	if (!NEIGHBORHOOD_TARGET_SIZE || peerset_size(pset) < NEIGHBORHOOD_TARGET_SIZE) {
+		// ALTO selection didn't fill the peerset
 		//	fprintf(stderr,"Composing peerset from ncast neighborhood\n");
 		for (i=0;i<npeers;i++) {
 			if(peerset_check(pset, nbrs[i]) < 0) {
-				if (!NEIGHBORHOOD_TARGET_SIZE || peerset_size(pset) < NEIGHBORHOOD_TARGET_SIZE) {
-					add_peer(nbrs[i]);
-				}
+				add_peer(nbrs[i]);
 			}
 		}
 	}
