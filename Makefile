@@ -26,7 +26,7 @@ CPPFLAGS = -I$(NAPA)/include
 CPPFLAGS += -I$(GRAPES)/include
 
 ifdef GPROF
-CFLAGS += -pg
+CFLAGS += -pg -O0
 LDFLAGS += -pg
 endif
 
