@@ -43,7 +43,7 @@ static const char *net_helper_config = "";
 unsigned char msgTypes[] = {MSG_TYPE_CHUNK,MSG_TYPE_SIGNALLING};
 bool chunk_log = false;
 
-static void print_usage()
+static void print_usage(int argc, char *argv[])
 {
   fprintf (stderr,
     "Usage:offerstreamer [-bocmtpiPIflCh --chunk_log]\n"
@@ -84,13 +84,12 @@ static void print_usage()
     "\n"
     "Start a source peer on port 6600:\n"
     "\n"
-    "./offestreamer -m 3 -C MyTest -l -f foreman.avi -P 6600\n"
+    "%s -m 3 -C MyTest -l -f foreman.avi -P 6600\n"
     "\n"
     "Start a peer connecting to the previous source, and using videolan as player:\n"
     "\n"
-    "./offerstreamer -i 130.192.9.140 -p 6600 |vlc -\n"
-    "\n"
-    
+    "%s -i 130.192.9.140 -p 6600 |vlc -\n"
+    "\n", argv[0], argv[0], argv[0]
     );
   }
 
@@ -157,7 +156,7 @@ static void cmdline_parse(int argc, char *argv[])
         break;
       default:
         fprintf(stderr, "Error: unknown option %c\n", o);
-        print_usage();
+        print_usage(argc, argv);
 
         exit(-1);
     }
