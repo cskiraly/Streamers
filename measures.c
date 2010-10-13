@@ -18,8 +18,8 @@
 #include "measures.h"
 #include "grapes_msg_types.h"
 
-static struct timeval print_tdiff = {1, 0};
-static struct timeval tstartdiff = {0, 0};
+struct timeval print_tdiff = {3600, 0};
+struct timeval tstartdiff = {60, 0};
 static struct timeval tstart;
 static struct timeval print_tstart;
 static struct timeval tnext;
