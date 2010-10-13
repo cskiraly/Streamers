@@ -157,7 +157,7 @@ void topologyShutdown(void)
 */
 void PeerSelectorALTO(void)
 {
-	int p, i, j, rescode;
+	int p, i, rescode, j = 0;
 	struct timeval tnow;
 	uint64_t timenow;
 
@@ -241,14 +241,16 @@ void PeerSelectorALTO(void)
 			/* add ALTO peers */
 			fprintf(stderr,"\nSorted ALTO peers:\n");
 			for (i = 0; i < ALTO_bucket_size; i++) {
-				altoList[i] = findALTOPeerInNeighbourList(currentNeighborhood, c_neigh_size, i);
-
-				fprintf(stderr,"ALTO peer %d: id  = %s ; rating = %d\n ", (i+1), node_addr(altoList[i]), ALTOInfo.peers[i].rating);
+				altoList[j] = findALTOPeerInNeighbourList(currentNeighborhood, c_neigh_size, i);
+				if (altoList[j]) {
+					fprintf(stderr,"ALTO peer %d: id  = %s ; rating = %d\n ", (j+1), node_addr(altoList[j]), ALTOInfo.peers[i].rating);
+					j++;
+				}
 			}
 
 		/* add remaining peers randomly */
 		fprintf(stderr,"\nMore ALTO randomly picked peers:\n");
-		for (j = ALTO_bucket_size; j < ALTO_bucket_size + RAND_bucket_size; j++) {
+		for (i = 0; i < RAND_bucket_size; i++) {
 			do { // FIXME: it works only if gossipNeighborhood is realloc'ed for sure between two queries...
 				p = rand() % c_neigh_size;
 			} while (!currentNeighborhood[p]);
@@ -256,8 +258,10 @@ void PeerSelectorALTO(void)
 			altoList[j] = currentNeighborhood[p];
 			currentNeighborhood[p] = NULL;
 			fprintf(stderr,"ALTO peer %d: id  = %s\n ", (j+1), node_addr(altoList[j]));
+			j++;
 		}
 		newAltoResults = 1;
+		altoList_size = j;
 	}
 	}
 
