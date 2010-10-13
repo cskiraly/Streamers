@@ -161,6 +161,11 @@ static void cmdline_parse(int argc, char *argv[])
   if (!channel_get_name()) {
     channel_set_name("generic");
   }
+
+  if (argc <= 1) {
+    print_usage(argc, argv);
+    fprintf(stderr, "Trying to start a source with default parameters, reading from %s\n", fname);
+  }
 }
 
 static struct nodeID *init(void)
