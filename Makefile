@@ -158,7 +158,7 @@ OBJS += output.o
 OBJS += out-stream-udp.o
 endif
 
-EXECTARGET = offerstreamer
+EXECTARGET = winestreamer
 ifdef ML
 EXECTARGET := $(EXECTARGET)-ml
 endif

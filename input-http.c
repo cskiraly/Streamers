@@ -75,7 +75,7 @@ int enqueueBlock(const uint8_t *block, const int block_size) {
 		int i = 0;
 #ifdef HTTPIO_MHD
 		#ifdef THREADS
-		//in case of threaded offerstreamer it also has a topology mutex
+		//in case of threaded winestreamer it also has a topology mutex
 		pthread_mutex_lock(&topology_mutex);
 		#endif
 		pthread_mutex_lock(&cb_mutex);
@@ -116,7 +116,7 @@ struct input_desc *input_open(const char *fname, uint16_t flags, int *fds, int f
 
 #ifdef HTTPIO_MHD
 	#ifndef THREADS
-	//in case we are using the non-threaded version of offerstreamer
+	//in case we are using the non-threaded version of winestreamer
 	//we need our own mutex
   pthread_mutex_init(&cb_mutex, NULL);
 	#endif
