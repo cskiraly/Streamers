@@ -27,7 +27,6 @@
 #include "measures.h"
 #include "config.h"
 
-
 static int NEIGHBORHOOD_TARGET_SIZE;
 
 static struct peerset *pset;
@@ -148,7 +147,7 @@ static void topo_ALTO_init(char* myIP)
 
 void topologyShutdown(void)
 {
-  stop_ALTO_client();
+  if (g_config.alto_server) stop_ALTO_client();
   config_free();
 }
 
@@ -285,8 +284,9 @@ int topologyInit(struct nodeID *myID, const char *config)
 	bind_msg_type(mTypes[0]);
 	config_init();
 	config_load("streamer.conf");
+	if (g_config.alto_server && (strcmp(g_config.alto_server, "") == 0)) g_config.alto_server = NULL;	//handle the case of empty string
 	//config_dump();
-	topo_ALTO_init(node_ip(myID));
+	if (g_config.alto_server) topo_ALTO_init(node_ip(myID));
 	return (topInit(myID, NULL, 0, config));
 }
 
@@ -320,11 +320,11 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 		c_neigh_size = i;
 		currentNeighborhood = i?realloc(currentNeighborhood,c_neigh_size * sizeof(struct nodeID *)):NULL;
 	}
-	if (c_neigh_size > 1) {
+	if (g_config.alto_server && c_neigh_size > 1) {
 		PeerSelectorALTO();
 	}
 
-	if (ALTO_query_state() == ALTO_QUERY_READY && newAltoResults==1) {
+	if (g_config.alto_server && ALTO_query_state() == ALTO_QUERY_READY && newAltoResults==1) {
 	//	fprintf(stderr,"Composing peerset from ALTO selection\n");
 		for (i=0; i < altoList_size; i++) { /* first goal : add all new ALTO-ranked peers
 											second goal : do not increase current peerset size
