@@ -430,8 +430,9 @@ double getChunkTimestamp(int *cid){
   return (double) c->timestamp;
 }
 
-void send_accepted_chunks(struct peer *to, struct chunkID_set *cset_acc, int max_deliver, int trans_id){
+void send_accepted_chunks(struct nodeID *toid, struct chunkID_set *cset_acc, int max_deliver, int trans_id){
   int i, d, cset_acc_size, res;
+  struct peer *to = nodeid_to_peer(toid, 0);
 
   cset_acc_size = chunkID_set_size(cset_acc);
   reg_offer_accept(cset_acc_size > 0 ? 1 : 0);	//this only works if accepts are sent back even if 0 is accepted

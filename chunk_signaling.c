@@ -77,7 +77,7 @@ void accept_received(const struct nodeID *fromid, struct chunkID_set *cset, int 
   dprintf("The peer %s accepted our offer for %d chunks, max deliver %d.\n", node_addr(fromid), chunkID_set_size(cset), max_deliver);
 
   if (from) {
-    send_accepted_chunks(from, cset, max_deliver, trans_id);
+    send_accepted_chunks(fromid, cset, max_deliver, trans_id);
   }
 }
 
