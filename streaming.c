@@ -440,14 +440,14 @@ void send_accepted_chunks(struct nodeID *toid, struct chunkID_set *cset_acc, int
     struct chunk *c;
     int chunkid = chunkID_set_get_chunk(cset_acc, i);
     c = cb_get_chunk(cb, chunkid);
-    if (c && needs(to, chunkid) ) {	// we should have the chunk, and he should not have it. Although the "accept" should have been an answer to our "offer", we do some verification
+    if (c && (!to || needs(to, chunkid)) ) {// we should have the chunk, and he should not have it. Although the "accept" should have been an answer to our "offer", we do some verification
       chunk_attributes_update_sending(c);
-      res = sendChunk(to->id, c);
+      res = sendChunk(toid, c);
       if (res >= 0) {
-        chunkID_set_add_chunk(to->bmap, c->id); //don't send twice ... assuming that it will actually arrive
+        if(to) chunkID_set_add_chunk(to->bmap, c->id); //don't send twice ... assuming that it will actually arrive
         d++;
         reg_chunk_send(c->id);
-        if(chunk_log){fprintf(stderr, "TEO: Sending chunk %d to peer: %s at: %lld Result: %d\n", c->id, node_addr(to->id), gettimeofday_in_us(), res);}
+        if(chunk_log){fprintf(stderr, "TEO: Sending chunk %d to peer: %s at: %lld Result: %d\n", c->id, node_addr(toid), gettimeofday_in_us(), res);}
       } else {
         fprintf(stderr,"ERROR sending chunk %d\n",c->id);
       }
