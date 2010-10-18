@@ -299,8 +299,8 @@ void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
     p = nodeid_to_peer(from, neigh_on_chunk_recv);
     if (p) {	//now we have it almost sure
       chunkID_set_add_chunk(p->bmap,c.id);	//don't send it back
-      ack_chunk(&c,from);	//send explicit ack
     }
+    ack_chunk(&c,from);	//send explicit ack
     if (bcast_after_receive_every && bcast_cnt % bcast_after_receive_every == 0) {
        bcast_bmap();
     }
