@@ -28,7 +28,7 @@
 
 #define BUFFSIZE 512 * 1024
 #define FDSSIZE 16
-static struct timeval period = {0, 500000};
+struct timeval period = {0, 500000};
 static struct timeval tnext;
 
 void tout_init(struct timeval *tv)
