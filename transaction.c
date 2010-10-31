@@ -40,6 +40,8 @@ uint16_t transaction_create(struct nodeID *id)
 	struct service_times_element *stl2, *stl_iterator;
 	struct timeval current_time;
 
+	check_neighbor_status_list();
+
 	gettimeofday(&current_time, NULL);
 	stl_iterator = stl;
 
@@ -80,7 +82,7 @@ bool transaction_reg_accept(uint16_t trans_id, struct nodeID *id)
 	stl_iterator = stl;
 
 	// if an accept was received, look for the trans_id and add current_time to accept_received_time field
-	dprintf("LIST: changing trans_id %d to the list -- ACCEPT\n", trans_id);
+	dprintf("LIST: changing trans_id %d to the list, accept received %f\n", trans_id, current_time.tv_sec + current_time.tv_usec*1e-6);
 	// Iterate the list until you get the right element
 	while (stl_iterator != NULL) {
 			if (stl_iterator->st.trans_id == trans_id) {

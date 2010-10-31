@@ -26,7 +26,4 @@ bool transaction_reg_accept(uint16_t trans_id, struct nodeID *id);
 // it return -1.0 in case no trans_id is found
 double transaction_remove(uint16_t trans_id);
 
-// Check the service times list to find elements over the timeout
-void check_neighbor_status_list();
-
 #endif // TRANSACTION_H
