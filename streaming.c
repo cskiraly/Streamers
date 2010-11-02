@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include <math.h>
 #include <assert.h>
+#include <inttypes.h>
 
 #include <net_helper.h>
 #include <chunk.h> 
@@ -133,7 +134,7 @@ int chunk_get_hopcount(struct chunk* c) {
   struct chunk_attributes * ca;
 
   if (!c->attributes || c->attributes_size != sizeof(struct chunk_attributes)) {
-    fprintf(stderr,"Warning, chunk %d with strange attributes block. Size:%d expected:%d\n", c->id, c->attributes ? c->attributes_size : 0, sizeof(struct chunk_attributes));
+    fprintf(stderr,"Warning, chunk %d with strange attributes block. Size:%d expected:%lu\n", c->id, c->attributes ? c->attributes_size : 0, sizeof(struct chunk_attributes));
     return -1;
   }
 
@@ -146,7 +147,7 @@ void chunk_attributes_update_received(struct chunk* c)
   struct chunk_attributes * ca;
 
   if (!c->attributes || c->attributes_size != sizeof(struct chunk_attributes)) {
-    fprintf(stderr,"Warning, received chunk %d with strange attributes block. Size:%d expected:%d\n", c->id, c->attributes ? c->attributes_size : 0, sizeof(struct chunk_attributes));
+    fprintf(stderr,"Warning, received chunk %d with strange attributes block. Size:%d expected:%lu\n", c->id, c->attributes ? c->attributes_size : 0, sizeof(struct chunk_attributes));
     return;
   }
 
@@ -285,13 +286,13 @@ void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
     reg_chunk_receive(c.id, c.timestamp, chunk_get_hopcount(&c));
     chunk_unlock(c.id);
     dprintf("Received chunk %d from peer: %s\n", c.id, node_addr(from));
-    if(chunk_log){fprintf(stderr, "TEO: Received chunk %d from peer: %s at: %lld hopcount: %i\n", c.id, node_addr(from), gettimeofday_in_us(), chunk_get_hopcount(&c));}
+    if(chunk_log){fprintf(stderr, "TEO: Received chunk %d from peer: %s at: %"PRIu64" hopcount: %i\n", c.id, node_addr(from), gettimeofday_in_us(), chunk_get_hopcount(&c));}
     output_deliver(&c);
     res = cb_add_chunk(cb, &c);
     cb_print();
     if (res < 0) {
       dprintf("\tchunk too old, buffer full with newer chunks\n");
-      if(chunk_log){fprintf(stderr, "TEO: Received chunk: %d too old (buffer full with newer chunks) from peer: %s at: %lld\n", c.id, node_addr(from), gettimeofday_in_us());}
+      if(chunk_log){fprintf(stderr, "TEO: Received chunk: %d too old (buffer full with newer chunks) from peer: %s at: %"PRIu64"\n", c.id, node_addr(from), gettimeofday_in_us());}
       free(c.data);
       free(c.attributes);
     }
@@ -447,7 +448,7 @@ void send_accepted_chunks(struct peer *to, struct chunkID_set *cset_acc, int max
         chunkID_set_add_chunk(to->bmap, c->id); //don't send twice ... assuming that it will actually arrive
         d++;
         reg_chunk_send(c->id);
-        if(chunk_log){fprintf(stderr, "TEO: Sending chunk %d to peer: %s at: %lld Result: %d\n", c->id, node_addr(to->id), gettimeofday_in_us(), res);}
+        if(chunk_log){fprintf(stderr, "TEO: Sending chunk %d to peer: %s at: %"PRIu64" Result: %d\n", c->id, node_addr(to->id), gettimeofday_in_us(), res);}
       } else {
         fprintf(stderr,"ERROR sending chunk %d\n",c->id);
       }
@@ -562,7 +563,7 @@ void send_chunk()
 
       chunk_attributes_update_sending(c);
       res = sendChunk(p->id, c);
-      if(chunk_log){fprintf(stderr, "TEO: Sending chunk %d to peer: %s at: %lld Result: %d Size: %d bytes\n", c->id, node_addr(p->id), gettimeofday_in_us(), res, c->size);}
+      if(chunk_log){fprintf(stderr, "TEO: Sending chunk %d to peer: %s at: %"PRIu64" Result: %d Size: %d bytes\n", c->id, node_addr(p->id), gettimeofday_in_us(), res, c->size);}
       dprintf("\tResult: %d\n", res);
       if (res>=0) {
         chunkID_set_add_chunk(p->bmap,c->id); //don't send twice ... assuming that it will actually arrive

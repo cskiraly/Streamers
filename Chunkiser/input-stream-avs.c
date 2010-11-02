@@ -145,7 +145,7 @@ struct input_stream *input_stream_open(const char *fname, int *period, uint16_t 
   for (i = 0; i < desc->s->nb_streams; i++) {
     if (desc->video_stream == -1 && desc->s->streams[i]->codec->codec_type == CODEC_TYPE_VIDEO) {
       desc->video_stream = i;
-      fprintf(stderr, "Video Frame Rate = %d/%d --- Period: %lld\n",
+      fprintf(stderr, "Video Frame Rate = %d/%d --- Period: %"PRIu64"\n",
               desc->s->streams[i]->r_frame_rate.num,
               desc->s->streams[i]->r_frame_rate.den,
               av_rescale(1000000, desc->s->streams[i]->r_frame_rate.den, desc->s->streams[i]->r_frame_rate.num));
