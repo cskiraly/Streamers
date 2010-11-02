@@ -30,6 +30,64 @@ struct service_times_element {
 
 static struct service_times_element *stl = NULL;
 
+// Check the service times list to find elements over the timeout
+void check_neighbor_status_list() {
+	struct service_times_element *stl_iterator, *stl_aux;
+	struct timeval current_time;
+	bool something_got_removed;
+
+	gettimeofday(&current_time, NULL);
+	something_got_removed = false;
+	
+        dprintf("LIST: check trans_id list\n");
+	
+	// Check if list is empty
+	if (stl == NULL) {
+		return;
+		}
+        
+	// Start from the beginning of the list
+	stl_iterator = stl;
+	stl_aux = stl;
+	// Iterate the list until you get the right element
+	while (stl_iterator != NULL) {
+		// If the element has been in the list for a period greater than the timeout, remove it
+//		if ( (stl_iterator->st.accept_received_time > 0.0 && ( (current_time.tv_sec + current_time.tv_usec*1e-6) - stl_iterator->st.accept_received_time) > TRANS_ID_MAX_LIFETIME) ||  ((current_time.tv_sec + current_time.tv_usec*1e-6) - stl_iterator->st.offer_sent_time > TRANS_ID_MAX_LIFETIME ) ) {
+		if ( (current_time.tv_sec + current_time.tv_usec*1e-6 - stl_iterator->st.offer_sent_time) > TRANS_ID_MAX_LIFETIME) {
+			 dprintf("LIST TIMEOUT: trans_id %d, offer_sent_time %f, accept_received_time %f\n", stl_iterator->st.trans_id, (double) ((current_time.tv_sec + current_time.tv_usec*1e-6) - stl_iterator->st.offer_sent_time  ), (double) ((current_time.tv_sec + current_time.tv_usec*1e-6) - stl_iterator->st.accept_received_time));
+			 //fprintf(stderr, "LIST TIMEOUT: trans_id %d, offer_sent_time %f, accept_received_time %f\n", stl_iterator->st.trans_id, (double) ((current_time.tv_sec + current_time.tv_usec*1e-6) - stl_iterator->st.offer_sent_time  ), (double) ((current_time.tv_sec + current_time.tv_usec*1e-6) - stl_iterator->st.accept_received_time));
+			// If it is the first element
+			if (stl_iterator->backward == NULL) {
+				stl = stl_iterator->forward;
+				// Check if I have more than one element in the list
+				if (stl_iterator->forward != NULL)
+					stl_iterator->forward->backward = NULL;
+				stl_iterator->forward = NULL;				
+				}
+			else { 	// I have to remove the last element of the list
+				if (stl_iterator->forward == NULL) {
+					stl_iterator->backward->forward = NULL;
+					}
+				// I have to remove an element in the middle
+				else {
+					stl_iterator->backward->forward = stl_iterator->forward;
+					stl_iterator->forward->backward = stl_iterator->backward;
+					}
+				}
+			something_got_removed = true;
+			stl_aux = stl_iterator->forward;
+			// Free the memory
+			free(stl_iterator);
+			}
+		if (something_got_removed) {
+			stl_iterator = stl_aux;
+			something_got_removed = false;
+			}
+		else
+			stl_iterator = stl_iterator->forward;
+		}
+	return;
+}
 
 // register the moment when a transaction is started
 // return a  new transaction id
@@ -145,64 +203,3 @@ double transaction_remove(uint16_t trans_id) {
 // 		return (to_return.accept_received_time - get_measure(to_return.id, 1, MIN));
 	return to_return;
 }
-
-// Check the service times list to find elements over the timeout
-void check_neighbor_status_list() {
-	struct service_times_element *stl_iterator, *stl_aux;
-	struct timeval current_time;
-	bool something_got_removed;
-
-	gettimeofday(&current_time, NULL);
-	something_got_removed = false;
-	
-        dprintf("LIST: check trans_id list\n");
-	
-	// Check if list is empty
-	if (stl == NULL) {
-		return;
-		}
-        
-	// Start from the beginning of the list
-	stl_iterator = stl;
-	stl_aux = stl;
-	// Iterate the list until you get the right element
-	while (stl_iterator != NULL) {
-		// If the element has been in the list for a period greater than the timeout, remove it
-//		if ( (stl_iterator->st.accept_received_time > 0.0 && ( (current_time.tv_sec + current_time.tv_usec*1e-6) - stl_iterator->st.accept_received_time) > TRANS_ID_MAX_LIFETIME) ||  ((current_time.tv_sec + current_time.tv_usec*1e-6) - stl_iterator->st.offer_sent_time > TRANS_ID_MAX_LIFETIME ) ) {
-		if ( (current_time.tv_sec + current_time.tv_usec*1e-6 - stl_iterator->st.offer_sent_time) > TRANS_ID_MAX_LIFETIME) {
-			 dprintf("LIST TIMEOUT: trans_id %d, offer_sent_time %f, accept_received_time %f\n", stl_iterator->st.trans_id, (double) ((current_time.tv_sec + current_time.tv_usec*1e-6) - stl_iterator->st.offer_sent_time  ), (double) ((current_time.tv_sec + current_time.tv_usec*1e-6) - stl_iterator->st.accept_received_time));
-			 //fprintf(stderr, "LIST TIMEOUT: trans_id %d, offer_sent_time %f, accept_received_time %f\n", stl_iterator->st.trans_id, (double) ((current_time.tv_sec + current_time.tv_usec*1e-6) - stl_iterator->st.offer_sent_time  ), (double) ((current_time.tv_sec + current_time.tv_usec*1e-6) - stl_iterator->st.accept_received_time));
-			// If it is the first element
-			if (stl_iterator->backward == NULL) {
-				stl = stl_iterator->forward;
-				// Check if I have more than one element in the list
-				if (stl_iterator->forward != NULL)
-					stl_iterator->forward->backward = NULL;
-				stl_iterator->forward = NULL;				
-				}
-			else { 	// I have to remove the last element of the list
-				if (stl_iterator->forward == NULL) {
-					stl_iterator->backward->forward = NULL;
-					}
-				// I have to remove an element in the middle
-				else {
-					stl_iterator->backward->forward = stl_iterator->forward;
-					stl_iterator->forward->backward = stl_iterator->backward;
-					}
-				}
-			something_got_removed = true;
-			stl_aux = stl_iterator->forward;
-			// Free the memory
-			free(stl_iterator);
-			}
-		if (something_got_removed) {
-			stl_iterator = stl_aux;
-			something_got_removed = false;
-			}
-		else
-			stl_iterator = stl_iterator->forward;
-		}
-	return;
-}
-
-
