@@ -36,6 +36,7 @@
 
 static bool heuristics_distance_maxdeliver = true;
 static int bcast_after_receive_every = 0;
+static bool neigh_on_chunk_recv = true;
 
 struct chunk_attributes {
   uint64_t deadline;
@@ -294,7 +295,7 @@ void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
       free(c.data);
       free(c.attributes);
     }
-    p = nodeid_to_peer(from,1);
+    p = nodeid_to_peer(from, neigh_on_chunk_recv);
     if (p) {	//now we have it almost sure
       chunkID_set_add_chunk(p->bmap,c.id);	//don't send it back
       ack_chunk(&c,p);	//send explicit ack
