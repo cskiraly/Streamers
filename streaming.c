@@ -229,14 +229,17 @@ void bcast_bmap()
   int i, n;
   struct peer *neighbours;
   struct peerset *pset;
+  struct chunkID_set *my_bmap;
 
   pset = get_peers();
   n = peerset_size(pset);
   neighbours = peerset_get_peers(pset);
 
+  my_bmap = cb_to_bmap(cb);	//cache our bmap for faster processing
   for (i = 0; i<n; i++) {
-    send_bmap(&neighbours[i]);
+    sendBufferMap(neighbours[i].id,NULL, my_bmap, input ? 0 : cb_size, 0);
   }
+  chunkID_set_free(my_bmap);
 }
 
 double get_average_lossrate_pset(struct peerset *pset)
