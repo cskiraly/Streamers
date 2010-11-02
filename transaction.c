@@ -113,7 +113,7 @@ double transaction_remove(uint16_t trans_id) {
 		}
 	if (stl_iterator == NULL){
 		// not found
-        fprintf(stderr, "LIST: deleting trans_id %d -- STL is already NULL \n", trans_id);
+        dprintf("LIST: deleting trans_id %d -- STL is already NULL \n", trans_id);
 		return -2.0;
 	}
 
