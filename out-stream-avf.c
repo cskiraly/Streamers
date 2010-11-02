@@ -92,7 +92,6 @@ int out_stream_init(const char *config)
 {
   output_format = "nut";
   if (config) {
-    char *colon;
     output_file = strdup(config);
   } else {
     output_file = "/dev/stdout";
