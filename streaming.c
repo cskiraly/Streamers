@@ -219,10 +219,10 @@ struct chunkID_set *get_chunks_to_accept(struct peer *from, const struct chunkID
   return cset_acc;
 }
 
-void send_bmap(struct peer *to)
+void send_bmap(struct nodeID *toid)
 {
   struct chunkID_set *my_bmap = cb_to_bmap(cb);
-   sendBufferMap(to->id,NULL, my_bmap, input ? 0 : cb_size, 0);
+   sendBufferMap(toid,NULL, my_bmap, input ? 0 : cb_size, 0);
   chunkID_set_free(my_bmap);
 }
 
@@ -270,7 +270,7 @@ void ack_chunk(struct chunk *c, struct peer *p)
   if (rand()/((double)RAND_MAX + 1) < 1 * average_lossrate ) {
     return;
   }
-  send_bmap(p);	//send explicit ack
+  send_bmap(p->id);	//send explicit ack
 }
 
 void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
@@ -558,7 +558,7 @@ void send_chunk()
       dprintf("\t sending chunk[%d] to ", c->id);
       dprintf("%s\n", node_addr(p->id));
 
-      send_bmap(p);
+      send_bmap(p->id);
 
       chunk_attributes_update_sending(c);
       res = sendChunk(p->id, c);

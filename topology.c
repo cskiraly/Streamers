@@ -148,7 +148,7 @@ void add_peer(struct nodeID *id)
       peerset_add_peer(pset, id);
       /* add measures here */
       add_measures(id);
-      send_bmap(peerset_get_peer(pset,id));
+      send_bmap(id);
 }
 
 void remove_peer(struct nodeID *id)

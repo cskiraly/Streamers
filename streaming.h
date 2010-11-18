@@ -18,6 +18,6 @@ int add_chunk(struct chunk *c);
 struct chunkID_set *get_chunks_to_accept(struct peer *from, const struct chunkID_set *cset_off, int max_deliver, int trans_id);
 void send_offer();
 void send_accepted_chunks(struct nodeID *to, struct chunkID_set *cset_acc, int max_deliver, int trans_id);
-void send_bmap(struct peer *to);
+void send_bmap(struct nodeID *to);
 
 #endif	/* STREAMING_H */
