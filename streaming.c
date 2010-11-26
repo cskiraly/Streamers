@@ -184,10 +184,11 @@ struct chunkID_set *cb_to_bmap(struct chunk_buffer *chbuf)
 }
 
 // a simple implementation that request everything that we miss ... up to max deliver
-struct chunkID_set *get_chunks_to_accept(struct peer *from, const struct chunkID_set *cset_off, int max_deliver, int trans_id){
+struct chunkID_set *get_chunks_to_accept(struct nodeID *fromid, const struct chunkID_set *cset_off, int max_deliver, int trans_id){
   struct chunkID_set *cset_acc, *my_bmap;
   int i, d, cset_off_size;
   //double lossrate;
+  struct peer *from = nodeid_to_peer(fromid, 0);
 
   cset_acc = chunkID_set_init("size=0");
 
@@ -203,9 +204,9 @@ struct chunkID_set *get_chunks_to_accept(struct peer *from, const struct chunkID
       if (!chunk_islocked(chunkid) && _needs(my_bmap, cb_size, chunkid)) {
         chunkID_set_add_chunk(cset_acc, chunkid);
         chunk_lock(chunkid,from);
-        dtprintf("accepting %d from %s", chunkid, from ? node_addr(from->id) : NULL);
+        dtprintf("accepting %d from %s", chunkid, node_addr(fromid));
 #ifdef MONL
-        dprintf(", loss:%f rtt:%f", get_lossrate(from->id), from ? get_rtt(from->id) : NULL);
+        dprintf(", loss:%f rtt:%f", get_lossrate(fromid), get_rtt(fromid));
 #endif
         dprintf("\n");
         d++;
@@ -213,16 +214,16 @@ struct chunkID_set *get_chunks_to_accept(struct peer *from, const struct chunkID
     }
     chunkID_set_free(my_bmap);
   //} else {
-  //    dtprintf("accepting -- from %s loss:%f rtt:%f\n", node_addr(from->id), lossrate, get_rtt(from->id));
+  //    dtprintf("accepting -- from %s loss:%f rtt:%f\n", node_addr(fromid), lossrate, get_rtt(fromid));
   //}
 
   return cset_acc;
 }
 
-void send_bmap(struct peer *to)
+void send_bmap(struct nodeID *toid)
 {
   struct chunkID_set *my_bmap = cb_to_bmap(cb);
-   sendBufferMap(to->id,NULL, my_bmap, input ? 0 : cb_size, 0);
+   sendBufferMap(toid,NULL, my_bmap, input ? 0 : cb_size, 0);
   chunkID_set_free(my_bmap);
 }
 
@@ -262,7 +263,7 @@ double get_average_lossrate_pset(struct peerset *pset)
   }
 }
 
-void ack_chunk(struct chunk *c, struct peer *p)
+void ack_chunk(struct chunk *c, struct nodeID *from)
 {
   //reduce load a little bit if there are losses on the path from this guy
   double average_lossrate = get_average_lossrate_pset(get_peers());
@@ -270,7 +271,7 @@ void ack_chunk(struct chunk *c, struct peer *p)
   if (rand()/((double)RAND_MAX + 1) < 1 * average_lossrate ) {
     return;
   }
-  send_bmap(p);	//send explicit ack
+  send_bmap(from);	//send explicit ack
 }
 
 void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
@@ -299,8 +300,8 @@ void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
     p = nodeid_to_peer(from, neigh_on_chunk_recv);
     if (p) {	//now we have it almost sure
       chunkID_set_add_chunk(p->bmap,c.id);	//don't send it back
-      ack_chunk(&c,p);	//send explicit ack
     }
+    ack_chunk(&c,from);	//send explicit ack
     if (bcast_after_receive_every && bcast_cnt % bcast_after_receive_every == 0) {
        bcast_bmap();
     }
@@ -434,8 +435,9 @@ double getChunkTimestamp(int *cid){
   return (double) c->timestamp;
 }
 
-void send_accepted_chunks(struct peer *to, struct chunkID_set *cset_acc, int max_deliver, int trans_id){
+void send_accepted_chunks(struct nodeID *toid, struct chunkID_set *cset_acc, int max_deliver, int trans_id){
   int i, d, cset_acc_size, res;
+  struct peer *to = nodeid_to_peer(toid, 0);
 
   cset_acc_size = chunkID_set_size(cset_acc);
   reg_offer_accept(cset_acc_size > 0 ? 1 : 0);	//this only works if accepts are sent back even if 0 is accepted
@@ -443,14 +445,14 @@ void send_accepted_chunks(struct peer *to, struct chunkID_set *cset_acc, int max
     struct chunk *c;
     int chunkid = chunkID_set_get_chunk(cset_acc, i);
     c = cb_get_chunk(cb, chunkid);
-    if (c && needs(to, chunkid) ) {	// we should have the chunk, and he should not have it. Although the "accept" should have been an answer to our "offer", we do some verification
+    if (c && (!to || needs(to, chunkid)) ) {// we should have the chunk, and he should not have it. Although the "accept" should have been an answer to our "offer", we do some verification
       chunk_attributes_update_sending(c);
-      res = sendChunk(to->id, c);
+      res = sendChunk(toid, c);
       if (res >= 0) {
-        chunkID_set_add_chunk(to->bmap, c->id); //don't send twice ... assuming that it will actually arrive
+        if(to) chunkID_set_add_chunk(to->bmap, c->id); //don't send twice ... assuming that it will actually arrive
         d++;
         reg_chunk_send(c->id);
-        if(chunk_log){fprintf(stderr, "TEO: Sending chunk %d to peer: %s at: %lld Result: %d\n", c->id, node_addr(to->id), gettimeofday_in_us(), res);}
+        if(chunk_log){fprintf(stderr, "TEO: Sending chunk %d to peer: %s at: %lld Result: %d\n", c->id, node_addr(toid), gettimeofday_in_us(), res);}
       } else {
         fprintf(stderr,"ERROR sending chunk %d\n",c->id);
       }
@@ -561,7 +563,7 @@ void send_chunk()
       dprintf("\t sending chunk[%d] to ", c->id);
       dprintf("%s\n", node_addr(p->id));
 
-      send_bmap(p);
+      send_bmap(p->id);
 
       chunk_attributes_update_sending(c);
       res = sendChunk(p->id, c);

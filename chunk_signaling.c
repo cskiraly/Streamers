@@ -63,7 +63,7 @@ void offer_received(const struct nodeID *fromid, struct chunkID_set *cset, int m
   }
 
     //decide what to accept
-    cset_acc = get_chunks_to_accept(from, cset, max_deliver, trans_id);
+    cset_acc = get_chunks_to_accept(fromid, cset, max_deliver, trans_id);
 
     //send accept message
     dprintf("\t accept %d chunks from peer %s, trans_id %d\n", chunkID_set_size(cset_acc), node_addr(fromid), trans_id);
@@ -76,9 +76,7 @@ void accept_received(const struct nodeID *fromid, struct chunkID_set *cset, int 
   struct peer *from = nodeid_to_peer(fromid,0);   //verify that we have really offered, 0 at least garantees that we've known the peer before
   dprintf("The peer %s accepted our offer for %d chunks, max deliver %d.\n", node_addr(fromid), chunkID_set_size(cset), max_deliver);
 
-  if (from) {
-    send_accepted_chunks(from, cset, max_deliver, trans_id);
-  }
+  send_accepted_chunks(fromid, cset, max_deliver, trans_id);
 }
 
 
