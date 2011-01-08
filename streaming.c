@@ -54,7 +54,14 @@ static struct input_desc *input;
 static int cb_size;
 static int transid=0;
 
+static bool source = 0;
+
 static int offer_per_tick = 1;	//N_p parameter of POLITO
+
+bool  am_i_source()
+{
+  return source;
+}
 
 int _needs(struct chunkID_set *cset, int cb_size, int cid);
 
@@ -118,6 +125,9 @@ int source_init(const char *fname, struct nodeID *myID, bool loop, int *fds, int
   if (loop) {
     flags |= INPUT_LOOP;
   }
+
+  source = true;
+
   input = input_open(fname, flags, fds, fds_size);
   if (input == NULL) {
     return -1;
