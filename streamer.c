@@ -160,6 +160,7 @@ static void cmdline_parse(int argc, char *argv[])
         break;
       case 'C':
         channel_set_name(optarg);
+        break;
       case 'n':
         net_helper_config = strdup(optarg);
         break;
