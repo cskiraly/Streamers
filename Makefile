@@ -121,12 +121,10 @@ LDFLAGS += -pthread
 OBJS += input-http.o
 OBJS += output-http.o output.o
 
-LOCAL_MHD=$(ULPLAYER)/$(ULPLAYER_EXTERNAL_LIBS)/libmicrohttpd/temp_mhd_install
 CPPFLAGS += -I$(LOCAL_MHD)/include
 LDFLAGS += -L$(LOCAL_MHD)/lib
 LDLIBS += $(LOCAL_MHD)/lib/libmicrohttpd.a
 
-LOCAL_CURL=$(ULPLAYER)/$(ULPLAYER_EXTERNAL_LIBS)/curl/temp_curl_install
 CPPFLAGS += -I$(LOCAL_CURL)/include
 LDFLAGS += -L$(LOCAL_CURL)/lib
 LDLIBS += $(LOCAL_CURL)/lib/libcurl.a -lrt
@@ -142,7 +140,6 @@ CPPFLAGS += -I$(ULPLAYER) -I$(ULPLAYER)/chunk_transcoding -I$(ULPLAYER)/event_ht
 OBJS += input-http.o
 OBJS += output-http.o output.o
 
-LOCAL_CURL=$(ULPLAYER)/$(ULPLAYER_EXTERNAL_LIBS)/curl/temp_curl_install
 CPPFLAGS += -I$(LOCAL_CURL)/include
 LDFLAGS += -L$(LOCAL_CURL)/lib
 LDLIBS += $(LOCAL_CURL)/lib/libcurl.a -lrt
