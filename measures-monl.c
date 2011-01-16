@@ -73,7 +73,7 @@ void reg_chunk_playout(int id, bool b, uint64_t timestamp)
 	struct timeval tnow;
 
 	if (!chunk_playout && b) {	//don't count losses before the first arrived chunk
-		enum stat_types st[] = {AVG, SUM, RATE};
+		enum stat_types st[] = {WIN_AVG, AVG, SUM, RATE};
 		add_measure(&chunk_playout, GENERIC, 0, PEER_PUBLISH_INTERVAL, "ChunksPlayed", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[chunks]
 	}
 	monNewSample(chunk_playout, b);
