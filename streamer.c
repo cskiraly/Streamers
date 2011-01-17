@@ -210,6 +210,7 @@ static struct nodeID *init(void)
     return NULL;
   }
   free(my_addr);
+  fprintf(stderr, "My network ID is: %s\n", node_addr(myID));
   topologyInit(myID, "");
 
   return myID;
