@@ -208,7 +208,7 @@ void add_measures(struct nodeID *id)
 	dprintf("adding measures to %s\n",node_addr(id));
 
 	/* HopCount */
-       add_measure(&id->mhs[j++], HOPCOUNT, PACKET | IN_BAND, P2P_PUBLISH_INTERVAL, "HopCount", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//[IP hops]
+       add_measure(&id->mhs[j++], HOPCOUNT, PACKET | IN_BAND, P2P_PUBLISH_INTERVAL, "HopCount", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_SIGNALLING);	//[IP hops]
 
 	/* Round Trip Time */
        add_measure(&id->mhs[j++], RTT, PACKET | IN_BAND, P2P_PUBLISH_INTERVAL, "RoundTripDelay", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_SIGNALLING);	//[seconds]
