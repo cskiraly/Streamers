@@ -106,7 +106,7 @@ void stream_init(int size, struct nodeID *myID)
   init_measures();
 }
 
-int source_init(const char *fname, struct nodeID *myID, bool loop, int *fds, int fds_size)
+int source_init(const char *fname, struct nodeID *myID, bool loop, int *fds, int fds_size, int buff_size)
 {
   int flags = 0;
 
@@ -122,7 +122,7 @@ int source_init(const char *fname, struct nodeID *myID, bool loop, int *fds, int
     return -1;
   }
 
-  stream_init(1, myID);
+  stream_init(buff_size, myID);
   return 0;
 }
 

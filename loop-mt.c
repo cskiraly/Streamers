@@ -195,7 +195,7 @@ void loop(struct nodeID *s1, int csize, int buff_size)
   pthread_join(distributing_thread, NULL);
 }
 
-void source_loop(const char *fname, struct nodeID *s1, int csize, int chunks, bool loop)
+void source_loop(const char *fname, struct nodeID *s1, int csize, int chunks, bool loop, int buff_size)
 {
   pthread_t generate_thread, receive_thread, gossiping_thread, distributing_thread;
   
@@ -208,7 +208,7 @@ void source_loop(const char *fname, struct nodeID *s1, int csize, int chunks, bo
 
 //  sigInit(s);
   peers_init();
-  if (source_init(fname, s, loop, fds, FDSSIZE) < 0) {
+  if (source_init(fname, s, loop, fds, FDSSIZE, buff_size) < 0) {
     fprintf(stderr,"Cannot initialize source, exiting");
     return;
   }
