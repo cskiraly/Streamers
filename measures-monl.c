@@ -87,10 +87,10 @@ void reg_chunk_playout(int id, bool b, uint64_t timestamp)
 		monNewSample(playout_delay, ((int64_t)(tnow.tv_usec + tnow.tv_sec * 1000000ULL) - (int64_t)timestamp) / 1000000.0);
 	}
 
-	if (!chunk_loss_burst_size) {
-		enum stat_types st[] = {WIN_AVG, WIN_VAR};
-		add_measure(&chunk_loss_burst_size, GENERIC, 0, PEER_PUBLISH_INTERVAL, "ChunkLossBurstSize", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
-	}
+	//if (!chunk_loss_burst_size) {
+	//	enum stat_types st[] = {WIN_AVG, WIN_VAR};
+	//	add_measure(&chunk_loss_burst_size, GENERIC, 0, PEER_PUBLISH_INTERVAL, "ChunkLossBurstSize", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
+	//}
 	if (b) {
 		if (last_arrived_chunk >= 0) {
 			int burst_size = id - 1 - last_arrived_chunk;
