@@ -191,6 +191,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
         for (i = 0; i < chunks; i++) {	// @TODO: why this cycle?
           send_chunk();
         }
+        send_offer();
         if (cnt++ % 10 == 0) {
             update_peers(NULL, NULL, 0);
         }
