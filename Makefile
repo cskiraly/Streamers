@@ -96,6 +96,18 @@ OBJS += measures.o
 endif
 
 IO ?= ffmpeg
+ifeq ($(IO), grapes)
+OBJS += input-grapes.o output-grapes.o
+CPPFLAGS += -I$(FFMPEG_DIR)
+LDFLAGS += -L$(FFMPEG_DIR)/libavcodec -L$(FFMPEG_DIR)/libavformat -L$(FFMPEG_DIR)/libavutil -L$(FFMPEG_DIR)/libavcore
+CFLAGS += -pthread
+LDFLAGS += -pthread
+LDLIBS += -lavformat -lavcodec -lavutil
+LDLIBS += $(call ld-option, -lavcore)
+LDLIBS += -lm
+LDLIBS += $(call ld-option, -lz)
+LDLIBS += $(call ld-option, -lbz2)
+endif
 ifeq ($(IO), ffmpeg)
 OBJS += input.o
 OBJS += Chunkiser/input-stream-avs.o 
@@ -105,7 +117,7 @@ CPPFLAGS += -I$(FFMPEG_DIR)/include
 LDFLAGS += -L$(FFMPEG_DIR)/lib
 CFLAGS += -pthread
 LDFLAGS += -pthread
-LDLIBS += -lavformat -lavcodec -lavutil
+LDLIBS += -lavformat -lavcodec -lavcore -lavutil
 LDLIBS += -lm
 LDLIBS += $(call ld-option, -lz)
 LDLIBS += $(call ld-option, -lbz2)
