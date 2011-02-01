@@ -42,7 +42,7 @@ static struct nodeID ** neighbors;
 static void update_metadata(void) {
 
 #ifndef MONL
-	my_metadata = 1 + ceil(((double)rand() / (double)RAND_MAX)*1000);
+	my_metadata = 1 + (((double)rand() / (double)RAND_MAX)*1000);
 #endif
 #ifdef MONL
 	my_metadata = get_receive_delay();
