@@ -180,7 +180,9 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 
   if (cnt++ % 10000 == 0) {
 	update_metadata();
+    if (counter > TMAN_MAX_IDLE) {
 	tmanChangeMetadata(&my_metadata,sizeof(my_metadata));
+    }
   }
 
   topoParseData(buff, len);
