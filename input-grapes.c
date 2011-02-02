@@ -29,12 +29,17 @@ struct input_desc *input_open(const char *fname, uint16_t flags, int *fds, int f
 {
   struct input_desc *res;
   struct timeval tv;
+  char cfg[256];
 
   res = malloc(sizeof(struct input_desc));
   if (res == NULL) {
     return NULL;
   }
-  res->s = input_stream_open(fname, &res->interframe, "media=av");
+  sprintf(cfg, "media=av");
+  if (flags & INPUT_LOOP) {
+    sprintf(cfg + strlen(cfg), ",loop=1");
+  }
+  res->s = input_stream_open(fname, &res->interframe, cfg);
   if (res->s == NULL) {
     free(res);
     res = NULL;
