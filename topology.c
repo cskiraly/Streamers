@@ -18,6 +18,8 @@
 #include <topmanager.h>
 #include <tman.h>
 
+#include "compatibility/timer.h"
+
 #include "topology.h"
 #include "streaming.h"
 #include "dbg.h"
