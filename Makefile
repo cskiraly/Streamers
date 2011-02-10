@@ -98,6 +98,7 @@ endif
 IO ?= ffmpeg
 ifeq ($(IO), grapes)
 OBJS += input-grapes.o output-grapes.o
+ifdef FFMPEG_DIR
 CPPFLAGS += -I$(FFMPEG_DIR)
 LDFLAGS += -L$(FFMPEG_DIR)/libavcodec -L$(FFMPEG_DIR)/libavformat -L$(FFMPEG_DIR)/libavutil -L$(FFMPEG_DIR)/libavcore
 CFLAGS += -pthread
@@ -107,6 +108,7 @@ LDLIBS += $(call ld-option, -lavcore)
 LDLIBS += -lm
 LDLIBS += $(call ld-option, -lz)
 LDLIBS += $(call ld-option, -lbz2)
+endif
 endif
 ifeq ($(IO), ffmpeg)
 OBJS += input.o
