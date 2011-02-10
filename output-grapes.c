@@ -29,7 +29,16 @@ static struct output_stream *out;
 
 void output_init(int bufsize, const char *config)
 {
-  out = out_stream_init(config, "media=av");
+  char cfg[256];
+
+  if (config && (strlen(config) > 4) && (memcmp(config, "udp:", 4) == 0)) {
+    config += 4;
+    sprintf(cfg, "dechunkiser=udp");
+    sprintf(cfg + strlen(cfg), ",%s", config);
+  } else {
+    sprintf(cfg, "dechunkiser=avf,media=av");
+  }
+  out = out_stream_init(config, cfg);
   if (out == NULL) {
      fprintf(stderr, "Error: can't initialize output module\n");
      exit(1);

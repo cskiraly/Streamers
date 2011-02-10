@@ -35,7 +35,12 @@ struct input_desc *input_open(const char *fname, uint16_t flags, int *fds, int f
   if (res == NULL) {
     return NULL;
   }
-  sprintf(cfg, "media=av");
+  if (flags & INPUT_UDP) {
+    sprintf(cfg, "chunkiser=udp");
+    sprintf(cfg + strlen(cfg), ",%s", fname);
+  } else {
+    sprintf(cfg, "chunkiser=avf,media=av");
+  }
   if (flags & INPUT_LOOP) {
     sprintf(cfg + strlen(cfg), ",loop=1");
   }
@@ -92,13 +97,19 @@ int input_get(struct input_desc *s, struct chunk *c)
   if (s->first_ts == 0) {
     s->first_ts = c->timestamp;
   }
-  delta = c->timestamp - s->first_ts + s->interframe;
   gettimeofday(&now, NULL);
-  delta = delta + s->start_time - now.tv_sec * 1000000ULL - now.tv_usec;
-  dprintf("Delta: %lld\n", delta);
-  dprintf("Generate Chunk[%d] (TS: %llu)\n", c->id, c->timestamp);
-
+  if (s->interframe) {
+    delta = c->timestamp - s->first_ts + s->interframe;
+    delta = delta + s->start_time - now.tv_sec * 1000000ULL - now.tv_usec;
+    dprintf("Delta: %lld\n", delta);
+    dprintf("Generate Chunk[%d] (TS: %llu)\n", c->id, c->timestamp);
+    if (delta < 0) {
+      delta = 0;
+    }
+  } else {
+    delta = 999999;		/* FIXME */
+  }
   c->timestamp = now.tv_sec * 1000000ULL + now.tv_usec;
 
-  return delta > 0 ? delta : 0;
+  return delta;
 }

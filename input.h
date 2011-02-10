@@ -8,6 +8,7 @@
 #define INPUT_H
 
 #define INPUT_LOOP 0x0001
+#define INPUT_UDP 0x0002
 
 struct input_desc;
 struct chunk;
