@@ -107,7 +107,7 @@ int input_get(struct input_desc *s, struct chunk *c)
       delta = 0;
     }
   } else {
-    delta = 999999;		/* FIXME */
+    delta = 0;		/* Will not be used */
   }
   c->timestamp = now.tv_sec * 1000000ULL + now.tv_usec;
 
