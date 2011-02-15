@@ -225,6 +225,7 @@ void add_measures(struct nodeID *id)
 	// Chunks
        add_measure(&id->mhs[j++], RX_PACKET, DATA | IN_BAND, P2P_PUBLISH_INTERVAL, "RxChunks", stwinavgrate, sizeof(stwinavgrate)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//RxChunks_sum [chunks] RxChunks_rate [chunks/sec]
        add_measure(&id->mhs[j++], TX_PACKET, DATA | IN_BAND, P2P_PUBLISH_INTERVAL, "TxChunks", stwinavgrate, sizeof(stwinavgrate)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//TxChunks_sum [chunks] TxChunks_rate [chunks/sec]
+	add_measure(&id->mhs[j++], BULK_TRANSFER, PACKET | DATA | IN_BAND, P2P_PUBLISH_INTERVAL, "BulkTransfer", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK); //Bulktransfer [bit/s]
 //	// Capacity
 	add_measure(&id->mhs[j++], CLOCKDRIFT, PACKET | IN_BAND, 0, NULL, NULL, 0, id->addr, MSG_TYPE_CHUNK);
 	monSetParameter (id->mhs[j-1], P_CLOCKDRIFT_ALGORITHM, 1);
