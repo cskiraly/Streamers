@@ -243,8 +243,6 @@ void add_measures(struct nodeID *id)
        start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "RxChunks", stwinavgrate, sizeof(stwinavgrate)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//RxChunks_sum [chunks] RxChunks_rate [chunks/sec]
        id->mhs[j] = monCreateMeasure(TX_PACKET, DATA | IN_BAND);
        start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "TxChunks", stwinavgrate, sizeof(stwinavgrate)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//TxChunks_sum [chunks] TxChunks_rate [chunks/sec]
-       id->mhs[j] = monCreateMeasure(BULK_TRANSFER, PACKET | DATA | IN_BAND);
-       start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "BulkTransfer", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK); //Bulktransfer [bit/s]
 
 //	// Capacity
 	id->mhs[j] = monCreateMeasure(CLOCKDRIFT, PACKET | IN_BAND);
@@ -258,6 +256,8 @@ void add_measures(struct nodeID *id)
 	start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "Capacity", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//[bytes/s]
 
 	//Available capacity
+       id->mhs[j] = monCreateMeasure(BULK_TRANSFER, PACKET | DATA | IN_BAND);
+       start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "BulkTransfer", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK); //Bulktransfer [bit/s]
 	id->mhs[j] = monCreateMeasure(AVAILABLE_BW_FORECASTER, PACKET | IN_BAND);
 	start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "AvailableBW", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//[bytes/s]
 
