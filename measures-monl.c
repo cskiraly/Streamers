@@ -257,6 +257,10 @@ void add_measures(struct nodeID *id)
 //	monSetParameter (id->mhs[j], P_CAPPROBE_PKT_TH, 5);
 	start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "Capacity", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//[bytes/s]
 
+	//Available capacity
+	id->mhs[j] = monCreateMeasure(AVAILABLE_BW_FORECASTER, PACKET | IN_BAND);
+	start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "AvailableBW", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//[bytes/s]
+
 	// for static must not be more then 10 or whatever size is in net_helper-ml.c
 	id->n_mhs = j;
 }
