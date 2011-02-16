@@ -95,7 +95,8 @@ int sigParseData(const struct nodeID *fromid, uint8_t *buff, int buff_len) {
     struct chunkID_set *c_set;
     struct nodeID *ownerid;
     enum signaling_type sig_type;
-    int max_deliver = 0, trans_id = 0;
+    int max_deliver = 0;
+    uint16_t trans_id = 0;
     int ret = 1;
     dprintf("Decoding signaling message...\n");
 
