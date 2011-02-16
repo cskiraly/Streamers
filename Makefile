@@ -95,20 +95,20 @@ else
 OBJS += measures.o
 endif
 
-IO ?= ffmpeg
-ifeq ($(IO), ffmpeg)
-OBJS += input.o
-OBJS += Chunkiser/input-stream-avs.o 
-OBJS += output.o 
-OBJS += out-stream-avf.o
-CPPFLAGS += -I$(FFMPEG_DIR)/include
-LDFLAGS += -L$(FFMPEG_DIR)/lib
+IO ?= grapes
+ifeq ($(IO), grapes)
+OBJS += input-grapes.o output-grapes.o
+ifdef FFMPEG_DIR
+CPPFLAGS += -I$(FFMPEG_DIR)
+LDFLAGS += -L$(FFMPEG_DIR)/libavcodec -L$(FFMPEG_DIR)/libavformat -L$(FFMPEG_DIR)/libavutil -L$(FFMPEG_DIR)/libavcore
 CFLAGS += -pthread
 LDFLAGS += -pthread
 LDLIBS += -lavformat -lavcodec -lavutil
+LDLIBS += $(call ld-option, -lavcore)
 LDLIBS += -lm
 LDLIBS += $(call ld-option, -lz)
 LDLIBS += $(call ld-option, -lbz2)
+endif
 endif
 ifeq ($(IO), httpmhd)
 CPPFLAGS += -DHTTPIO_MHD
@@ -146,17 +146,6 @@ LOCAL_CURL=$(ULPLAYER)/$(ULPLAYER_EXTERNAL_LIBS)/curl/temp_curl_install
 CPPFLAGS += -I$(LOCAL_CURL)/include
 LDFLAGS += -L$(LOCAL_CURL)/lib
 LDLIBS += $(LOCAL_CURL)/lib/libcurl.a -lrt
-endif
-ifeq ($(IO), dummy)
-OBJS += input.o
-OBJS += input-stream-dummy.o 
-OBJS += output.o 
-OBJS += out-stream-dummy.o
-endif
-ifeq ($(IO), udp)
-OBJS += input-udp.o
-OBJS += output.o
-OBJS += out-stream-udp.o
 endif
 
 EXECTARGET = offerstreamer

@@ -123,16 +123,23 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
   }
   while (!done) {
     int len, res;
-    struct timeval tv;
-    int wait4fds[FDSSIZE];
+    struct timeval tv, *ptv;
+    int wait4fds[FDSSIZE], *pfds;
 
 #ifdef HTTPIO
     memcpy(wait4fds, fds, sizeof(fds));
     res = wait4data(s, NULL, wait4fds);
 #else
-    tout_init(&tv);
-    memcpy(wait4fds, fds, sizeof(fds));
-    res = wait4data(s, &tv, wait4fds);
+    if (fds[0] == -1) {
+      tout_init(&tv);
+      ptv = &tv;
+      pfds = NULL;
+    } else {
+      memcpy(wait4fds, fds, sizeof(fds));
+      pfds = wait4fds;
+      ptv = NULL;
+    }
+    res = wait4data(s, ptv, pfds);
 #endif
     if (res == 1) {
       struct nodeID *remote;

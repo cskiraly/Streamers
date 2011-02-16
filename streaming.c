@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include <math.h>
 #include <assert.h>
+#include <string.h>
 
 #include <net_helper.h>
 #include <chunk.h> 
@@ -107,7 +108,16 @@ void stream_init(int size, struct nodeID *myID)
 
 int source_init(const char *fname, struct nodeID *myID, bool loop, int *fds, int fds_size)
 {
-  input = input_open(fname, loop ? INPUT_LOOP : 0, fds, fds_size);
+  int flags = 0;
+
+  if (memcmp(fname, "udp:", 4) == 0) {
+    fname += 4;
+    flags = INPUT_UDP;
+  }
+  if (loop) {
+    flags |= INPUT_LOOP;
+  }
+  input = input_open(fname, flags, fds, fds_size);
   if (input == NULL) {
     return -1;
   }
