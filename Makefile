@@ -24,6 +24,7 @@ ULPLAYER_EXTERNAL_LIBS ?= external_libs
 
 CPPFLAGS = -I$(NAPA)/include
 CPPFLAGS += -I$(GRAPES)/include
+CPPFLAGS += -Itransition
 
 ifdef GPROF
 CFLAGS += -pg -O0
