@@ -280,8 +280,9 @@ void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
   static struct chunk c;
   struct peer *p;
   static int bcast_cnt;
+  int transid;
 
-  res = decodeChunk(&c, buff + 1, len - 1);
+  res = parseChunkMsg(buff + 1, len - 1, &c, &transid);
   if (res > 0) {
     chunk_attributes_update_received(&c);
     chunk_unlock(c.id);
