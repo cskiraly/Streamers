@@ -27,7 +27,6 @@
 #include "measures.h"
 #include "config.h"
 
-
 static int NEIGHBORHOOD_TARGET_SIZE;
 
 static struct peerset *pset;
@@ -148,7 +147,7 @@ static void topo_ALTO_init(char* myIP)
 
 void topologyShutdown(void)
 {
-  stop_ALTO_client();
+  if (g_config.alto_server) stop_ALTO_client();
   config_free();
 }
 
@@ -157,7 +156,7 @@ void topologyShutdown(void)
 */
 void PeerSelectorALTO(void)
 {
-	int p, i, j, rescode;
+	int p, i, rescode, j = 0;
 	struct timeval tnow;
 	uint64_t timenow;
 
@@ -241,14 +240,16 @@ void PeerSelectorALTO(void)
 			/* add ALTO peers */
 			fprintf(stderr,"\nSorted ALTO peers:\n");
 			for (i = 0; i < ALTO_bucket_size; i++) {
-				altoList[i] = findALTOPeerInNeighbourList(currentNeighborhood, c_neigh_size, i);
-
-				fprintf(stderr,"ALTO peer %d: id  = %s ; rating = %d\n ", (i+1), node_addr(altoList[i]), ALTOInfo.peers[i].rating);
+				altoList[j] = findALTOPeerInNeighbourList(currentNeighborhood, c_neigh_size, i);
+				if (altoList[j]) {
+					fprintf(stderr,"ALTO peer %d: id  = %s ; rating = %d\n ", (j+1), node_addr(altoList[j]), ALTOInfo.peers[i].rating);
+					j++;
+				}
 			}
 
 		/* add remaining peers randomly */
 		fprintf(stderr,"\nMore ALTO randomly picked peers:\n");
-		for (j = ALTO_bucket_size; j < ALTO_bucket_size + RAND_bucket_size; j++) {
+		for (i = 0; i < RAND_bucket_size; i++) {
 			do { // FIXME: it works only if gossipNeighborhood is realloc'ed for sure between two queries...
 				p = rand() % c_neigh_size;
 			} while (!currentNeighborhood[p]);
@@ -256,8 +257,10 @@ void PeerSelectorALTO(void)
 			altoList[j] = currentNeighborhood[p];
 			currentNeighborhood[p] = NULL;
 			fprintf(stderr,"ALTO peer %d: id  = %s\n ", (j+1), node_addr(altoList[j]));
+			j++;
 		}
 		newAltoResults = 1;
+		altoList_size = j;
 	}
 	}
 
@@ -281,8 +284,9 @@ int topologyInit(struct nodeID *myID, const char *config)
 	bind_msg_type(mTypes[0]);
 	config_init();
 	config_load("streamer.conf");
+	if (g_config.alto_server && (strcmp(g_config.alto_server, "") == 0)) g_config.alto_server = NULL;	//handle the case of empty string
 	//config_dump();
-	topo_ALTO_init(node_ip(myID));
+	if (g_config.alto_server) topo_ALTO_init(node_ip(myID));
 	return (topInit(myID, NULL, 0, config));
 }
 
@@ -303,7 +307,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 		}
 		free(currentNeighborhood);
 		c_neigh_size = npeers + psize;
-		currentNeighborhood = calloc(c_neigh_size,sizeof(struct nodeID *));
+		currentNeighborhood = c_neigh_size ? calloc(c_neigh_size,sizeof(struct nodeID *)) : NULL;
 		for (i=0; i < psize; i++) {
 			currentNeighborhood[i] = nodeid_dup((peerset_get_peers(pset)[i]).id);
 		}
@@ -316,11 +320,11 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 		c_neigh_size = i;
 		currentNeighborhood = i?realloc(currentNeighborhood,c_neigh_size * sizeof(struct nodeID *)):NULL;
 	}
-	if (c_neigh_size > 1) {
+	if (g_config.alto_server && c_neigh_size > 1) {
 		PeerSelectorALTO();
 	}
 
-	if (ALTO_query_state() == ALTO_QUERY_READY && newAltoResults==1) {
+	if (g_config.alto_server && ALTO_query_state() == ALTO_QUERY_READY && newAltoResults==1) {
 	//	fprintf(stderr,"Composing peerset from ALTO selection\n");
 		for (i=0; i < altoList_size; i++) { /* first goal : add all new ALTO-ranked peers
 											second goal : do not increase current peerset size
@@ -351,13 +355,12 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 		}
 		newAltoResults = 2;
 	}
-	if (peerset_size(pset) < NEIGHBORHOOD_TARGET_SIZE) { // ALTO selection didn't fill the peerset
+	if (!NEIGHBORHOOD_TARGET_SIZE || peerset_size(pset) < NEIGHBORHOOD_TARGET_SIZE) {
+		// ALTO selection didn't fill the peerset
 		//	fprintf(stderr,"Composing peerset from ncast neighborhood\n");
 		for (i=0;i<npeers;i++) {
 			if(peerset_check(pset, nbrs[i]) < 0) {
-				if (!NEIGHBORHOOD_TARGET_SIZE || peerset_size(pset) < NEIGHBORHOOD_TARGET_SIZE) {
-					add_peer(nbrs[i]);
-				}
+				add_peer(nbrs[i]);
 			}
 		}
 	}

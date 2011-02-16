@@ -31,13 +31,13 @@ static int period = 40;
 static int chunks_per_second = 25;
 #ifdef HTTPIO
 //input-http.c needs this in order to accomplish the -m multiple send_chunk()
-int multiply = 1;
+int multiply = 3;
 #else
-static int multiply = 1;
+static int multiply = 3;
 #endif
 static int buff_size = 50;
-static int outbuff_size = 25;
-static const char *fname = "input.mpg";
+static int outbuff_size = 50;
+static const char *fname = "/dev/stdin";
 static const char *output_config;
 static bool loop_input = false;
 static const char *net_helper_config = "";
@@ -49,10 +49,10 @@ extern int NEIGHBORHOOD_TARGET_SIZE;
 extern struct timeval print_tdiff;
 extern struct timeval tstartdiff;
 
-static void print_usage()
+static void print_usage(int argc, char *argv[])
 {
   fprintf (stderr,
-    "Usage:offerstreamer [-bocmtpiPIflCh --chunk_log]\n"
+    "Usage:%s [options]\n"
     "\n"
     "Peer options\n"
     "\t[-p port]: port of the remote peer to connect at during bootstrap.\n"
@@ -68,36 +68,34 @@ static void print_usage()
     "\t[-c chunks]: set the number of chunks a peer can send per seconds.\n"
     "\t             it controls the upload capacity of peer as well.\n"
     "\t[-M peers]: neighbourhood target size.\n"
-    "\t[-t time]: chunk emission period. STILL NEEDED??\n"
     "\t[-P port]: local UDP port to be used by the peer.\n"
-    "\t[-I IP]: local IP address to be used by the peer.\n"
+    "\t[-I iface]: local netwok interface to be used by the peer.\n"
     "\t         Useful if the host has several interfaces/addresses.\n"
     "\t[-N name]: set the name of the peer.\n"
     "\t         This name will be used when publishing in the repository.\n"
     "\t[-n options]: pass configuration options to the net-helper\n"
     "\t[--chunk_log]: print a chunk level log on stderr\n"
+    "\t[-F config]: configure the output module\n"
     "\n"
     "Special Source Peer options\n"
     "\t[-m chunks]: set the number of copies the source injects in the overlay.\n"
     "\t[-f filename]: name of the video stream file to transmit.\n"
-    "\t[-F config]: configure the output module\n"
     "\t[-l]: loop the video stream.\n"
     "\n"
-    "NOTE: the peer will dump the received video on STDOUT in raw format\n"
+    "NOTE: by deafult the peer will dump the received video on STDOUT in raw format\n"
     "      it can be played by your favourite player simply using a pipe\n"
-    "      e.g., | vlc -\n"
+    "      e.g., | cvlc /dev/stdin\n"
     "\n"
     "Examples:\n"
     "\n"
     "Start a source peer on port 6600:\n"
     "\n"
-    "./offestreamer -m 3 -C MyTest -l -f foreman.avi -P 6600\n"
+    "%s -l -f foreman.mpg -P 6600\n"
     "\n"
     "Start a peer connecting to the previous source, and using videolan as player:\n"
     "\n"
-    "./offerstreamer -i 130.192.9.140 -p 6600 |vlc -\n"
-    "\n"
-    
+    "%s -i <sourceIP> -p <sourcePort> | cvlc /dev/stdin\n"
+    "=======================================================\n", argv[0], argv[0], argv[0]
     );
   }
 
@@ -115,7 +113,7 @@ static void cmdline_parse(int argc, char *argv[])
 	{0, 0, 0, 0}
   };
 
-    while ((o = getopt_long (argc, argv, "b:o:c:t:p:i:P:I:f:F:m:lC:N:n:M:",long_options, &option_index)) != -1) { //use this function to manage long options
+    while ((o = getopt_long (argc, argv, "b:o:c:p:i:P:I:f:F:m:lC:N:n:M:",long_options, &option_index)) != -1) { //use this function to manage long options
     switch(o) {
       case 0: //for long options
         if( strcmp( "chunk_log", long_options[option_index].name ) == 0 ) { chunk_log = true; }
@@ -133,9 +131,6 @@ static void cmdline_parse(int argc, char *argv[])
         break;
       case 'm':
         multiply = atoi(optarg);
-        break;
-      case 't':
-        period = atoi(optarg);
         break;
       case 'p':
         srv_port = atoi(optarg);
@@ -171,7 +166,7 @@ static void cmdline_parse(int argc, char *argv[])
         break;
       default:
         fprintf(stderr, "Error: unknown option %c\n", o);
-        print_usage();
+        print_usage(argc, argv);
 
         exit(-1);
     }
@@ -179,6 +174,11 @@ static void cmdline_parse(int argc, char *argv[])
 
   if (!channel_get_name()) {
     channel_set_name("generic");
+  }
+
+  if (argc <= 1) {
+    print_usage(argc, argv);
+    fprintf(stderr, "Trying to start a source with default parameters, reading from %s\n", fname);
   }
 }
 
