@@ -447,7 +447,7 @@ void send_accepted_chunks(struct nodeID *toid, struct chunkID_set *cset_acc, int
     c = cb_get_chunk(cb, chunkid);
     if (c && (!to || needs(to, chunkid)) ) {// we should have the chunk, and he should not have it. Although the "accept" should have been an answer to our "offer", we do some verification
       chunk_attributes_update_sending(c);
-      res = sendChunk(toid, c);
+      res = sendChunk(toid, c, trans_id);
       if (res >= 0) {
         if(to) chunkID_set_add_chunk(to->bmap, c->id); //don't send twice ... assuming that it will actually arrive
         d++;
@@ -566,7 +566,7 @@ void send_chunk()
       send_bmap(p->id);
 
       chunk_attributes_update_sending(c);
-      res = sendChunk(p->id, c);
+      res = sendChunk(p->id, c, 0);	//we do not use transactions in pure push
       if(chunk_log){fprintf(stderr, "TEO: Sending chunk %d to peer: %s at: %lld Result: %d Size: %d bytes\n", c->id, node_addr(p->id), gettimeofday_in_us(), res, c->size);}
       dprintf("\tResult: %d\n", res);
       if (res>=0) {
