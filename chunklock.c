@@ -9,6 +9,8 @@
 #include <string.h>
 #include <stdint.h>
 
+#include "compatibility/timer.h"
+
 #include "chunklock.h"
 
 #include "net_helper.h"

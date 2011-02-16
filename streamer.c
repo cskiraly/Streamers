@@ -14,6 +14,10 @@
 #include <grapes_msg_types.h>
 #include <net_helper.h>
 
+#ifdef WIN32
+#include <winsock2.h>
+#endif
+
 #include "net_helpers.h"
 #include "loop.h"
 #include "output.h"

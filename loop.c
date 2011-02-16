@@ -18,6 +18,8 @@
 #include <peerset.h>
 #include <peer.h>
 
+#include "compatibility/timer.h"
+
 #include "chunk_signaling.h"
 #include "streaming.h"
 #include "topology.h"
