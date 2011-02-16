@@ -100,7 +100,7 @@ ifeq ($(IO), grapes)
 OBJS += input-grapes.o output-grapes.o
 ifdef FFMPEG_DIR
 CPPFLAGS += -I$(FFMPEG_DIR)
-LDFLAGS += -L$(FFMPEG_DIR)/libavcodec -L$(FFMPEG_DIR)/libavformat -L$(FFMPEG_DIR)/libavutil -L$(FFMPEG_DIR)/libavcore
+LDFLAGS += -L$(FFMPEG_DIR)/libavcodec -L$(FFMPEG_DIR)/libavformat -L$(FFMPEG_DIR)/libavutil -L$(FFMPEG_DIR)/libavcore -L$(FFMPEG_DIR)/lib
 CFLAGS += -pthread
 LDFLAGS += -pthread
 LDLIBS += -lavformat -lavcodec -lavutil
