@@ -155,6 +155,7 @@ static void cmdline_parse(int argc, char *argv[])
         break;
       case 'C':
         channel_set_name(optarg);
+        break;
       case 'n':
         net_helper_config = strdup(optarg);
         break;
@@ -209,6 +210,7 @@ static struct nodeID *init(void)
     return NULL;
   }
   free(my_addr);
+  fprintf(stderr, "My network ID is: %s\n", node_addr(myID));
   topologyInit(myID, "");
 
   return myID;
@@ -245,9 +247,8 @@ int main(int argc, char *argv[])
     topoAddNeighbour(srv, NULL, 0);
 
     loop(my_sock, 1000000 / chunks_per_second, buff_size);
+  } else {
+    source_loop(fname, my_sock, period * 1000, multiply, loop_input);
   }
-
-  source_loop(fname, my_sock, period * 1000, multiply, loop_input);
-
   return 0;
 }

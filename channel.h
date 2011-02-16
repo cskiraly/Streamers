@@ -6,7 +6,7 @@
 #ifndef CHANNEL_H
 #define CHANNEL_H
 
-void channel_set_name(char *);
+void channel_set_name(const char *);
 const char *channel_get_name();
 
 #endif

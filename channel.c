@@ -10,7 +10,7 @@
 
 static char * chname = NULL;
 
-void channel_set_name(char *ch)
+void channel_set_name(const char *ch)
 {
   free(chname);
   chname = strdup(ch);

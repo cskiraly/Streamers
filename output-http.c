@@ -35,6 +35,7 @@ void output_init1(int bufsize, const char *config)
   }
 	//we use the -F portnum parameter as the http port number
 	sprintf(url, "http://%s:%d%s", PLAYER_IP, base_port, UL_DEFAULT_EXTERNALPLAYER_PATH);
+	initChunkPusher();
 }
 
 void output_deliver1(const struct chunk *c)
