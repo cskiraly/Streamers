@@ -291,7 +291,7 @@ void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
   static struct chunk c;
   struct peer *p;
   static int bcast_cnt;
-  int transid;
+  uint16_t transid;
 
   res = parseChunkMsg(buff + 1, len - 1, &c, &transid);
   if (res > 0) {
