@@ -148,7 +148,7 @@ LDFLAGS += -L$(LOCAL_CURL)/lib
 LDLIBS += $(LOCAL_CURL)/lib/libcurl.a -lrt
 endif
 
-EXECTARGET = winestreamer
+EXECTARGET = streamer
 ifdef ML
 EXECTARGET := $(EXECTARGET)-ml
 endif

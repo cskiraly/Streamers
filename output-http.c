@@ -42,7 +42,7 @@ void output_deliver1(const struct chunk *c)
   int ret = -1;
 
 	//deliver the chunk to the external http player listening on http port
-	//which has been setup via the -F option of the winestreamer commandline
+	//which has been setup via the -F option of the streamer commandline
 	//If port was set > 60000 the the http
 	//deliver is disabled, to allow mixed testing scenarios
 	if(base_port < 60000) {
