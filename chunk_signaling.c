@@ -73,7 +73,9 @@ void offer_received(const struct nodeID *fromid, struct chunkID_set *cset, int m
 }
 
 void accept_received(const struct nodeID *fromid, struct chunkID_set *cset, int max_deliver, uint16_t trans_id) {
-  struct peer *from = nodeid_to_peer(fromid,0);   //verify that we have really offered, 0 at least garantees that we've known the peer before
+  //TODO: verify if such a verification is needed
+  //struct peer *from = nodeid_to_peer(fromid,0);   //verify that we have really offered, 0 at least garantees that we've known the peer before
+
   dprintf("The peer %s accepted our offer for %d chunks, max deliver %d.\n", node_addr(fromid), chunkID_set_size(cset), max_deliver);
 
   send_accepted_chunks(fromid, cset, max_deliver, trans_id);
@@ -95,7 +97,8 @@ int sigParseData(const struct nodeID *fromid, uint8_t *buff, int buff_len) {
     struct chunkID_set *c_set;
     struct nodeID *ownerid;
     enum signaling_type sig_type;
-    int max_deliver = 0, trans_id = 0;
+    int max_deliver = 0;
+    uint16_t trans_id = 0;
     int ret = 1;
     dprintf("Decoding signaling message...\n");
 

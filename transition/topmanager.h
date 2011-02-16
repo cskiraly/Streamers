@@ -22,7 +22,7 @@ inline const struct nodeID **topGetNeighbourhood(int *n)
 
 inline const void *topGetMetadata(int *metadata_size)
 {
-  psample_get_metadata(tc, metadata_size);
+  return psample_get_metadata(tc, metadata_size);
 }
 
 inline int topGrowNeighbourhood(int n)
@@ -63,10 +63,12 @@ inline int topParseData(const uint8_t *buff, int len)
 
 inline int topAddToBlackList(struct nodeID *neighbour)
 {
+  return 0;
 }
 
 inline int tmanAddToBlackList(struct nodeID *neighbour)
 {
+  return 0;
 }
 
 #endif //TOPMAN_H

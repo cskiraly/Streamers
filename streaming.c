@@ -167,7 +167,7 @@ void chunk_attributes_update_received(struct chunk* c)
   dprintf("Received chunk %d with hopcount %hu\n", c->id, ca->hopcount);
 }
 
-void chunk_attributes_update_sending(struct chunk* c)
+void chunk_attributes_update_sending(const struct chunk* c)
 {
   struct chunk_attributes * ca;
 
@@ -291,7 +291,7 @@ void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
   static struct chunk c;
   struct peer *p;
   static int bcast_cnt;
-  int transid;
+  uint16_t transid;
 
   res = parseChunkMsg(buff + 1, len - 1, &c, &transid);
   if (res > 0) {
@@ -441,7 +441,7 @@ double chunkScoreChunkID(int *cid){
 }
 
 double getChunkTimestamp(int *cid){
-  struct chunk *c = cb_get_chunk(cb, *cid);
+  const struct chunk *c = cb_get_chunk(cb, *cid);
   if (!c) return 0;
 
   return (double) c->timestamp;
@@ -454,7 +454,7 @@ void send_accepted_chunks(struct nodeID *toid, struct chunkID_set *cset_acc, int
   cset_acc_size = chunkID_set_size(cset_acc);
   reg_offer_accept(cset_acc_size > 0 ? 1 : 0);	//this only works if accepts are sent back even if 0 is accepted
   for (i = 0, d=0; i < cset_acc_size && d < max_deliver; i++) {
-    struct chunk *c;
+    const struct chunk *c;
     int chunkid = chunkID_set_get_chunk(cset_acc, i);
     c = cb_get_chunk(cb, chunkid);
     if (c && (!to || needs(to, chunkid)) ) {// we should have the chunk, and he should not have it. Although the "accept" should have been an answer to our "offer", we do some verification
