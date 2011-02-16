@@ -15,9 +15,9 @@ void received_chunk(struct nodeID *from, const uint8_t *buff, int len);
 void send_chunk();
 struct chunk *generated_chunk(suseconds_t *delta);
 int add_chunk(struct chunk *c);
-struct chunkID_set *get_chunks_to_accept(struct nodeID *fromid, const struct chunkID_set *cset_off, int max_deliver, int trans_id);
+struct chunkID_set *get_chunks_to_accept(struct nodeID *fromid, const struct chunkID_set *cset_off, int max_deliver, uint16_t trans_id);
 void send_offer();
-void send_accepted_chunks(struct nodeID *to, struct chunkID_set *cset_acc, int max_deliver, int trans_id);
+void send_accepted_chunks(struct nodeID *to, struct chunkID_set *cset_acc, int max_deliver, uint16_t trans_id);
 void send_bmap(struct nodeID *to);
 
 #endif	/* STREAMING_H */

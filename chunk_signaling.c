@@ -31,7 +31,7 @@
 
 static bool neigh_on_sign_recv = false;
 
-void bmap_received(const struct nodeID *fromid, const struct nodeID *ownerid, struct chunkID_set *c_set, int cb_size, int trans_id) {
+void bmap_received(const struct nodeID *fromid, const struct nodeID *ownerid, struct chunkID_set *c_set, int cb_size, uint16_t trans_id) {
   struct peer *owner;
   if (nodeid_equal(fromid, ownerid)) {
     owner = nodeid_to_peer(ownerid, neigh_on_sign_recv);
@@ -49,7 +49,7 @@ void bmap_received(const struct nodeID *fromid, const struct nodeID *ownerid, st
   }
 }
 
-void offer_received(const struct nodeID *fromid, struct chunkID_set *cset, int max_deliver, int trans_id) {
+void offer_received(const struct nodeID *fromid, struct chunkID_set *cset, int max_deliver, uint16_t trans_id) {
   struct chunkID_set *cset_acc;
 
   struct peer *from = nodeid_to_peer(fromid, neigh_on_sign_recv);
@@ -72,7 +72,7 @@ void offer_received(const struct nodeID *fromid, struct chunkID_set *cset, int m
     chunkID_set_free(cset_acc);
 }
 
-void accept_received(const struct nodeID *fromid, struct chunkID_set *cset, int max_deliver, int trans_id) {
+void accept_received(const struct nodeID *fromid, struct chunkID_set *cset, int max_deliver, uint16_t trans_id) {
   struct peer *from = nodeid_to_peer(fromid,0);   //verify that we have really offered, 0 at least garantees that we've known the peer before
   dprintf("The peer %s accepted our offer for %d chunks, max deliver %d.\n", node_addr(fromid), chunkID_set_size(cset), max_deliver);
 
