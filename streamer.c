@@ -45,6 +45,7 @@ static const char *fname = "/dev/stdin";
 static const char *output_config;
 static bool loop_input = false;
 static const char *net_helper_config = "";
+static const char *topo_config = "";
 unsigned char msgTypes[] = {MSG_TYPE_CHUNK,MSG_TYPE_SIGNALLING};
 bool chunk_log = false;
 
@@ -72,6 +73,7 @@ static void print_usage(int argc, char *argv[])
     "\t[-c chunks]: set the number of chunks a peer can send per seconds.\n"
     "\t             it controls the upload capacity of peer as well.\n"
     "\t[-M peers]: neighbourhood target size.\n"
+    "\t[-t config]: topology config.\n"
     "\t[-P port]: local UDP port to be used by the peer.\n"
     "\t[-I iface]: local netwok interface to be used by the peer.\n"
     "\t         Useful if the host has several interfaces/addresses.\n"
@@ -117,7 +119,7 @@ static void cmdline_parse(int argc, char *argv[])
 	{0, 0, 0, 0}
   };
 
-    while ((o = getopt_long (argc, argv, "b:o:c:p:i:P:I:f:F:m:lC:N:n:M:",long_options, &option_index)) != -1) { //use this function to manage long options
+    while ((o = getopt_long (argc, argv, "b:o:c:p:i:P:I:f:F:m:lC:N:n:M:t:",long_options, &option_index)) != -1) { //use this function to manage long options
     switch(o) {
       case 0: //for long options
         if( strcmp( "chunk_log", long_options[option_index].name ) == 0 ) { chunk_log = true; }
@@ -169,6 +171,9 @@ static void cmdline_parse(int argc, char *argv[])
       case 'M':
         NEIGHBORHOOD_TARGET_SIZE = atoi(optarg);
         break;
+      case 't':
+        topo_config = strdup(optarg);
+        break;
       default:
         fprintf(stderr, "Error: unknown option %c\n", o);
         print_usage(argc, argv);
@@ -215,7 +220,7 @@ static struct nodeID *init(void)
   }
   free(my_addr);
   fprintf(stderr, "My network ID is: %s\n", node_addr(myID));
-  topologyInit(myID, "");
+  topologyInit(myID, topo_config);
 
   return myID;
 }
