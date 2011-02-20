@@ -76,6 +76,10 @@ void print_measure(const char *name, double value)
 void print_measures()
 {
   struct timeval tnow;
+  double timespan;
+
+  gettimeofday(&tnow, NULL);
+  timespan = tdiff_sec(&tnow, &print_tstart);
 
   if (m.chunks) print_measure("PlayoutRatio", (double)m.played / m.chunks);
   if (m.chunks) print_measure("ReorderDelay(ok&lost)", (double)m.sum_reorder_delay / 1e6 / m.chunks);
@@ -83,38 +87,37 @@ void print_measures()
   if (m.chunks_received_nodup) print_measure("OverlayDistance(intime&nodup)", (double)m.sum_hopcount / m.chunks_received_nodup);
   if (m.chunks_received_nodup) print_measure("ReceiveDelay(intime&nodup)", (double)m.sum_receive_delay / 1e6 / m.chunks_received_nodup);
 
-  gettimeofday(&tnow, NULL);
-  if (timerisset(&print_tstart)) print_measure("ChunkRate", (double) m.chunks / tdiff_sec(&tnow, &print_tstart));
-  if (timerisset(&print_tstart)) print_measure("ChunkReceiveRate(all)", (double) (m.chunks_received_old + m.chunks_received_nodup + m.chunks_received_dup)  / tdiff_sec(&tnow, &print_tstart));
-  if (timerisset(&print_tstart)) print_measure("ChunkReceiveRate(old)", (double) m.chunks_received_old / tdiff_sec(&tnow, &print_tstart));
-  if (timerisset(&print_tstart)) print_measure("ChunkReceiveRate(intime&nodup)", (double) m.chunks_received_nodup / tdiff_sec(&tnow, &print_tstart));
-  if (timerisset(&print_tstart)) print_measure("ChunkReceiveRate(intime&dup)", (double) m.chunks_received_dup / tdiff_sec(&tnow, &print_tstart));
-  if (timerisset(&print_tstart)) print_measure("ChunkSendRate", (double) m.chunks_sent / tdiff_sec(&tnow, &print_tstart));
+  if (timerisset(&print_tstart)) print_measure("ChunkRate", (double) m.chunks / timespan);
+  if (timerisset(&print_tstart)) print_measure("ChunkReceiveRate(all)", (double) (m.chunks_received_old + m.chunks_received_nodup + m.chunks_received_dup)  / timespan);
+  if (timerisset(&print_tstart)) print_measure("ChunkReceiveRate(old)", (double) m.chunks_received_old / timespan);
+  if (timerisset(&print_tstart)) print_measure("ChunkReceiveRate(intime&nodup)", (double) m.chunks_received_nodup / timespan);
+  if (timerisset(&print_tstart)) print_measure("ChunkReceiveRate(intime&dup)", (double) m.chunks_received_dup / timespan);
+  if (timerisset(&print_tstart)) print_measure("ChunkSendRate", (double) m.chunks_sent / timespan);
 
   if (timerisset(&print_tstart)) {
-    print_measure("SendRateMsgs(all)", (double) m.msgs_sent / tdiff_sec(&tnow, &print_tstart));
-    print_measure("SendRateMsgs(chunk)", (double) m.msgs_sent_chunk / tdiff_sec(&tnow, &print_tstart));
-    print_measure("SendRateMsgs(sign)", (double) m.msgs_sent_sign / tdiff_sec(&tnow, &print_tstart));
-    print_measure("SendRateMsgs(topo)", (double) m.msgs_sent_topo / tdiff_sec(&tnow, &print_tstart));
-    print_measure("SendRateMsgs(other)", (double) (m.msgs_sent - m.msgs_sent_chunk - m.msgs_sent_sign - m.msgs_sent_topo) / tdiff_sec(&tnow, &print_tstart));
+    print_measure("SendRateMsgs(all)", (double) m.msgs_sent / timespan);
+    print_measure("SendRateMsgs(chunk)", (double) m.msgs_sent_chunk / timespan);
+    print_measure("SendRateMsgs(sign)", (double) m.msgs_sent_sign / timespan);
+    print_measure("SendRateMsgs(topo)", (double) m.msgs_sent_topo / timespan);
+    print_measure("SendRateMsgs(other)", (double) (m.msgs_sent - m.msgs_sent_chunk - m.msgs_sent_sign - m.msgs_sent_topo) / timespan);
 
-    print_measure("SendRateBytes(all)", (double) m.bytes_sent / tdiff_sec(&tnow, &print_tstart));
-    print_measure("SendRateBytes(chunk)", (double) m.bytes_sent_chunk / tdiff_sec(&tnow, &print_tstart));
-    print_measure("SendRateBytes(sign)", (double) m.bytes_sent_sign / tdiff_sec(&tnow, &print_tstart));
-    print_measure("SendRateBytes(topo)", (double) m.bytes_sent_topo / tdiff_sec(&tnow, &print_tstart));
-    print_measure("SendRateBytes(other)", (double) (m.bytes_sent - m.bytes_sent_chunk - m.bytes_sent_sign - m.bytes_sent_topo) / tdiff_sec(&tnow, &print_tstart));
+    print_measure("SendRateBytes(all)", (double) m.bytes_sent / timespan);
+    print_measure("SendRateBytes(chunk)", (double) m.bytes_sent_chunk / timespan);
+    print_measure("SendRateBytes(sign)", (double) m.bytes_sent_sign / timespan);
+    print_measure("SendRateBytes(topo)", (double) m.bytes_sent_topo / timespan);
+    print_measure("SendRateBytes(other)", (double) (m.bytes_sent - m.bytes_sent_chunk - m.bytes_sent_sign - m.bytes_sent_topo) / timespan);
 
-    print_measure("RecvRateMsgs(all)", (double) m.msgs_recvd / tdiff_sec(&tnow, &print_tstart));
-    print_measure("RecvRateMsgs(chunk)", (double) m.msgs_recvd_chunk / tdiff_sec(&tnow, &print_tstart));
-    print_measure("RecvRateMsgs(sign)", (double) m.msgs_recvd_sign / tdiff_sec(&tnow, &print_tstart));
-    print_measure("RecvRateMsgs(topo)", (double) m.msgs_recvd_topo / tdiff_sec(&tnow, &print_tstart));
-    print_measure("RecvRateMsgs(other)", (double) (m.msgs_recvd - m.msgs_recvd_chunk - m.msgs_recvd_sign - m.msgs_recvd_topo) / tdiff_sec(&tnow, &print_tstart));
+    print_measure("RecvRateMsgs(all)", (double) m.msgs_recvd / timespan);
+    print_measure("RecvRateMsgs(chunk)", (double) m.msgs_recvd_chunk / timespan);
+    print_measure("RecvRateMsgs(sign)", (double) m.msgs_recvd_sign / timespan);
+    print_measure("RecvRateMsgs(topo)", (double) m.msgs_recvd_topo / timespan);
+    print_measure("RecvRateMsgs(other)", (double) (m.msgs_recvd - m.msgs_recvd_chunk - m.msgs_recvd_sign - m.msgs_recvd_topo) / timespan);
 
-    print_measure("RecvRateBytes(all)", (double) m.bytes_recvd / tdiff_sec(&tnow, &print_tstart));
-    print_measure("RecvRateBytes(chunk)", (double) m.bytes_recvd_chunk / tdiff_sec(&tnow, &print_tstart));
-    print_measure("RecvRateBytes(sign)", (double) m.bytes_recvd_sign / tdiff_sec(&tnow, &print_tstart));
-    print_measure("RecvRateBytes(topo)", (double) m.bytes_recvd_topo / tdiff_sec(&tnow, &print_tstart));
-    print_measure("RecvRateBytes(other)", (double) (m.bytes_recvd - m.bytes_recvd_chunk - m.bytes_recvd_sign - m.bytes_recvd_topo) / tdiff_sec(&tnow, &print_tstart));
+    print_measure("RecvRateBytes(all)", (double) m.bytes_recvd / timespan);
+    print_measure("RecvRateBytes(chunk)", (double) m.bytes_recvd_chunk / timespan);
+    print_measure("RecvRateBytes(sign)", (double) m.bytes_recvd_sign / timespan);
+    print_measure("RecvRateBytes(topo)", (double) m.bytes_recvd_topo / timespan);
+    print_measure("RecvRateBytes(other)", (double) (m.bytes_recvd - m.bytes_recvd_chunk - m.bytes_recvd_sign - m.bytes_recvd_topo) / timespan);
   }
 
   if (m.chunks_received_old + m.chunks_received_nodup + m.chunks_received_dup) print_measure("ReceiveRatio(intime&nodup-vs-all)", (double)m.chunks_received_nodup / (m.chunks_received_old + m.chunks_received_nodup + m.chunks_received_dup));
@@ -123,8 +126,8 @@ void print_measures()
   if (m.samples_queue_delay) print_measure("QueueDelay", m.sum_queue_delay / m.samples_queue_delay);
 
   if (timerisset(&print_tstart)) {
-    print_measure("OfferRate", (double) m.offers / tdiff_sec(&tnow, &print_tstart));
-    print_measure("AcceptRate", (double) m.accepts / tdiff_sec(&tnow, &print_tstart));
+    print_measure("OfferRate", (double) m.offers / timespan);
+    print_measure("AcceptRate", (double) m.accepts / timespan);
   }
   if (m.offers) print_measure("OfferAcceptRatio", (double)m.accepts / m.offers);
 }
