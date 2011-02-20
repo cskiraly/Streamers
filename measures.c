@@ -233,6 +233,8 @@ void reg_chunk_send(int id)
 */
 void reg_offer_accept(bool b)
 {
+  if (!print_every()) return;
+
   m.offers++;
   if (b) m.accepts++;
 }
