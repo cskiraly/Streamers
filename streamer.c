@@ -192,6 +192,22 @@ static void cmdline_parse(int argc, char *argv[])
   }
 }
 
+static void init_rand(const char * s)
+{
+  long i, l, x;
+  struct timeval t;
+
+  gettimeofday(&t, NULL);
+
+  x = 1;
+  l = strlen(s);
+  for (i = 0; i < l; i++) {
+    x *= s[i];
+  }
+
+  srand(t.tv_usec * t.tv_sec * x);
+}
+
 static struct nodeID *init(void)
 {
   int i;
@@ -220,6 +236,9 @@ static struct nodeID *init(void)
   }
   free(my_addr);
   fprintf(stderr, "My network ID is: %s\n", node_addr(myID));
+
+  init_rand(node_addr(myID));
+
   topologyInit(myID, topo_config);
 
   return myID;
