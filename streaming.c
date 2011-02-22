@@ -34,6 +34,7 @@
 #include "topology.h"
 #include "measures.h"
 #include "scheduling.h"
+#include "transaction.h"
 
 #include "scheduler_la.h"
 
@@ -52,7 +53,6 @@ extern bool chunk_log;
 struct chunk_buffer *cb;
 static struct input_desc *input;
 static int cb_size;
-static int transid=0;
 
 static int offer_per_tick = 1;	//N_p parameter of POLITO
 
@@ -458,6 +458,8 @@ void send_accepted_chunks(struct nodeID *toid, struct chunkID_set *cset_acc, int
   int i, d, cset_acc_size, res;
   struct peer *to = nodeid_to_peer(toid, 0);
 
+  transaction_reg_accept(trans_id, to->id);
+
   cset_acc_size = chunkID_set_size(cset_acc);
   reg_offer_accept(cset_acc_size > 0 ? 1 : 0);	//this only works if accepts are sent back even if 0 is accepted
   for (i = 0, d=0; i < cset_acc_size && d < max_deliver; i++) {
@@ -533,6 +535,7 @@ void send_offer()
     selectPeersForChunks(SCHED_WEIGHTING, nodeids, n, chunkids, size, selectedpeers, &selectedpeers_len, SCHED_NEEDS, SCHED_PEER);
 
     for (i=0; i<selectedpeers_len ; i++){
+      int transid = transaction_create(selectedpeers[i]);
       int max_deliver = offer_max_deliver(selectedpeers[i]->id);
       struct chunkID_set *my_bmap = cb_to_bmap(cb);
       dprintf("\t sending offer(%d) to %s, cb_size: %d\n", transid, node_addr(selectedpeers[i]->id), selectedpeers[i]->cb_size);
