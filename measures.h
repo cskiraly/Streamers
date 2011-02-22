@@ -21,6 +21,8 @@ void reg_neigh_size(int s);
 void reg_chunk_receive(int id, uint64_t timestamp, int hopcount, bool old, bool dup);
 void reg_chunk_send(int id);
 void reg_offer_accept(bool b);
+void reg_offers_in_flight(int running_offer_threads);
+void reg_queue_delay(double last_queue_delay);
 
 #ifdef MONL
 double get_rtt(struct nodeID *id);

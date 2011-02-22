@@ -34,7 +34,7 @@ typedef struct nodeID {
 	int n_mhs;
 } nodeID;
 
-static MonHandler chunk_dup, chunk_playout, neigh_size, chunk_receive, chunk_send, offer_accept, chunk_hops, chunk_delay, playout_delay;
+static MonHandler chunk_dup, chunk_playout, neigh_size, chunk_receive, chunk_send, offer_accept, queue_delay, offers_in_flight, chunk_hops, chunk_delay, playout_delay;
 //static MonHandler rx_bytes_chunk_per_sec, tx_bytes_chunk_per_sec, rx_bytes_sig_per_sec, tx_bytes_sig_per_sec;
 //static MonHandler rx_chunks, tx_chunks;
 
@@ -171,6 +171,35 @@ void reg_offer_accept(bool b)
 		add_measure(&offer_accept, GENERIC, 0, PEER_PUBLISH_INTERVAL, "OfferAccept", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[no unit -> ratio]
 	}
 	monNewSample(offer_accept, b);
+}
+
+
+/*
+ * Register the number of offers in flight at each offer sent event
+*/
+void reg_offers_in_flight(int running_offer_threads)
+{
+	if (!offers_in_flight) {
+		enum stat_types st[] =  {AVG, WIN_AVG, LAST};
+		add_measure(&offers_in_flight, GENERIC, 0, PEER_PUBLISH_INTERVAL, "OffersInFlight", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
+		monNewSample(offers_in_flight, 0);	//force publish even if there are no events
+	}
+	else {
+		monNewSample(offers_in_flight, running_offer_threads);
+	}
+}
+
+/*
+ * Register queue delay at each ack received event
+*/
+void reg_queue_delay(double last_queue_delay)
+{
+	if (!queue_delay) {
+		enum stat_types st[] =  {AVG, WIN_AVG, LAST};
+		add_measure(&queue_delay, GENERIC, 0, PEER_PUBLISH_INTERVAL, "QueueDelay", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
+		monNewSample(queue_delay, 0);	//force publish even if there are no events
+	}
+	monNewSample(queue_delay, last_queue_delay);
 }
 
 /*
