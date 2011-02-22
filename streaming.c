@@ -256,6 +256,13 @@ void bcast_bmap()
   chunkID_set_free(my_bmap);
 }
 
+void send_ack(struct nodeID *toid, uint16_t trans_id)
+{
+  struct chunkID_set *my_bmap = cb_to_bmap(cb);
+  sendAck(toid, my_bmap,trans_id);
+  chunkID_set_free(my_bmap);
+}
+
 double get_average_lossrate_pset(struct peerset *pset)
 {
   int i, n;
