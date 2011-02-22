@@ -36,7 +36,7 @@ void ack_received(const struct nodeID *fromid, struct chunkID_set *cset, int max
   dprintf("The peer %s acked our chunk %d chunks, max deliver %d, trans_id %d.\n", node_addr(fromid), chunkID_set_get_latest(cset), max_deliver, trans_id);
 
   if (from) {
-    chunkID_set_clear(from->bmap,from->cb_size+5);	//TODO: some better solution might be needed to keep info about chunks we sent in flight.
+    chunkID_set_clear(from->bmap,0);	//TODO: some better solution might be needed to keep info about chunks we sent in flight.
     chunkID_set_union(from->bmap,cset);
     gettimeofday(&from->bmap_timestamp, NULL);
   }
