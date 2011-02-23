@@ -115,6 +115,10 @@ int source_init(const char *fname, struct nodeID *myID, bool loop, int *fds, int
     fname += 4;
     flags = INPUT_UDP;
   }
+  if (memcmp(fname, "ipb:", 4) == 0) {
+    fname += 4;
+    flags = INPUT_IPB;
+  }
   if (loop) {
     flags |= INPUT_LOOP;
   }

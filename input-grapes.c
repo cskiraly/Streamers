@@ -38,6 +38,8 @@ struct input_desc *input_open(const char *fname, uint16_t flags, int *fds, int f
   if (flags & INPUT_UDP) {
     sprintf(cfg, "chunkiser=udp");
     sprintf(cfg + strlen(cfg), ",%s", fname);
+  } else if (flags & INPUT_IPB) {
+    sprintf(cfg, "chunkiser=ipb,media=v");
   } else {
     sprintf(cfg, "chunkiser=avf,media=av");
   }
