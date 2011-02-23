@@ -130,6 +130,7 @@ int source_init(const char *fname, struct nodeID *myID, bool loop, int *fds, int
 void chunk_attributes_fill(struct chunk* c)
 {
   struct chunk_attributes * ca;
+  static uint32_t counter = 0;
 
   assert(!c->attributes && c->attributes_size == 0);
 
@@ -137,7 +138,7 @@ void chunk_attributes_fill(struct chunk* c)
   c->attributes = ca = malloc(c->attributes_size);
 
   ca->deadline = c->id;
-  ca->deadline_increment = 5;
+  ca->deadline_increment = ((counter++ % 3) + 1) * 2;
   ca->hopcount = 0;
 }
 
