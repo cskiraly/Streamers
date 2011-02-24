@@ -182,7 +182,7 @@ void chunk_attributes_update_sending(const struct chunk* c)
 
   ca = (struct chunk_attributes *) c->attributes;
   ca->deadline += ca->deadline_increment;
-  dprintf("Sending chunk %d with deadline %lu\n", c->id, ca->deadline);
+  dprintf("Sending chunk %d with deadline %lu (increment: %d)\n", c->id, ca->deadline, ca->deadline_increment);
 }
 
 struct chunkID_set *cb_to_bmap(struct chunk_buffer *chbuf)
