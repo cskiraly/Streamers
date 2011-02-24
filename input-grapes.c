@@ -69,7 +69,7 @@ struct input_desc *input_open(const char *fname, uint16_t flags, int *fds, int f
     gettimeofday(&tv, NULL);
     res->start_time = tv.tv_usec + tv.tv_sec * 1000000ULL;
     res->first_ts = 0;
-    res->id = (res->start_time / res->interframe) % INT_MAX; //TODO: verify 32/64 bit
+    res->id = 0; //(res->start_time / res->interframe) % INT_MAX; //TODO: verify 32/64 bit
   }
 
   return res;
