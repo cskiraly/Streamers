@@ -35,7 +35,10 @@ static struct timeval tout_bmap = {0, 0};
 static int counter = 0;
 static int simpleRanker (const void *tin, const void *p1in, const void *p2in);
 static tmanRankingFunction rankFunct = simpleRanker;
-static double my_metadata;
+struct metadata {
+  double value;
+};
+static struct metadata my_metadata;
 static int cnt = 0;
 static struct nodeID *me = NULL;
 static unsigned char mTypes[] = {MSG_TYPE_TOPOLOGY,MSG_TYPE_TMAN};
@@ -44,10 +47,10 @@ static struct nodeID ** neighbors;
 static void update_metadata(void) {
 
 #ifndef MONL
-	my_metadata = 1 + (((double)rand() / (double)RAND_MAX)*1000);
+	my_metadata.value = 1 + (((double)rand() / (double)RAND_MAX)*1000);
 #endif
 #ifdef MONL
-	my_metadata = get_receive_delay();
+	my_metadata.value = get_receive_delay();
 #endif
 }
 
@@ -82,9 +85,11 @@ void topologyShutdown(void)
 int topoAddNeighbour(struct nodeID *neighbour, void *metadata, int metadata_size)
 {
 	// TODO: check this!! Just to use this function to bootstrap ncast...
+	struct metadata m = {0};	//TODO: check what metadata option should mean
+
 	if (counter < TMAN_MAX_IDLE)
-		return topAddNeighbour(neighbour,metadata,metadata_size);
-	else return tmanAddNeighbour(neighbour,metadata,metadata_size);
+		return topAddNeighbour(neighbour,&m,sizeof(m));
+	else return tmanAddNeighbour(neighbour,&m,sizeof(m));
 }
 
 static int topoParseData(const uint8_t *buff, int len)
@@ -120,7 +125,7 @@ static const struct nodeID **topoGetNeighbourhood(int *n)
 		tmanGivePeers(*n,neighbors,(void *)mdata);
 
 		if (cnt % TMAN_LOG_EVERY == 0) {
-			fprintf(stderr,"abouttopublish,%s,%s,,Tman_chunk_delay,%f\n",node_addr(me),node_addr(me),my_metadata);
+			fprintf(stderr,"abouttopublish,%s,%s,,Tman_chunk_delay,%f\n",node_addr(me),node_addr(me),my_metadata.value);
 			for (i=0;i<(*n) && i<NEIGHBORHOOD_TARGET_SIZE;i++) {
 				d = *((double *)(mdata+i*msize));
 				fprintf(stderr,"abouttopublish,%s,",node_addr(me));
@@ -144,7 +149,7 @@ static void topoAddToBL (struct nodeID *id)
 		topAddToBlackList(id);
 }
 
-void add_peer(struct nodeID *id)
+void add_peer(const struct nodeID *id, const struct metadata *m)
 {
       dprintf("Adding %s to neighbourhood!\n", node_addr(id));
       peerset_add_peer(pset, id);
@@ -164,8 +169,9 @@ void remove_peer(struct nodeID *id)
 // currently it just makes the peerset grow
 void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 {
-  int n_ids, i;
+  int n_ids, metasize, i;
   static const struct nodeID **ids;
+  static const struct metadata *metas;
   struct peer *peers;
   struct timeval tnow, told;
 
@@ -194,14 +200,15 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     return;
   }
 
-  ids = topoGetNeighbourhood(&n_ids);
+  ids = topoGetNeighbourhood(&n_ids);	//TODO handle both tman and topo
+  metas = topGetMetadata(&metasize);	//TODO: check metasize
   for(i = 0; i < n_ids; i++) {
     if(peerset_check(pset, ids[i]) < 0) {
       if (!NEIGHBORHOOD_TARGET_SIZE || peerset_size(pset) < NEIGHBORHOOD_TARGET_SIZE) {
-        add_peer(ids[i]);
+        add_peer(ids[i],&metas[i]);
       } else {  //rotate neighbourhood
         if (rand()/((double)RAND_MAX + 1) < NEIGHBORHOOD_ROTATE_RATIO) {
-          add_peer(ids[i]);
+          add_peer(ids[i],&metas[i]);
         }
       }
     }
@@ -237,7 +244,7 @@ struct peer *nodeid_to_peer(const struct nodeID* id, int reg)
     //fprintf(stderr,"warning: received message from unknown peer: %s!%s\n",node_addr(id), reg ? " Adding it to pset." : "");
     if (reg) {
       topoAddNeighbour(id, NULL, 0);
-      add_peer(id);
+      add_peer(id,NULL);
       p = peerset_get_peer(pset,id);
     }
   }
