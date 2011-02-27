@@ -36,6 +36,7 @@ static int counter = 0;
 static int simpleRanker (const void *tin, const void *p1in, const void *p2in);
 static tmanRankingFunction rankFunct = simpleRanker;
 struct metadata {
+  int cb_size;
   double value;
 };
 static struct metadata my_metadata;
@@ -46,6 +47,7 @@ static struct nodeID ** neighbors;
 
 static void update_metadata(void) {
 
+	my_metadata.cb_size = am_i_source() ? 0 : get_cb_size();
 #ifndef MONL
 	my_metadata.value = 1 + (((double)rand() / (double)RAND_MAX)*1000);
 #endif
@@ -151,8 +153,9 @@ static void topoAddToBL (struct nodeID *id)
 
 void add_peer(const struct nodeID *id, const struct metadata *m)
 {
-      dprintf("Adding %s to neighbourhood!\n", node_addr(id));
+      dprintf("Adding %s to neighbourhood! cb_size:%d\n", node_addr(id), m?m->cb_size:-1);
       peerset_add_peer(pset, id);
+      if (m) peerset_get_peer(pset, id)->cb_size = m->cb_size;
       /* add measures here */
       add_measures(id);
       send_bmap(id);
