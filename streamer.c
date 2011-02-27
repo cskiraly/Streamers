@@ -281,6 +281,11 @@ int main(int argc, char *argv[])
   return 0;
 }
 
+int am_i_source()
+{
+  return (srv_port == 0);
+}
+
 int get_cb_size()
 {
   return buff_size;

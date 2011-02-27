@@ -54,14 +54,7 @@ static struct input_desc *input;
 static int cb_size;
 static int transid=0;
 
-static bool source = 0;
-
 static int offer_per_tick = 1;	//N_p parameter of POLITO
-
-bool  am_i_source()
-{
-  return source;
-}
 
 int _needs(struct chunkID_set *cset, int cb_size, int cid);
 
