@@ -37,6 +37,8 @@
 
 #include "scheduler_la.h"
 
+#define CB_SIZE_TIME 4*1e6
+
 static bool heuristics_distance_maxdeliver = false;
 static int bcast_after_receive_every = 0;
 static bool neigh_on_chunk_recv = false;
@@ -376,6 +378,10 @@ uint64_t get_chunk_timestamp(int cid){
 int needs(struct peer *n, int cid){
   struct peer * p = n;
 
+  if (get_chunk_timestamp(cid) < gettimeofday_in_us() - CB_SIZE_TIME) {
+    return 0;
+  }
+
   //dprintf("\t%s needs c%d ? :",node_addr(p->id),c->id);
   if (! p->bmap) {
     //dprintf("no bmap\n");
@@ -386,6 +392,10 @@ int needs(struct peer *n, int cid){
 
 int _needs(struct chunkID_set *cset, int cb_size, int cid){
   if (cb_size == 0) { //if it declared it does not needs chunks
+    return 0;
+  }
+
+  if (get_chunk_timestamp(cid) < gettimeofday_in_us() - CB_SIZE_TIME) {
     return 0;
   }
 
