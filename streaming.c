@@ -37,7 +37,7 @@
 
 #include "scheduler_la.h"
 
-#define CB_SIZE_TIME 4*1e6
+uint64_t CB_SIZE_TIME = 4*1e6;
 
 static bool heuristics_distance_maxdeliver = false;
 static int bcast_after_receive_every = 0;
