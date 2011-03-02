@@ -87,12 +87,13 @@ int input_get(struct input_desc *s, struct chunk *c)
   int64_t delta;
   int res;
 
+  c->id = s->id;
   res = chunkise(s->s, c);
   if (res < 0) {
     return -1;
   }
   if (res > 0) {
-    c->id = s->id++;
+    s->id++;
   }
   c->attributes_size = 0;
   c->attributes = NULL;
