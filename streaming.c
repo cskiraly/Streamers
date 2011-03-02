@@ -459,7 +459,7 @@ double chunkScoreDL(int *cid){
 
   if (!c->attributes || c->attributes_size != sizeof(struct chunk_attributes)) {
     fprintf(stderr,"Warning, chunk %d with strange attributes block\n", c->id);
-    return;
+    return 0;
   }
 
   ca = (struct chunk_attributes *) c->attributes;
