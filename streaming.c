@@ -450,6 +450,22 @@ double chunkScoreChunkID(int *cid){
   return (double) *cid;
 }
 
+uint64_t get_chunk_deadline(int cid){
+  struct chunk_attributes * ca;
+  struct chunk *c;
+
+  c = cb_get_chunk(cb, cid);
+  if (!c) return 0;
+
+  if (!c->attributes || c->attributes_size != sizeof(struct chunk_attributes)) {
+    fprintf(stderr,"Warning, chunk %d with strange attributes block\n", c->id);
+    return 0;
+  }
+
+  ca = (struct chunk_attributes *) c->attributes;
+  return ca->deadline;
+}
+
 double chunkScoreDL(int *cid){
   struct chunk_attributes * ca;
   struct chunk *c;
