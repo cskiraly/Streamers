@@ -361,6 +361,13 @@ int add_chunk(struct chunk *c)
   return 1;
 }
 
+uint64_t get_chunk_timestamp(int cid){
+  const struct chunk *c = cb_get_chunk(cb, cid);
+  if (!c) return 0;
+
+  return c->timestamp;
+}
+
 /**
  *example function to filter chunks based on whether a given peer needs them.
  *
@@ -440,11 +447,8 @@ double chunkScoreChunkID(int *cid){
   return (double) *cid;
 }
 
-double getChunkTimestamp(int *cid){
-  const struct chunk *c = cb_get_chunk(cb, *cid);
-  if (!c) return 0;
-
-  return (double) c->timestamp;
+double chunkScoreTimestamp(int *cid){
+  return (double) get_chunk_timestamp(*cid);
 }
 
 void send_accepted_chunks(struct nodeID *toid, struct chunkID_set *cset_acc, int max_deliver, uint16_t trans_id){
