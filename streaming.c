@@ -119,8 +119,6 @@ int source_init(const char *fname, struct nodeID *myID, bool loop, int *fds, int
     flags |= INPUT_LOOP;
   }
 
-  source = true;
-
   input = input_open(fname, flags, fds, fds_size);
   if (input == NULL) {
     return -1;
