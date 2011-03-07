@@ -80,13 +80,15 @@ void loop(struct nodeID *s, int csize, int buff_size)
       switch (buff[0] /* Message Type */) {
 		case MSG_TYPE_TMAN:
         case MSG_TYPE_TOPOLOGY:
+          dtprintf("Topo message received:\n");
           update_peers(remote, buff, len);
           break;
         case MSG_TYPE_CHUNK:
-          dprintf("Chunk message received:\n");
+          dtprintf("Chunk message received:\n");
           received_chunk(remote, buff, len);
           break;
         case MSG_TYPE_SIGNALLING:
+          dtprintf("Sign message received:\n");
           sigParseData(remote, buff, len);
           break;
         default:
