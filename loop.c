@@ -78,7 +78,7 @@ void loop(struct nodeID *s, int csize, int buff_size)
         continue;
       }
       switch (buff[0] /* Message Type */) {
-		case MSG_TYPE_TMAN:
+        case MSG_TYPE_TMAN:
         case MSG_TYPE_TOPOLOGY:
           dtprintf("Topo message received:\n");
           update_peers(remote, buff, len);
