@@ -377,8 +377,10 @@ uint64_t get_chunk_timestamp(int cid){
  */
 int needs(struct peer *n, int cid){
   struct peer * p = n;
+  uint64_t ts;
 
-  if (get_chunk_timestamp(cid) < gettimeofday_in_us() - CB_SIZE_TIME) {
+  ts = get_chunk_timestamp(cid);
+  if (ts && (ts < gettimeofday_in_us() - CB_SIZE_TIME)) {	//if we don't know the timestamp, we accept
     return 0;
   }
 
@@ -391,11 +393,14 @@ int needs(struct peer *n, int cid){
 }
 
 int _needs(struct chunkID_set *cset, int cb_size, int cid){
+  uint64_t ts;
+
   if (cb_size == 0) { //if it declared it does not needs chunks
     return 0;
   }
 
-  if (get_chunk_timestamp(cid) < gettimeofday_in_us() - CB_SIZE_TIME) {
+  ts = get_chunk_timestamp(cid);
+  if (ts && (ts < gettimeofday_in_us() - CB_SIZE_TIME)) {	//if we don't know the timestamp, we accept
     return 0;
   }
 
