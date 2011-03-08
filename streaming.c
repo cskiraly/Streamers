@@ -378,11 +378,13 @@ uint64_t get_chunk_timestamp(int cid){
  */
 int needs(struct peer *n, int cid){
   struct peer * p = n;
-  uint64_t ts;
 
-  ts = get_chunk_timestamp(cid);
-  if (ts && (ts < gettimeofday_in_us() - CB_SIZE_TIME)) {	//if we don't know the timestamp, we accept
-    return 0;
+  if (CB_SIZE_TIME < CB_SIZE_TIME_UNLIMITED) {
+    uint64_t ts;
+    ts = get_chunk_timestamp(cid);
+    if (ts && (ts < gettimeofday_in_us() - CB_SIZE_TIME)) {	//if we don't know the timestamp, we accept
+      return 0;
+    }
   }
 
   //dprintf("\t%s needs c%d ? :",node_addr(p->id),c->id);
@@ -394,15 +396,17 @@ int needs(struct peer *n, int cid){
 }
 
 int _needs(struct chunkID_set *cset, int cb_size, int cid){
-  uint64_t ts;
 
   if (cb_size == 0) { //if it declared it does not needs chunks
     return 0;
   }
 
-  ts = get_chunk_timestamp(cid);
-  if (ts && (ts < gettimeofday_in_us() - CB_SIZE_TIME)) {	//if we don't know the timestamp, we accept
-    return 0;
+  if (CB_SIZE_TIME < CB_SIZE_TIME_UNLIMITED) {
+    uint64_t ts;
+    ts = get_chunk_timestamp(cid);
+    if (ts && (ts < gettimeofday_in_us() - CB_SIZE_TIME)) {	//if we don't know the timestamp, we accept
+      return 0;
+    }
   }
 
   if (chunkID_set_check(cset,cid) < 0) { //it might need the chunk
