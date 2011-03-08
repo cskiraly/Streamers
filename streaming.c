@@ -37,7 +37,8 @@
 
 #include "scheduler_la.h"
 
-uint64_t CB_SIZE_TIME = 4*1e6;
+# define CB_SIZE_TIME_UNLIMITED 1e12
+uint64_t CB_SIZE_TIME = CB_SIZE_TIME_UNLIMITED;	//in millisec, defaults to unlimited
 
 static bool heuristics_distance_maxdeliver = false;
 static int bcast_after_receive_every = 0;
