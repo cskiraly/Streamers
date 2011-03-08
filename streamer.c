@@ -11,6 +11,7 @@
 #include <string.h>
 #include <getopt.h>
 #include <signal.h>
+#include <time.h>
 #include <grapes_msg_types.h>
 #include <net_helper.h>
 
@@ -48,6 +49,7 @@ static const char *net_helper_config = "";
 static const char *topo_config = "";
 unsigned char msgTypes[] = {MSG_TYPE_CHUNK,MSG_TYPE_SIGNALLING};
 bool chunk_log = false;
+static int randomize_start = 0;
 
 extern int NEIGHBORHOOD_TARGET_SIZE;
 extern uint64_t CB_SIZE_TIME;
@@ -89,6 +91,9 @@ static void print_usage(int argc, char *argv[])
     "\t[-f filename]: name of the video stream file to transmit.\n"
     "\t[-l]: loop the video stream.\n"
     "\n"
+    "Special options\n"
+    "\t[--randomize_start ms]: random wait before starting in to ms millisecs.\n"
+    "\n"
     "NOTE: by deafult the peer will dump the received video on STDOUT in raw format\n"
     "      it can be played by your favourite player simply using a pipe\n"
     "      e.g., | cvlc /dev/stdin\n"
@@ -118,6 +123,7 @@ static void cmdline_parse(int argc, char *argv[])
         {"measure_start", required_argument, 0, 0},
         {"measure_every", required_argument, 0, 0},
         {"playout_limit", required_argument, 0, 0},
+        {"randomize_start", required_argument, 0, 0},
 	{0, 0, 0, 0}
   };
 
@@ -128,6 +134,7 @@ static void cmdline_parse(int argc, char *argv[])
         if( strcmp( "measure_start", long_options[option_index].name ) == 0 ) { tstartdiff.tv_sec = atoi(optarg); }
         if( strcmp( "measure_every", long_options[option_index].name ) == 0 ) { print_tdiff.tv_sec = atoi(optarg); }
         if( strcmp( "playout_limit", long_options[option_index].name ) == 0 ) { CB_SIZE_TIME = atoi(optarg); }
+        if( strcmp( "randomize_start", long_options[option_index].name ) == 0 ) { randomize_start = atoi(optarg); }
         break;
       case 'b':
         buff_size = atoi(optarg);
@@ -252,6 +259,16 @@ void leave(int sig) {
   exit(sig);
 }
 
+static void random_wait(int max) {
+    struct timespec t;
+    uint64_t ms;
+
+    ms = (rand()/(RAND_MAX + 1.0)) * max;
+    t.tv_sec = ms / 1000000;
+    t.tv_nsec = (ms % 1000000) * 1000;
+    nanosleep(&t, NULL);
+}
+
 int main(int argc, char *argv[])
 {
   struct nodeID *my_sock;
@@ -266,6 +283,9 @@ int main(int argc, char *argv[])
   }
   if (srv_port != 0) {
     struct nodeID *srv;
+
+    //random wait a bit before starting
+    if (randomize_start) random_wait(randomize_start);
 
     output_init(outbuff_size, output_config);
 
