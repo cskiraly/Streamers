@@ -11,6 +11,7 @@
 #include <string.h>
 #include <getopt.h>
 #include <signal.h>
+#include <time.h>
 #include <grapes_msg_types.h>
 #include <net_helper.h>
 
@@ -263,6 +264,12 @@ int main(int argc, char *argv[])
   }
   if (srv_port != 0) {
     struct nodeID *srv;
+
+    //random wait a bit before starting
+    struct timespec t;
+    t.tv_sec = 0;
+    t.tv_nsec = (rand()/(RAND_MAX + 1.0)) * 2e8;
+    nanosleep(&t, NULL);
 
     output_init(outbuff_size, output_config);
 
