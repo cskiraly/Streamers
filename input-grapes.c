@@ -87,6 +87,9 @@ int input_get(struct input_desc *s, struct chunk *c)
   int64_t delta;
   int res;
 
+  c->attributes_size = 0;
+  c->attributes = NULL;
+
   c->id = s->id;
   res = chunkise(s->s, c);
   if (res < 0) {
@@ -95,8 +98,6 @@ int input_get(struct input_desc *s, struct chunk *c)
   if (res > 0) {
     s->id++;
   }
-  c->attributes_size = 0;
-  c->attributes = NULL;
   if (s->first_ts == 0) {
     s->first_ts = c->timestamp;
   }

@@ -24,6 +24,7 @@
 #include <chunkidset.h>
 #include <limits.h>
 #include <trade_sig_ha.h>
+#include <chunkiser_attrib.h>
 
 #include "streaming.h"
 #include "output.h"
@@ -137,14 +138,23 @@ int source_init(const char *fname, struct nodeID *myID, bool loop, int *fds, int
 void chunk_attributes_fill(struct chunk* c)
 {
   struct chunk_attributes * ca;
+  int priority = 1;
 
-  assert(!c->attributes && c->attributes_size == 0);
+  assert((!c->attributes && c->attributes_size == 0) ||
+         chunk_attributes_chunker_verify(c->attributes, c->attributes_size));
+
+  if (chunk_attributes_chunker_verify(c->attributes, c->attributes_size)) {
+    priority = ((struct chunk_attributes_chunker*) c->attributes)->priority;
+    free(c->attributes);
+    c->attributes = NULL;
+    c->attributes_size = 0;
+  }
 
   c->attributes_size = sizeof(struct chunk_attributes);
   c->attributes = ca = malloc(c->attributes_size);
 
-  ca->deadline = c->timestamp;
-  ca->deadline_increment = 2;
+  ca->deadline = c->id;
+  ca->deadline_increment = priority * 2;
   ca->hopcount = 0;
 }
 
@@ -465,6 +475,26 @@ double peerScoreELpID(struct nodeID **n){
 
 double chunkScoreChunkID(int *cid){
   return (double) *cid;
+}
+
+uint64_t get_chunk_deadline(int cid){
+  const struct chunk_attributes * ca;
+  const struct chunk *c;
+
+  c = cb_get_chunk(cb, cid);
+  if (!c) return 0;
+
+  if (!c->attributes || c->attributes_size != sizeof(struct chunk_attributes)) {
+    fprintf(stderr,"Warning, chunk %d with strange attributes block\n", c->id);
+    return 0;
+  }
+
+  ca = (struct chunk_attributes *) c->attributes;
+  return ca->deadline;
+}
+
+double chunkScoreDL(int *cid){
+  return - (double)get_chunk_deadline(*cid);
 }
 
 double chunkScoreTimestamp(int *cid){
