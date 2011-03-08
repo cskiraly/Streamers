@@ -35,6 +35,10 @@ void output_init(int bufsize, const char *config)
     config += 4;
     sprintf(cfg, "dechunkiser=udp");
     sprintf(cfg + strlen(cfg), ",%s", config);
+  } else if (config && (strlen(config) >= 6) && (memcmp(config, "dummy:", 6) == 0)) {
+    config += 6;
+    sprintf(cfg, "dechunkiser=dummy,type=stats");
+    sprintf(cfg + strlen(cfg), ",%s", config);
   } else {
     sprintf(cfg, "dechunkiser=avf,media=av");
   }

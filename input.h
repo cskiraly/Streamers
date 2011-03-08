@@ -9,6 +9,7 @@
 
 #define INPUT_LOOP 0x0001
 #define INPUT_UDP 0x0002
+#define INPUT_IPB 0x0004
 
 struct input_desc;
 struct chunk;

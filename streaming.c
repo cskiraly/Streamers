@@ -37,6 +37,8 @@
 
 #include "scheduler_la.h"
 
+uint64_t CB_SIZE_TIME = 4*1e6;
+
 static bool heuristics_distance_maxdeliver = false;
 static int bcast_after_receive_every = 0;
 static bool neigh_on_chunk_recv = false;
@@ -115,6 +117,10 @@ int source_init(const char *fname, struct nodeID *myID, bool loop, int *fds, int
     fname += 4;
     flags = INPUT_UDP;
   }
+  if (memcmp(fname, "ipb:", 4) == 0) {
+    fname += 4;
+    flags = INPUT_IPB;
+  }
   if (loop) {
     flags |= INPUT_LOOP;
   }
@@ -179,7 +185,7 @@ void chunk_attributes_update_sending(const struct chunk* c)
 
   ca = (struct chunk_attributes *) c->attributes;
   ca->deadline += ca->deadline_increment;
-  dprintf("Sending chunk %d with deadline %lu\n", c->id, ca->deadline);
+  dprintf("Sending chunk %d with deadline %lu (increment: %d)\n", c->id, ca->deadline, ca->deadline_increment);
 }
 
 struct chunkID_set *cb_to_bmap(struct chunk_buffer *chbuf)
@@ -362,6 +368,13 @@ int add_chunk(struct chunk *c)
   return 1;
 }
 
+uint64_t get_chunk_timestamp(int cid){
+  const struct chunk *c = cb_get_chunk(cb, cid);
+  if (!c) return 0;
+
+  return c->timestamp;
+}
+
 /**
  *example function to filter chunks based on whether a given peer needs them.
  *
@@ -369,6 +382,12 @@ int add_chunk(struct chunk *c)
  */
 int needs(struct peer *n, int cid){
   struct peer * p = n;
+  uint64_t ts;
+
+  ts = get_chunk_timestamp(cid);
+  if (ts && (ts < gettimeofday_in_us() - CB_SIZE_TIME)) {	//if we don't know the timestamp, we accept
+    return 0;
+  }
 
   //dprintf("\t%s needs c%d ? :",node_addr(p->id),c->id);
   if (! p->bmap) {
@@ -379,7 +398,14 @@ int needs(struct peer *n, int cid){
 }
 
 int _needs(struct chunkID_set *cset, int cb_size, int cid){
+  uint64_t ts;
+
   if (cb_size == 0) { //if it declared it does not needs chunks
+    return 0;
+  }
+
+  ts = get_chunk_timestamp(cid);
+  if (ts && (ts < gettimeofday_in_us() - CB_SIZE_TIME)) {	//if we don't know the timestamp, we accept
     return 0;
   }
 
@@ -441,11 +467,8 @@ double chunkScoreChunkID(int *cid){
   return (double) *cid;
 }
 
-double getChunkTimestamp(int *cid){
-  const struct chunk *c = cb_get_chunk(cb, *cid);
-  if (!c) return 0;
-
-  return (double) c->timestamp;
+double chunkScoreTimestamp(int *cid){
+  return (double) get_chunk_timestamp(*cid);
 }
 
 void send_accepted_chunks(struct nodeID *toid, struct chunkID_set *cset_acc, int max_deliver, uint16_t trans_id){

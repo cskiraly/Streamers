@@ -38,6 +38,8 @@ struct input_desc *input_open(const char *fname, uint16_t flags, int *fds, int f
   if (flags & INPUT_UDP) {
     sprintf(cfg, "chunkiser=udp");
     sprintf(cfg + strlen(cfg), ",%s", fname);
+  } else if (flags & INPUT_IPB) {
+    sprintf(cfg, "chunkiser=ipb,media=v");
   } else {
     sprintf(cfg, "chunkiser=avf,media=av");
   }
@@ -67,7 +69,7 @@ struct input_desc *input_open(const char *fname, uint16_t flags, int *fds, int f
     gettimeofday(&tv, NULL);
     res->start_time = tv.tv_usec + tv.tv_sec * 1000000ULL;
     res->first_ts = 0;
-    res->id = (res->start_time / res->interframe) % INT_MAX; //TODO: verify 32/64 bit
+    res->id = 0; //(res->start_time / res->interframe) % INT_MAX; //TODO: verify 32/64 bit
   }
 
   return res;
@@ -85,12 +87,13 @@ int input_get(struct input_desc *s, struct chunk *c)
   int64_t delta;
   int res;
 
+  c->id = s->id;
   res = chunkise(s->s, c);
   if (res < 0) {
     return -1;
   }
   if (res > 0) {
-    c->id = s->id++;
+    s->id++;
   }
   c->attributes_size = 0;
   c->attributes = NULL;
