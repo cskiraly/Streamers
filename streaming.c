@@ -136,8 +136,8 @@ void chunk_attributes_fill(struct chunk* c)
   c->attributes_size = sizeof(struct chunk_attributes);
   c->attributes = ca = malloc(c->attributes_size);
 
-  ca->deadline = c->timestamp;
-  ca->deadline_increment = 2;
+  ca->deadline = c->id;
+  ca->deadline_increment = 5;
   ca->hopcount = 0;
 }
 
@@ -438,6 +438,22 @@ double peerScoreELpID(struct nodeID **n){
 
 double chunkScoreChunkID(int *cid){
   return (double) *cid;
+}
+
+double chunkScoreDL(int *cid){
+  struct chunk_attributes * ca;
+  struct chunk *c;
+
+  c = cb_get_chunk(cb, *cid);
+  if (!c) return 0;
+
+  if (!c->attributes || c->attributes_size != sizeof(struct chunk_attributes)) {
+    fprintf(stderr,"Warning, chunk %d with strange attributes block\n", c->id);
+    return;
+  }
+
+  ca = (struct chunk_attributes *) c->attributes;
+  return - (double)ca->deadline;
 }
 
 double getChunkTimestamp(int *cid){
