@@ -451,8 +451,8 @@ double chunkScoreChunkID(int *cid){
 }
 
 uint64_t get_chunk_deadline(int cid){
-  struct chunk_attributes * ca;
-  struct chunk *c;
+  const struct chunk_attributes * ca;
+  const struct chunk *c;
 
   c = cb_get_chunk(cb, cid);
   if (!c) return 0;
