@@ -28,11 +28,11 @@ struct measures {
   int duplicates;
   int chunks;
   int played;
-  uint64_t sum_reorder_delay;
+  int64_t sum_reorder_delay;
 
   int chunks_received_dup, chunks_received_nodup, chunks_received_old;
   int sum_hopcount;
-  uint64_t sum_receive_delay;
+  int64_t sum_receive_delay;
 
   int chunks_sent;
 
@@ -349,4 +349,8 @@ void add_measures(struct nodeID *id)
 */
 void delete_measures(struct nodeID *id)
 {
+}
+
+double get_receive_delay(void) {
+	return m.chunks_received_nodup ? (double)m.sum_receive_delay / 1e6 / m.chunks_received_nodup : NAN;
 }
