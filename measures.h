@@ -22,12 +22,12 @@ void reg_chunk_receive(int id, uint64_t timestamp, int hopcount, bool old, bool 
 void reg_chunk_send(int id);
 void reg_offer_accept(bool b);
 
+double get_receive_delay(void);
 #ifdef MONL
 double get_rtt(struct nodeID *id);
 double get_lossrate(struct nodeID *id);
 double get_average_lossrate(struct  nodeID**id, int len);
 int get_hopcount(struct nodeID *id);
-double get_receive_delay(void);
 #endif
 
 #endif

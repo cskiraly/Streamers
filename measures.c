@@ -350,3 +350,7 @@ void add_measures(struct nodeID *id)
 void delete_measures(struct nodeID *id)
 {
 }
+
+double get_receive_delay(void) {
+	return m.chunks_received_nodup ? (double)m.sum_receive_delay / 1e6 / m.chunks_received_nodup : NAN;
+}
