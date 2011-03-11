@@ -36,7 +36,7 @@ static int counter = 0;
 static int simpleRanker (const void *tin, const void *p1in, const void *p2in);
 static tmanRankingFunction rankFunct = simpleRanker;
 struct metadata {
-  int cb_size;
+  uint16_t cb_size;
   double value;
 };
 static struct metadata my_metadata;
