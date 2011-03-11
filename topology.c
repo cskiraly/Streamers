@@ -36,8 +36,8 @@ static int counter = 0;
 static int simpleRanker (const void *tin, const void *p1in, const void *p2in);
 static tmanRankingFunction rankFunct = simpleRanker;
 struct metadata {
-  int cb_size;
-  double value;
+  uint16_t cb_size;
+  float recv_delay;
 };
 static struct metadata my_metadata;
 static int cnt = 0;
@@ -48,12 +48,7 @@ static struct nodeID ** neighbors;
 static void update_metadata(void) {
 
 	my_metadata.cb_size = am_i_source() ? 0 : get_cb_size();
-#ifndef MONL
-	my_metadata.value = 1 + (((double)rand() / (double)RAND_MAX)*1000);
-#endif
-#ifdef MONL
-	my_metadata.value = get_receive_delay();
-#endif
+	my_metadata.recv_delay = get_receive_delay();
 }
 
 static int simpleRanker (const void *tin, const void *p1in, const void *p2in) {
@@ -127,7 +122,7 @@ static const struct nodeID **topoGetNeighbourhood(int *n)
 		tmanGivePeers(*n,neighbors,(void *)mdata);
 
 		if (cnt % TMAN_LOG_EVERY == 0) {
-			fprintf(stderr,"abouttopublish,%s,%s,,Tman_chunk_delay,%f\n",node_addr(me),node_addr(me),my_metadata.value);
+			fprintf(stderr,"abouttopublish,%s,%s,,Tman_chunk_delay,%f\n",node_addr(me),node_addr(me),my_metadata.recv_delay);
 			for (i=0;i<(*n) && i<NEIGHBORHOOD_TARGET_SIZE;i++) {
 				d = *((double *)(mdata+i*msize));
 				fprintf(stderr,"abouttopublish,%s,",node_addr(me));
