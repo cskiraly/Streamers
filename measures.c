@@ -28,11 +28,11 @@ struct measures {
   int duplicates;
   int chunks;
   int played;
-  uint64_t sum_reorder_delay;
+  int64_t sum_reorder_delay;
 
   int chunks_received_dup, chunks_received_nodup, chunks_received_old;
   int sum_hopcount;
-  uint64_t sum_receive_delay;
+  int64_t sum_receive_delay;
 
   int chunks_sent;
 
