@@ -31,7 +31,7 @@ double NEIGHBORHOOD_ROTATE_RATIO = 1.0;
 #define TMAN_LOG_EVERY 1000
 
 static struct peerset *pset;
-static struct timeval tout_bmap = {0, 0};
+static struct timeval tout_bmap = {10, 0};
 static int counter = 0;
 static int simpleRanker (const void *tin, const void *p1in, const void *p2in);
 static tmanRankingFunction rankFunct = simpleRanker;
