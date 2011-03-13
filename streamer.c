@@ -25,6 +25,9 @@
 #include "channel.h"
 #include "topology.h"
 #include "measures.h"
+#include "streamer.h"
+
+static struct nodeID *my_sock;
 
 const char *peername = NULL;
 
@@ -202,6 +205,11 @@ static void cmdline_parse(int argc, char *argv[])
   }
 }
 
+const struct nodeID *get_my_addr(void)
+{
+  return my_sock;
+}
+
 static void init_rand(const char * s)
 {
   long i, l, x;
@@ -271,7 +279,6 @@ static void random_wait(int max) {
 
 int main(int argc, char *argv[])
 {
-  struct nodeID *my_sock;
 
   (void) signal(SIGTERM,leave);
 
