@@ -454,7 +454,7 @@ double peerWeightUniform(struct peer **n){
 
 double peerWeightRtt(struct peer **n){
 #ifdef MONL
-  double rtt = get_rtt(*n->id);
+  double rtt = get_rtt((*n)->id);
   //dprintf("RTT to %s: %f\n", node_addr(p->id), rtt);
   return finite(rtt) ? 1 / (rtt + 0.005) : 1 / 1;
 #else
