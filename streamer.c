@@ -259,6 +259,7 @@ int main(int argc, char *argv[])
 
   my_sock = init();
   if (my_sock == NULL) {
+    fprintf(stderr, "Cannot initialize streamer, exiting!\n");
     return -1;
   }
   if (srv_port != 0) {
