@@ -168,6 +168,10 @@ char *default_ip_addr()
   if (!ip) {
     ip = autodetect_ip_address();
   }
+  if (!ip) {
+    fprintf(stderr, "cannot detect IP!\n");
+    return NULL;
+  }
   fprintf(stderr, "IP is: %s ...\n", ip);
 
   return strdup(ip);
