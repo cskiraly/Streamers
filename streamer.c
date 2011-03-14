@@ -53,6 +53,9 @@ static const char *topo_config = "";
 unsigned char msgTypes[] = {MSG_TYPE_CHUNK,MSG_TYPE_SIGNALLING};
 bool chunk_log = false;
 static int randomize_start = 0;
+int start_id = -1;
+int end_id = -1;
+int initial_id = -1;
 
 extern int NEIGHBORHOOD_TARGET_SIZE;
 extern uint64_t CB_SIZE_TIME;
@@ -99,6 +102,9 @@ static void print_usage(int argc, char *argv[])
     "\t[-m chunks]: set the number of copies the source injects in the overlay.\n"
     "\t[-f filename]: name of the video stream file to transmit.\n"
     "\t[-l]: loop the video stream.\n"
+    "\t[-S]: set initial chunk_id (source only).\n"
+    "\t[-s]: set start_id from which to start output.\n"
+    "\t[-e]: set end_id at which to end output.\n"
     "\n"
     "Special options\n"
     "\t[--randomize_start ms]: random wait before starting in to ms millisecs.\n"
@@ -136,7 +142,7 @@ static void cmdline_parse(int argc, char *argv[])
 	{0, 0, 0, 0}
   };
 
-    while ((o = getopt_long (argc, argv, "r:a:b:o:c:p:i:P:I:f:F:m:lC:N:n:M:t:",long_options, &option_index)) != -1) { //use this function to manage long options
+    while ((o = getopt_long (argc, argv, "r:a:b:o:c:p:i:P:I:f:F:m:lC:N:n:M:t:s:e:S:",long_options, &option_index)) != -1) { //use this function to manage long options
     switch(o) {
       case 0: //for long options
         if( strcmp( "chunk_log", long_options[option_index].name ) == 0 ) { chunk_log = true; }
@@ -200,6 +206,15 @@ static void cmdline_parse(int argc, char *argv[])
         break;
       case 't':
         topo_config = strdup(optarg);
+        break;
+      case 'S':
+        initial_id = atoi(optarg);
+        break;
+      case 's':
+        start_id = atoi(optarg);
+        break;
+      case 'e':
+        end_id = atoi(optarg);
         break;
       default:
         fprintf(stderr, "Error: unknown option %c\n", o);
