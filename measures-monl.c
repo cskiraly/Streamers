@@ -244,6 +244,7 @@ void add_measures(struct nodeID *id)
        id->mhs[j] = monCreateMeasure(TX_PACKET, DATA | IN_BAND);
        start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "TxChunks", stwinavgrate, sizeof(stwinavgrate)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//TxChunks_sum [chunks] TxChunks_rate [chunks/sec]
 
+/*
 //	// Capacity
 	id->mhs[j] = monCreateMeasure(CLOCKDRIFT, PACKET | IN_BAND);
 	monSetParameter (id->mhs[j], P_CLOCKDRIFT_ALGORITHM, 1);
@@ -260,6 +261,7 @@ void add_measures(struct nodeID *id)
        start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "BulkTransfer", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK); //Bulktransfer [bit/s]
 	id->mhs[j] = monCreateMeasure(AVAILABLE_BW_FORECASTER, PACKET | IN_BAND);
 	start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "AvailableBW", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//[bytes/s]
+*/
 
 	// for static must not be more then 10 or whatever size is in net_helper-ml.c
 	id->n_mhs = j;
