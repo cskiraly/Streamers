@@ -25,7 +25,7 @@
 #include "dbg.h"
 #include "measures.h"
 
-double desired_rtt = 0.1;
+double desired_rtt = 0.2;
 double alpha_target = 0.5;
 
 int NEIGHBORHOOD_TARGET_SIZE = 20;
