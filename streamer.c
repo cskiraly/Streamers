@@ -56,6 +56,8 @@ static int randomize_start = 0;
 
 extern int NEIGHBORHOOD_TARGET_SIZE;
 extern uint64_t CB_SIZE_TIME;
+extern double desired_rtt;
+extern double alpha_target;
 
 #ifndef MONL
 extern struct timeval print_tdiff;
@@ -90,6 +92,8 @@ static void print_usage(int argc, char *argv[])
     "\t[-n options]: pass configuration options to the net-helper\n"
     "\t[--chunk_log]: print a chunk level log on stderr\n"
     "\t[-F config]: configure the output module\n"
+    "\t[-a alpha]: set the topology alpha value (from 0 to 100)\n"
+    "\t[-t rtt]: set the RTT threshold (in ms) for desired neighbours\n"
     "\n"
     "Special Source Peer options\n"
     "\t[-m chunks]: set the number of copies the source injects in the overlay.\n"
@@ -132,7 +136,7 @@ static void cmdline_parse(int argc, char *argv[])
 	{0, 0, 0, 0}
   };
 
-    while ((o = getopt_long (argc, argv, "b:o:c:p:i:P:I:f:F:m:lC:N:n:M:t:",long_options, &option_index)) != -1) { //use this function to manage long options
+    while ((o = getopt_long (argc, argv, "r:a:b:o:c:p:i:P:I:f:F:m:lC:N:n:M:t:",long_options, &option_index)) != -1) { //use this function to manage long options
     switch(o) {
       case 0: //for long options
         if( strcmp( "chunk_log", long_options[option_index].name ) == 0 ) { chunk_log = true; }
@@ -142,6 +146,12 @@ static void cmdline_parse(int argc, char *argv[])
 #endif
         if( strcmp( "playout_limit", long_options[option_index].name ) == 0 ) { CB_SIZE_TIME = atoi(optarg); }
         if( strcmp( "randomize_start", long_options[option_index].name ) == 0 ) { randomize_start = atoi(optarg); }
+        break;
+      case 'a':
+        alpha_target = (double)atoi(optarg) / 100.0;
+        break;
+      case 'r':
+        desired_rtt = (double)atoi(optarg) / 1000.0;
         break;
       case 'b':
         buff_size = atoi(optarg);
