@@ -212,6 +212,12 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     return;
   }
 
+  fprintf(stderr,"Topo modify start\n");
+  peers = peerset_get_peers(pset);
+  for (i = 0; i < peerset_size(pset); i++) {
+    fprintf(stderr," %s - RTT: %f\n", node_addr(peers[i].id) , get_rtt(peers[i].id));
+  }
+
   ids = topoGetNeighbourhood(&n_ids);	//TODO handle both tman and topo
   metas = topGetMetadata(&metasize);	//TODO: check metasize
   for(i = 0; i < n_ids; i++) {
@@ -243,6 +249,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 
 
   n_ids = peerset_size(pset);
+  fprintf(stderr,"Topo remove start (peers:%d)\n", n_ids);
   while (NEIGHBORHOOD_TARGET_SIZE && peerset_size(pset) > NEIGHBORHOOD_TARGET_SIZE) { //reduce back neighbourhood to target size
     int n, desired, desired_not, desired_unknown;
     struct peer *ds[n_ids], *dns[n_ids], *dus[n_ids];
@@ -268,7 +275,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
       }
     }
     alpha = (double) desired / n;
-    fprintf(stderr,"peers:%d desired:%d unknown:%d notdesired:%d alpha: %f (target:%f)\n",n, desired, desired_unknown, desired_not, alpha, alpha_target);
+    fprintf(stderr," peers:%d desired:%d unknown:%d notdesired:%d alpha: %f (target:%f)\n",n, desired, desired_unknown, desired_not, alpha, alpha_target);
 
     if (alpha > alpha_target && desired > 0) {
       remove_peer(ds[rand() % desired]->id);
@@ -280,6 +287,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
       remove_peer(peers[rand() % n].id);
     }
   }
+  fprintf(stderr,"Topo remove end\n");
 
   reg_neigh_size(peerset_size(pset));
 }
