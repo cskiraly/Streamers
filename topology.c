@@ -25,6 +25,9 @@
 #include "dbg.h"
 #include "measures.h"
 
+double desired_rtt = 0.1;
+double alpha_target = 0.5;
+
 int NEIGHBORHOOD_TARGET_SIZE = 20;
 double NEIGHBORHOOD_ROTATE_RATIO = 1.0;
 #define TMAN_MAX_IDLE 10
@@ -164,6 +167,17 @@ void remove_peer(struct nodeID *id)
       peerset_remove_peer(pset, id);
 }
 
+//returns: 1:yes 0:no -1:unknown
+int is_desired(struct nodeID* n) {
+#ifdef MONL
+  double rtt = get_rtt(n);
+
+  return isnan(rtt) ? -1 : ((rtt <= desired_rtt) ? 1 : 0);
+#else
+  return -1;
+#endif
+}
+
 // currently it just makes the peerset grow
 void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 {
@@ -227,9 +241,44 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     }
   }
 
+
+  n_ids = peerset_size(pset);
   while (NEIGHBORHOOD_TARGET_SIZE && peerset_size(pset) > NEIGHBORHOOD_TARGET_SIZE) { //reduce back neighbourhood to target size
+    int n, desired, desired_not, desired_unknown;
+    struct peer *ds[n_ids], *dns[n_ids], *dus[n_ids];
+    double alpha;
+
     peers = peerset_get_peers(pset);
-    remove_peer(peers[rand() % peerset_size(pset)].id);
+    n = peerset_size(pset);
+    desired = desired_not = desired_unknown = 0;
+    for (i = 0; i < n; i++) {
+      switch (is_desired(peers[i].id)) {
+        case 1:
+          ds[desired++] = &peers[i];
+          break;
+        case 0:
+          dns[desired_not++] = &peers[i];
+          break;
+        case -1:
+          dus[desired_unknown++] = &peers[i];
+          break;
+        default:
+          fprintf(stderr,"error with desiredness!\n");
+          exit(1);
+      }
+    }
+    alpha = (double) desired / n;
+    fprintf(stderr,"peers:%d desired:%d unknown:%d notdesired:%d alpha: %f (target:%f)\n",n, desired, desired_unknown, desired_not, alpha, alpha_target);
+
+    if (alpha > alpha_target && desired > 0) {
+      remove_peer(ds[rand() % desired]->id);
+    } else if (alpha < alpha_target && desired_not > 0) {
+      remove_peer(dns[rand() % desired_not]->id);
+    } else if (desired_unknown > 0) {
+      remove_peer(dus[rand() % desired_unknown]->id);
+    } else {
+      remove_peer(peers[rand() % n].id);
+    }
   }
 
   reg_neigh_size(peerset_size(pset));
