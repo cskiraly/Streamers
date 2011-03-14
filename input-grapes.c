@@ -31,6 +31,7 @@ struct input_desc *input_open(const char *fname, uint16_t flags, int *fds, int f
   struct timeval tv;
   char cfg[256];
 
+  memset(cfg, 0, 256);
   res = malloc(sizeof(struct input_desc));
   if (res == NULL) {
     return NULL;
