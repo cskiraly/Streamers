@@ -117,7 +117,7 @@ void reg_chunk_playout(int id, bool b, uint64_t timestamp)
 void reg_neigh_size(int s)
 {
 	if (!neigh_size) {
-		enum stat_types st[] = {LAST};
+		enum stat_types st[] = {LAST, WIN_AVG};
 		// number of peers in the neighboorhood
 		add_measure(&neigh_size, GENERIC, 0, PEER_PUBLISH_INTERVAL, "NeighSize", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
 	}
