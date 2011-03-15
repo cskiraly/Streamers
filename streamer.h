@@ -11,5 +11,6 @@
 const struct nodeID *get_my_addr(void);
 int am_i_source();
 int get_cb_size();
+int get_chunks_per_sec();
 
 #endif //STREAMER_H

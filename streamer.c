@@ -350,3 +350,8 @@ int get_cb_size()
 {
   return buff_size;
 }
+
+int get_chunks_per_sec()
+{
+  return chunks_per_second;
+}
