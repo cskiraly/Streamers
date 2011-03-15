@@ -24,6 +24,7 @@
 #include "streaming.h"
 #include "dbg.h"
 #include "measures.h"
+#include "streamer.h"
 
 double desired_rtt = 0.2;
 double alpha_target = 0.5;
