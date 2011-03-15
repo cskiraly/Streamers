@@ -282,12 +282,12 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
           exit(1);
       }
     }
-    alpha = (double) desired / n;
+    alpha = 1.0 - ((double) desired / n);
     fprintf(stderr," peers:%d desired:%d unknown:%d notdesired:%d alpha: %f (target:%f)\n",n, desired, desired_unknown, desired_not, alpha, alpha_target);
 
-    if (alpha > alpha_target && desired > 0) {
+    if (alpha < alpha_target && desired > 0) {
       remove_peer(ds[rand() % desired]->id);
-    } else if (alpha < alpha_target && desired_not > 0) {
+    } else if (alpha > alpha_target && desired_not > 0) {
       remove_peer(dns[rand() % desired_not]->id);
     } else if (desired_unknown > 0) {
       remove_peer(dus[rand() % desired_unknown]->id);
