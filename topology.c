@@ -27,6 +27,8 @@
 #include "measures.h"
 #include "streamer.h"
 
+#define MIN(A,B) ((A) < (B)) ? (A) : (B)
+
 double desired_rtt = 0.2;
 double alpha_target = 0.5;
 
