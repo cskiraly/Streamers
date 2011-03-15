@@ -374,7 +374,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     // random from the rest
     nidset_complement(others, &others_size, nodeids, nodeids_size, selecteds, selecteds_size);
     nidset_shuffle(others, others_size);
-    nidset_add_i(selecteds, &selecteds_size, n_ids, others, MIN(others_size, NEIGHBORHOOD_TARGET_SIZE - selecteds_size));
+    nidset_add_i(selecteds, &selecteds_size, n_ids, others, NEIGHBORHOOD_TARGET_SIZE ? MIN(others_size, NEIGHBORHOOD_TARGET_SIZE - selecteds_size) : others_size);
 
     // finally, remove those not needed
     fprintf(stderr,"Topo remove start (peers:%d)\n", n_ids);
