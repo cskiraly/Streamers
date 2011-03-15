@@ -183,10 +183,14 @@ static double get_rtt_of(struct nodeID* n){
 }
 
 //returns: 1:yes 0:no -1:unknown
-int is_desired(struct nodeID* n) {
+int desiredness(struct nodeID* n) {
   double rtt = get_rtt_of(n);
 
   return isnan(rtt) ? -1 : ((rtt <= desired_rtt) ? 1 : 0);
+}
+
+bool is_desired(struct nodeID* n) {
+  return (desiredness(n) == 1);
 }
 
 // The usual shuffle
