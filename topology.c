@@ -293,8 +293,8 @@ static int nidset_add_i(const struct nodeID **dst, size_t *dst_size, size_t max_
 // currently it just makes the peerset grow
 void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 {
-  int n_ids, metasize, i;
-  static const struct nodeID **ids;
+  int n_ids, metasize, i, newids_size, max_ids;
+  static const struct nodeID **newids;
   static const struct metadata *metas;
   struct peer *peers;
   struct timeval tnow, told;
@@ -331,36 +331,24 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 
   fprintf(stderr,"Topo modify start\n");
   peers = peerset_get_peers(pset);
-  for (i = 0; i < peerset_size(pset); i++) {
-    fprintf(stderr," %s - RTT: %f\n", node_addr(peers[i].id) , get_rtt_of(peers[i].id));
-  }
-
-  ids = topoGetNeighbourhood(&n_ids);	//TODO handle both tman and topo
-  metas = topGetMetadata(&metasize);	//TODO: check metasize
-  for(i = 0; i < n_ids; i++) {
-    if(peerset_check(pset, ids[i]) < 0) {
-      if (!NEIGHBORHOOD_TARGET_SIZE || peerset_size(pset) < NEIGHBORHOOD_TARGET_SIZE) {
-        add_peer(ids[i],&metas[i]);
-      } else {  //rotate neighbourhood
-        if (rand()/((double)RAND_MAX + 1) < NEIGHBORHOOD_ROTATE_RATIO) {
-          add_peer(ids[i],&metas[i]);
-        }
-      }
-    }
-  }
-
   n_ids = peerset_size(pset);
+  newids = topoGetNeighbourhood(&newids_size);	//TODO handle both tman and topo
+  metas = topGetMetadata(&metasize);	//TODO: check metasize
+  max_ids = n_ids + newids_size;
   {
     int desired_part;
-    const struct nodeID *nodeids[n_ids], *desireds[n_ids], *selecteds[n_ids], *others[n_ids], *toremoves[n_ids];
-    size_t nodeids_size, desireds_size, selecteds_size, others_size, toremoves_size;
+    const struct nodeID *oldids[max_ids], *nodeids[max_ids], *desireds[max_ids], *selecteds[max_ids], *others[max_ids], *toadds[max_ids], *toremoves[max_ids];
+    size_t oldids_size, nodeids_size, desireds_size, selecteds_size, others_size, toadds_size, toremoves_size;
     nodeids_size = desireds_size = selecteds_size = others_size = toremoves_size = n_ids;
 
-    //compose list of nodeids
-    peers = peerset_get_peers(pset);
-    for (i = 0; i < n_ids; i++) {
-      nodeids[i] = peers[i].id;
+    for (i = 0, oldids_size = 0; i < peerset_size(pset); i++) {
+      oldids[oldids_size++] = peers[i].id;
+      fprintf(stderr," %s - RTT: %f\n", node_addr(peers[i].id) , get_rtt_of(peers[i].id));
     }
+
+
+    //compose list of nodeids
+    nidset_add(nodeids, &nodeids_size, oldids, oldids_size, newids, newids_size);
 
     // select the alpha_target portion of desired peers
     desired_part = alpha_target * NEIGHBORHOOD_TARGET_SIZE;
@@ -373,6 +361,19 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     nidset_complement(others, &others_size, nodeids, nodeids_size, selecteds, selecteds_size);
     nidset_shuffle(others, others_size);
     nidset_add_i(selecteds, &selecteds_size, n_ids, others, NEIGHBORHOOD_TARGET_SIZE ? MIN(others_size, NEIGHBORHOOD_TARGET_SIZE - selecteds_size) : others_size);
+
+    // add new ones
+    nidset_complement(toadds, &toadds_size, selecteds, selecteds_size, oldids, oldids_size);
+    for (i = 0; i < toadds_size; i++) {
+      size_t j;
+      //searching for the metadata
+      if (nidset_find(&j, newids, newids_size, toadds[i])) {
+        fprintf(stderr," adding %s\n", node_addr(toadds[i]));
+        add_peer(newids[j], &metas[j]);
+      } else {
+        fprintf(stderr," Error: missing metadataadding for %s\n", node_addr(toadds[i]));
+      }
+    }
 
     // finally, remove those not needed
     fprintf(stderr,"Topo remove start (peers:%d)\n", n_ids);
