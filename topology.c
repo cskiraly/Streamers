@@ -305,7 +305,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     for (i = 0; i < peerset_size(pset); i++) {
       if ( (!timerisset(&peers[i].bmap_timestamp) && timercmp(&peers[i].creation_timestamp, &told, <) ) ||
            ( timerisset(&peers[i].bmap_timestamp) && timercmp(&peers[i].bmap_timestamp, &told, <)     )   ) {
-        fprintf(stderr,"Topo: dropping inactive %s\n", node_addr(peers[i].id));
+        fprintf(stderr,"Topo: dropping inactive %s (peers:%d)\n", node_addr(peers[i].id), peerset_size(pset));
         //if (peerset_size(pset) > 1) {	// avoid dropping our last link to the world
         topoAddToBL(peers[i].id);
         remove_peer(peers[i--].id);
@@ -328,12 +328,12 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     return;
   }
 
-  fprintf(stderr,"Topo modify start\n");
   peers = peerset_get_peers(pset);
   n_ids = peerset_size(pset);
   newids = topoGetNeighbourhood(&newids_size);	//TODO handle both tman and topo
   metas = topGetMetadata(&metasize);	//TODO: check metasize
   max_ids = n_ids + newids_size;
+  fprintf(stderr,"Topo modify start peers:%d candidates:%d\n", n_ids, newids_size);
   {
     int desired_part;
     const struct nodeID *oldids[max_ids], *nodeids[max_ids], *desireds[max_ids], *selecteds[max_ids], *others[max_ids], *toadds[max_ids], *toremoves[max_ids];
@@ -394,6 +394,7 @@ struct peer *nodeid_to_peer(const struct nodeID* id, int reg)
     //fprintf(stderr,"warning: received message from unknown peer: %s!%s\n",node_addr(id), reg ? " Adding it to pset." : "");
     if (reg) {
       add_peer(id,NULL);
+      fprintf(stderr,"Topo: ext adding %s (peers:%d)\n", node_addr(id), peerset_size(pset));
       p = peerset_get_peer(pset,id);
     }
   }
