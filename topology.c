@@ -299,6 +299,21 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
   struct peer *peers;
   struct timeval tnow, told;
 
+  if timerisset(&tout_bmap) {
+    gettimeofday(&tnow, NULL);
+    timersub(&tnow, &tout_bmap, &told);
+    peers = peerset_get_peers(pset);
+    for (i = 0; i < peerset_size(pset); i++) {
+      if ( (!timerisset(&peers[i].bmap_timestamp) && timercmp(&peers[i].creation_timestamp, &told, <) ) ||
+           ( timerisset(&peers[i].bmap_timestamp) && timercmp(&peers[i].bmap_timestamp, &told, <)     )   ) {
+        //if (peerset_size(pset) > 1) {	// avoid dropping our last link to the world
+        topoAddToBL(peers[i].id);
+        remove_peer(peers[i--].id);
+        //}
+      }
+    }
+  }
+
   if (cnt++ % 100 == 0) {
 	update_metadata();
     if (counter > TMAN_MAX_IDLE) {
@@ -332,22 +347,6 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
       }
     }
   }
-
-  if timerisset(&tout_bmap) {
-    gettimeofday(&tnow, NULL);
-    timersub(&tnow, &tout_bmap, &told);
-    peers = peerset_get_peers(pset);
-    for (i = 0; i < peerset_size(pset); i++) {
-      if ( (!timerisset(&peers[i].bmap_timestamp) && timercmp(&peers[i].creation_timestamp, &told, <) ) ||
-           ( timerisset(&peers[i].bmap_timestamp) && timercmp(&peers[i].bmap_timestamp, &told, <)     )   ) {
-        //if (peerset_size(pset) > 1) {	// avoid dropping our last link to the world
-        topoAddToBL(peers[i].id);
-        remove_peer(peers[i--].id);
-        //}
-      }
-    }
-  }
-
 
   n_ids = peerset_size(pset);
   {
