@@ -237,7 +237,7 @@ static int nidset_complement(const struct nodeID **dst, size_t *dst_size, const 
 
   for (i = 0; i < bs_size; i++) {
     for (j = 0; j < as_size; j++) {
-      if (bs[i] == as[j]) {
+      if (nodeid_equal(bs[i], as[j])) {
         break;
       }
     }
@@ -255,7 +255,7 @@ static int nidset_complement(const struct nodeID **dst, size_t *dst_size, const 
 
 static bool nidset_find(size_t *i, const struct nodeID **ids, size_t ids_size, const struct nodeID *id) {
   for (*i = 0; *i < ids_size; (*i)++) {
-    if (ids[*i] == id) {
+    if (nodeid_equal(ids[*i],id)) {
       return true;
     }
   }
