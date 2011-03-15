@@ -299,17 +299,6 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
   struct peer *peers;
   struct timeval tnow, told;
 
-//  dprintf("Update peers: topo_msg:%d, ",len);
-//  if (from) {
-//    dprintf("from:%s, ",node_addr(from));
-//    if (peerset_check(pset, from) < 0) {
-//      topAddNeighbour(from, NULL, 0);	//@TODO: this is agressive
-//      if (!NEIGHBORHOOD_TARGET_SIZE || peerset_size(pset) < NEIGHBORHOOD_TARGET_SIZE) {
-//        add_peer(from);
-//      }
-//    }
-//  }
-
   if (cnt++ % 100 == 0) {
 	update_metadata();
     if (counter > TMAN_MAX_IDLE) {
