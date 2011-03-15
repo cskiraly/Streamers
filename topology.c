@@ -165,7 +165,7 @@ void add_peer(const struct nodeID *id, const struct metadata *m)
       send_bmap(id);
 }
 
-void remove_peer(struct nodeID *id)
+void remove_peer(const struct nodeID *id)
 {
       dprintf("Removing %s from neighbourhood!\n", node_addr(id));
       /* add measures here */
@@ -174,7 +174,7 @@ void remove_peer(struct nodeID *id)
 }
 
 //get the rtt. Currenly only MONL version is supported
-static double get_rtt_of(struct nodeID* n){
+static double get_rtt_of(const struct nodeID* n){
 #ifdef MONL
   return get_rtt(n);
 #else
@@ -183,13 +183,13 @@ static double get_rtt_of(struct nodeID* n){
 }
 
 //returns: 1:yes 0:no -1:unknown
-int desiredness(struct nodeID* n) {
+int desiredness(const struct nodeID* n) {
   double rtt = get_rtt_of(n);
 
   return isnan(rtt) ? -1 : ((rtt <= desired_rtt) ? 1 : 0);
 }
 
-bool is_desired(struct nodeID* n) {
+bool is_desired(const struct nodeID* n) {
   return (desiredness(n) == 1);
 }
 
@@ -207,11 +207,11 @@ static void shuffle(void *base, size_t nmemb, size_t size) {
   }
 }
 
-static void nidset_shuffle(struct nodeID **base, size_t nmemb) {
+static void nidset_shuffle(const struct nodeID **base, size_t nmemb) {
   shuffle(base, nmemb, sizeof(struct nodeID *));
 }
 
-static int nidset_filter(struct nodeID **dst, size_t *dst_size, struct nodeID **src, size_t src_size, bool(*f)(struct nodeID *)) {
+static int nidset_filter(const struct nodeID **dst, size_t *dst_size, const struct nodeID **src, size_t src_size, bool(*f)(const struct nodeID *)) {
   size_t i;
   size_t max_size = *dst_size;
   *dst_size = 0;
@@ -230,7 +230,7 @@ static int nidset_filter(struct nodeID **dst, size_t *dst_size, struct nodeID **
 }
 
 // B \ A
-static int nidset_complement(struct nodeID **dst, size_t *dst_size, struct nodeID **bs, size_t bs_size, struct nodeID **as, size_t as_size) {
+static int nidset_complement(const struct nodeID **dst, size_t *dst_size, const struct nodeID **bs, size_t bs_size, const struct nodeID **as, size_t as_size) {
   size_t i, j;
   size_t max_size = *dst_size;
   *dst_size = 0;
@@ -253,7 +253,7 @@ static int nidset_complement(struct nodeID **dst, size_t *dst_size, struct nodeI
   return 0;
 }
 
-static int nidset_add(struct nodeID **dst, size_t *dst_size, struct nodeID **as, size_t as_size, struct nodeID **bs, size_t bs_size) {
+static int nidset_add(const struct nodeID **dst, size_t *dst_size, const struct nodeID **as, size_t as_size, const struct nodeID **bs, size_t bs_size) {
   size_t i;
   size_t max_size = *dst_size;
 
@@ -270,7 +270,7 @@ static int nidset_add(struct nodeID **dst, size_t *dst_size, struct nodeID **as,
   return 0;
 }
 
-static int nidset_add_i(struct nodeID **dst, size_t *dst_size, size_t max_size, struct nodeID **as, size_t as_size) {
+static int nidset_add_i(const struct nodeID **dst, size_t *dst_size, size_t max_size, const struct nodeID **as, size_t as_size) {
   size_t i;
 
   i = MIN(as_size, max_size - *dst_size);
@@ -354,7 +354,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
   n_ids = peerset_size(pset);
   {
     int desired_part;
-    struct nodeID *nodeids[n_ids], *desireds[n_ids], *selecteds[n_ids], *others[n_ids], *toremoves[n_ids];
+    const struct nodeID *nodeids[n_ids], *desireds[n_ids], *selecteds[n_ids], *others[n_ids], *toremoves[n_ids];
     size_t nodeids_size, desireds_size, selecteds_size, others_size, toremoves_size;
     nodeids_size = desireds_size = selecteds_size = others_size = toremoves_size = n_ids;
 
