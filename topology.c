@@ -176,7 +176,7 @@ void remove_peer(struct nodeID *id)
 //get the rtt. Currenly only MONL version is supported
 static double get_rtt_of(struct nodeID* n){
 #ifdef MONL
-  double rtt = get_rtt(n);
+  return get_rtt(n);
 #else
   return NAN;
 #endif
