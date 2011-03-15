@@ -9,5 +9,7 @@
 #include <net_helper.h>
 
 const struct nodeID *get_my_addr(void);
+int am_i_source();
+int get_cb_size();
 
 #endif //STREAMER_H
