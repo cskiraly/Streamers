@@ -41,6 +41,7 @@ static int simpleRanker (const void *tin, const void *p1in, const void *p2in);
 static tmanRankingFunction rankFunct = simpleRanker;
 struct metadata {
   uint16_t cb_size;
+  uint16_t cps;
   float recv_delay;
 };
 static struct metadata my_metadata;
@@ -53,6 +54,7 @@ static void update_metadata(void) {
 
 	my_metadata.cb_size = am_i_source() ? 0 : get_cb_size();
 	my_metadata.recv_delay = get_receive_delay();
+	my_metadata.cps = get_chunks_per_sec();
 }
 
 static int simpleRanker (const void *tin, const void *p1in, const void *p2in) {
