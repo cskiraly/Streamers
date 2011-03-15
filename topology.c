@@ -352,45 +352,39 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 
 
   n_ids = peerset_size(pset);
-  fprintf(stderr,"Topo remove start (peers:%d)\n", n_ids);
-  while (NEIGHBORHOOD_TARGET_SIZE && peerset_size(pset) > NEIGHBORHOOD_TARGET_SIZE) { //reduce back neighbourhood to target size
-    int n, desired, desired_not, desired_unknown;
-    struct peer *ds[n_ids], *dns[n_ids], *dus[n_ids];
-    double alpha;
+  {
+    int desired_part;
+    struct nodeID *nodeids[n_ids], *desireds[n_ids], *selecteds[n_ids], *others[n_ids], *toremoves[n_ids];
+    size_t nodeids_size, desireds_size, selecteds_size, others_size, toremoves_size;
+    nodeids_size = desireds_size = selecteds_size = others_size = toremoves_size = n_ids;
 
+    //compose list of nodeids
     peers = peerset_get_peers(pset);
-    n = peerset_size(pset);
-    desired = desired_not = desired_unknown = 0;
-    for (i = 0; i < n; i++) {
-      switch (is_desired(peers[i].id)) {
-        case 1:
-          ds[desired++] = &peers[i];
-          break;
-        case 0:
-          dns[desired_not++] = &peers[i];
-          break;
-        case -1:
-          dus[desired_unknown++] = &peers[i];
-          break;
-        default:
-          fprintf(stderr,"error with desiredness!\n");
-          exit(1);
-      }
+    for (i = 0; i < n_ids; i++) {
+      nodeids[i] = peers[i].id;
     }
-    alpha = 1.0 - ((double) desired / n);
-    fprintf(stderr," peers:%d desired:%d unknown:%d notdesired:%d alpha: %f (target:%f)\n",n, desired, desired_unknown, desired_not, alpha, alpha_target);
 
-    if (alpha < alpha_target && desired > 0) {
-      remove_peer(ds[rand() % desired]->id);
-    } else if (alpha > alpha_target && desired_not > 0) {
-      remove_peer(dns[rand() % desired_not]->id);
-    } else if (desired_unknown > 0) {
-      remove_peer(dus[rand() % desired_unknown]->id);
-    } else {
-      remove_peer(peers[rand() % n].id);
+    // select the alpha_target portion of desired peers
+    desired_part = alpha_target * NEIGHBORHOOD_TARGET_SIZE;
+    nidset_filter(desireds, &desireds_size, nodeids, nodeids_size, is_desired);
+    nidset_shuffle(desireds, desireds_size);
+    selecteds_size = MIN(desireds_size,desired_part);
+    memcpy(selecteds, desireds, selecteds_size * sizeof(selecteds[0]));
+
+    // random from the rest
+    nidset_complement(others, &others_size, nodeids, nodeids_size, selecteds, selecteds_size);
+    nidset_shuffle(others, others_size);
+    nidset_add_i(selecteds, &selecteds_size, n_ids, others, MIN(others_size, NEIGHBORHOOD_TARGET_SIZE - selecteds_size));
+
+    // finally, remove those not needed
+    fprintf(stderr,"Topo remove start (peers:%d)\n", n_ids);
+    nidset_complement(toremoves, &toremoves_size, nodeids, nodeids_size, selecteds, selecteds_size);
+    for (i = 0; i < toremoves_size; i++) {
+      fprintf(stderr," removing %s\n", node_addr(toremoves[i]));
+      remove_peer(toremoves[i]);
     }
+    fprintf(stderr,"Topo remove end\n");
   }
-  fprintf(stderr,"Topo remove end\n");
 
   reg_neigh_size(peerset_size(pset));
 }
