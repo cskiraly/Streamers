@@ -167,15 +167,20 @@ void remove_peer(struct nodeID *id)
       peerset_remove_peer(pset, id);
 }
 
-//returns: 1:yes 0:no -1:unknown
-int is_desired(struct nodeID* n) {
+//get the rtt. Currenly only MONL version is supported
+static double get_rtt_of(struct nodeID* n){
 #ifdef MONL
   double rtt = get_rtt(n);
+#else
+  return NAN;
+#endif
+}
+
+//returns: 1:yes 0:no -1:unknown
+int is_desired(struct nodeID* n) {
+  double rtt = get_rtt_of(n);
 
   return isnan(rtt) ? -1 : ((rtt <= desired_rtt) ? 1 : 0);
-#else
-  return -1;
-#endif
 }
 
 // currently it just makes the peerset grow
@@ -215,7 +220,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
   fprintf(stderr,"Topo modify start\n");
   peers = peerset_get_peers(pset);
   for (i = 0; i < peerset_size(pset); i++) {
-    fprintf(stderr," %s - RTT: %f\n", node_addr(peers[i].id) , get_rtt(peers[i].id));
+    fprintf(stderr," %s - RTT: %f\n", node_addr(peers[i].id) , get_rtt_of(peers[i].id));
   }
 
   ids = topoGetNeighbourhood(&n_ids);	//TODO handle both tman and topo
