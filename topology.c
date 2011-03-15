@@ -253,6 +253,15 @@ static int nidset_complement(const struct nodeID **dst, size_t *dst_size, const 
   return 0;
 }
 
+static bool nidset_find(size_t *i, const struct nodeID **ids, size_t ids_size, const struct nodeID *id) {
+  for (*i = 0; *i < ids_size; (*i)++) {
+    if (ids[*i] == id) {
+      return true;
+    }
+  }
+  return false;
+}
+
 static int nidset_add(const struct nodeID **dst, size_t *dst_size, const struct nodeID **as, size_t as_size, const struct nodeID **bs, size_t bs_size) {
   size_t i;
   size_t max_size = *dst_size;
