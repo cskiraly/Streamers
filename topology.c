@@ -9,6 +9,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <math.h>
 #include <net_helper.h>
@@ -184,6 +185,94 @@ int is_desired(struct nodeID* n) {
   double rtt = get_rtt_of(n);
 
   return isnan(rtt) ? -1 : ((rtt <= desired_rtt) ? 1 : 0);
+}
+
+// The usual shuffle
+static void shuffle(void *base, size_t nmemb, size_t size) {
+  int i;
+  unsigned char t[size];
+  unsigned char* b = base;
+
+  for (i = nmemb - 1; i > 0; i--) {
+    int newpos = (rand()/(RAND_MAX + 1.0)) * (i + 1);
+    memcpy(t, b + size * newpos, size);
+    memmove(b + size * newpos, b + size * i, size);
+    memcpy(b + size * i, t, size);
+  }
+}
+
+static void nidset_shuffle(struct nodeID **base, size_t nmemb) {
+  shuffle(base, nmemb, sizeof(struct nodeID *));
+}
+
+static int nidset_filter(struct nodeID **dst, size_t *dst_size, struct nodeID **src, size_t src_size, bool(*f)(struct nodeID *)) {
+  size_t i;
+  size_t max_size = *dst_size;
+  *dst_size = 0;
+
+  for (i = 0; i < src_size; i++) {
+    if (f(src[i])) {
+      if (*dst_size < max_size) {
+        dst[(*dst_size)++] = src[i];
+      } else {
+        return -1;
+      }
+    }
+  }
+
+  return 0;
+}
+
+// B \ A
+static int nidset_complement(struct nodeID **dst, size_t *dst_size, struct nodeID **bs, size_t bs_size, struct nodeID **as, size_t as_size) {
+  size_t i, j;
+  size_t max_size = *dst_size;
+  *dst_size = 0;
+
+  for (i = 0; i < bs_size; i++) {
+    for (j = 0; j < as_size; j++) {
+      if (bs[i] == as[j]) {
+        break;
+      }
+    }
+    if (j >= as_size) {
+      if (*dst_size < max_size) {
+        dst[(*dst_size)++] = bs[i];
+      } else {
+        return -1;
+      }
+    }
+  }
+
+  return 0;
+}
+
+static int nidset_add(struct nodeID **dst, size_t *dst_size, struct nodeID **as, size_t as_size, struct nodeID **bs, size_t bs_size) {
+  size_t i;
+  size_t max_size = *dst_size;
+
+  i = MIN(as_size, max_size);
+  memcpy(dst, as, i * sizeof(struct nodeID*));
+  *dst_size = i;
+  if (i < as_size) return -1;
+
+  i = MIN(bs_size, max_size - *dst_size);
+  memcpy(dst + *dst_size , bs, i * sizeof(struct nodeID*));
+  *dst_size += i;
+  if (i < bs_size) return -1;
+
+  return 0;
+}
+
+static int nidset_add_i(struct nodeID **dst, size_t *dst_size, size_t max_size, struct nodeID **as, size_t as_size) {
+  size_t i;
+
+  i = MIN(as_size, max_size - *dst_size);
+  memcpy(dst + *dst_size , as, i * sizeof(struct nodeID*));
+  *dst_size += i;
+  if (i < as_size) return -1;
+
+  return 0;
 }
 
 // currently it just makes the peerset grow
