@@ -263,6 +263,7 @@ static bool nidset_find(size_t *i, const struct nodeID **ids, size_t ids_size, c
 }
 
 static int nidset_add(const struct nodeID **dst, size_t *dst_size, const struct nodeID **as, size_t as_size, const struct nodeID **bs, size_t bs_size) {
+  int r;
   size_t i;
   size_t max_size = *dst_size;
 
@@ -271,23 +272,21 @@ static int nidset_add(const struct nodeID **dst, size_t *dst_size, const struct 
   *dst_size = i;
   if (i < as_size) return -1;
 
-  i = MIN(bs_size, max_size - *dst_size);
-  memcpy(dst + *dst_size , bs, i * sizeof(struct nodeID*));
-  *dst_size += i;
-  if (i < bs_size) return -1;
+  max_size -= *dst_size;
+  r = nidset_complement(dst + *dst_size, &max_size, bs, bs_size, as, as_size);
+  *dst_size += max_size;
 
-  return 0;
+  return r;
 }
 
 static int nidset_add_i(const struct nodeID **dst, size_t *dst_size, size_t max_size, const struct nodeID **as, size_t as_size) {
-  size_t i;
+  int r;
 
-  i = MIN(as_size, max_size - *dst_size);
-  memcpy(dst + *dst_size , as, i * sizeof(struct nodeID*));
-  *dst_size += i;
-  if (i < as_size) return -1;
+  max_size -= *dst_size;
+  r = nidset_complement(dst + *dst_size, &max_size, as, as_size, dst, *dst_size);
+  *dst_size += max_size;
 
-  return 0;
+  return r;
 }
 
 // currently it just makes the peerset grow
