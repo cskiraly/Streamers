@@ -127,6 +127,35 @@ static void print_usage(int argc, char *argv[])
   }
 
 
+static double atod_kmg(const char *s) {
+  double d;
+  char *e;
+
+  errno = 0;
+  d = strtod(s, &e);
+  if (errno) {
+    fprintf(stderr, "Error parsing option: %s\n", s);
+    exit(-1);
+  }
+  switch (*e) {
+    case 'g':
+    case 'G':
+      d *= 1024;
+    case 'm':
+    case 'M':
+      d *= 1024;
+    case 'k':
+    case 'K':
+      d *= 1024;
+    case 0:
+      break;
+    default:
+      fprintf(stderr, "Error parsing option: %s\n", s);
+      exit(-1);
+  }
+
+  return d;
+}
 
 static void cmdline_parse(int argc, char *argv[])
 {
