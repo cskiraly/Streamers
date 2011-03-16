@@ -12,6 +12,12 @@
 #include <getopt.h>
 #include <signal.h>
 #include <time.h>
+#include <errno.h>
+#include <math.h>
+#ifndef NAN	//NAN is missing in some old math.h versions
+#define NAN            (0.0/0.0)
+#endif
+
 #include <grapes_msg_types.h>
 #include <net_helper.h>
 
@@ -37,6 +43,7 @@ static int srv_port;
 static const char *srv_ip = "";
 static int period = 40;
 static int chunks_per_second = 25;
+static double capacity_override = NAN;
 #ifdef HTTPIO
 //input-http.c needs this in order to accomplish the -m multiple send_chunk()
 int multiply = 3;
@@ -168,6 +175,7 @@ static void cmdline_parse(int argc, char *argv[])
         {"measure_every", required_argument, 0, 0},
         {"playout_limit", required_argument, 0, 0},
         {"randomize_start", required_argument, 0, 0},
+        {"capacity_override", required_argument, 0, 0},
 	{0, 0, 0, 0}
   };
 
@@ -181,6 +189,7 @@ static void cmdline_parse(int argc, char *argv[])
 #endif
         if( strcmp( "playout_limit", long_options[option_index].name ) == 0 ) { CB_SIZE_TIME = atoi(optarg); }
         if( strcmp( "randomize_start", long_options[option_index].name ) == 0 ) { randomize_start = atoi(optarg); }
+        if( strcmp( "capacity_override", long_options[option_index].name ) == 0 ) { capacity_override = atod_kmg(optarg); }
         break;
       case 'a':
         alpha_target = (double)atoi(optarg) / 100.0;
@@ -383,4 +392,10 @@ int get_cb_size()
 int get_chunks_per_sec()
 {
   return chunks_per_second;
+}
+
+//capacity in bits/s, or NAN if unknown
+double get_capacity()
+{
+  return capacity_override;
 }
