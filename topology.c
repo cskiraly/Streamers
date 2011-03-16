@@ -372,7 +372,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     nidset_add(nodeids, &nodeids_size, oldids, oldids_size, newids, newids_size);
 
     // select the alpha_target portion of desired peers
-    desired_part = alpha_target * NEIGHBORHOOD_TARGET_SIZE;
+    desired_part = (1 - alpha_target) * NEIGHBORHOOD_TARGET_SIZE;
     nidset_filter(desireds, &desireds_size, nodeids, nodeids_size, is_desired);
     nidset_shuffle(desireds, desireds_size);
     selecteds_size = MIN(desireds_size,desired_part);
