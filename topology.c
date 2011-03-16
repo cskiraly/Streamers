@@ -42,11 +42,13 @@ static struct timeval tout_bmap = {10, 0};
 static int counter = 0;
 static int simpleRanker (const void *tin, const void *p1in, const void *p2in);
 static tmanRankingFunction rankFunct = simpleRanker;
+
 struct metadata {
   uint16_t cb_size;
   uint16_t cps;
   float recv_delay;
-};
+} __attribute__((packed));
+
 static struct metadata my_metadata;
 static int cnt = 0;
 static struct nodeID *me = NULL;
