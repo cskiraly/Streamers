@@ -46,6 +46,7 @@ static tmanRankingFunction rankFunct = simpleRanker;
 struct metadata {
   uint16_t cb_size;
   uint16_t cps;
+  float capacity;
   float recv_delay;
 } __attribute__((packed));
 
@@ -56,10 +57,10 @@ static unsigned char mTypes[] = {MSG_TYPE_TOPOLOGY,MSG_TYPE_TMAN};
 static struct nodeID ** neighbors;
 
 static void update_metadata(void) {
-
 	my_metadata.cb_size = am_i_source() ? 0 : get_cb_size();
 	my_metadata.recv_delay = get_receive_delay();
 	my_metadata.cps = get_chunks_per_sec();
+	my_metadata.capacity = get_capacity();
 }
 
 static int simpleRanker (const void *tin, const void *p1in, const void *p2in) {
@@ -162,6 +163,7 @@ void add_peer(const struct nodeID *id, const struct metadata *m)
       dprintf("Adding %s to neighbourhood! cb_size:%d\n", node_addr(id), m?m->cb_size:-1);
       peerset_add_peer(pset, id);
       if (m) peerset_get_peer(pset, id)->cb_size = m->cb_size;
+      if (m) peerset_get_peer(pset, id)->capacity = m->capacity;
       /* add measures here */
       add_measures(id);
       send_bmap(id);
