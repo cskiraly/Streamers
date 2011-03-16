@@ -46,7 +46,7 @@ void output_init(int bufsize, const char *config)
     sprintf(cfg, "dechunkiser=dummy,type=stats");
     sprintf(cfg + strlen(cfg), ",%s", config);
   } else {
-    sprintf(cfg, "dechunkiser=avf,media=av");
+    sprintf(cfg, "dechunkiser=avf,media=v");
   }
   out = out_stream_init(config, cfg);
   if (out == NULL) {
