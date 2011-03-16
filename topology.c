@@ -29,6 +29,7 @@
 
 #define MIN(A,B) ((A) < (B)) ? (A) : (B)
 
+double desired_bw = 0;
 double desired_rtt = 0.2;
 double alpha_target = 0.5;
 
@@ -186,11 +187,28 @@ static double get_rtt_of(const struct nodeID* n){
 #endif
 }
 
+//get the declared capacity of a node
+static double get_capacity_of(const struct nodeID* n){
+  struct peer *p = peerset_get_peer(pset, n);
+  if (p) {
+    return p->capacity;
+  }
+
+  return NAN;
+}
+
 //returns: 1:yes 0:no -1:unknown
 int desiredness(const struct nodeID* n) {
   double rtt = get_rtt_of(n);
+  double bw =  get_capacity_of(n);
 
-  return isnan(rtt) ? -1 : ((rtt <= desired_rtt) ? 1 : 0);
+  if ((isnan(rtt) && finite(desired_rtt)) || (isnan(bw) && desired_bw > 0)) {
+    return -1;
+  } else if ((isnan(rtt) || rtt <= desired_rtt) && (isnan(bw) || bw >= desired_bw)) {
+    return 1;
+  }
+
+  return 0;
 }
 
 bool is_desired(const struct nodeID* n) {
