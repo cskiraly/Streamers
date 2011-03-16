@@ -360,7 +360,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     int desired_part;
     const struct nodeID *oldids[max_ids], *nodeids[max_ids], *desireds[max_ids], *selecteds[max_ids], *others[max_ids], *toadds[max_ids], *toremoves[max_ids];
     size_t oldids_size, nodeids_size, desireds_size, selecteds_size, others_size, toadds_size, toremoves_size;
-    nodeids_size = desireds_size = selecteds_size = others_size = toremoves_size = max_ids;
+    nodeids_size = desireds_size = selecteds_size = others_size = toadds_size = toremoves_size = max_ids;
 
     for (i = 0, oldids_size = 0; i < peerset_size(pset); i++) {
       oldids[oldids_size++] = peers[i].id;
