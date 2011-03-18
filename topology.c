@@ -33,7 +33,7 @@ double desired_bw = 0;
 double desired_rtt = 0.2;
 double alpha_target = 0.5;
 
-int NEIGHBORHOOD_TARGET_SIZE = 20;
+int NEIGHBORHOOD_TARGET_SIZE = 30;
 double NEIGHBORHOOD_ROTATE_RATIO = 1.0;
 #define TMAN_MAX_IDLE 10
 #define TMAN_LOG_EVERY 1000
