@@ -240,9 +240,9 @@ void add_measures(struct nodeID *id)
 
 	// Chunks
        id->mhs[j] = monCreateMeasure(RX_PACKET, DATA | IN_BAND);
-       start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "RxChunks", stwinavgrate, sizeof(stwinavgrate)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//RxChunks_sum [chunks] RxChunks_rate [chunks/sec]
+       start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "RxChunks", stsumwinsumrate, sizeof(stsumwinsumrate)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//RxChunks_sum [chunks] RxChunks_rate [chunks/sec]
        id->mhs[j] = monCreateMeasure(TX_PACKET, DATA | IN_BAND);
-       start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "TxChunks", stwinavgrate, sizeof(stwinavgrate)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//TxChunks_sum [chunks] TxChunks_rate [chunks/sec]
+       start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "TxChunks", stsumwinsumrate, sizeof(stsumwinsumrate)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//TxChunks_sum [chunks] TxChunks_rate [chunks/sec]
 
 /*
 //	// Capacity
