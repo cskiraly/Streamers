@@ -29,7 +29,7 @@
 #include "topology.h"
 #include "dbg.h"
 
-static bool neigh_on_sign_recv = true;
+static bool neigh_on_sign_recv = false;
 
 void bmap_received(const struct nodeID *fromid, const struct nodeID *ownerid, struct chunkID_set *c_set, int cb_size, uint16_t trans_id) {
   struct peer *owner;
