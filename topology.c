@@ -394,7 +394,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
         fprintf(stderr," adding %s\n", node_addr(toadds[i]));
         add_peer(newids[j], &metas[j]);
       } else {
-        fprintf(stderr," Error: missing metadataadding for %s\n", node_addr(toadds[i]));
+        fprintf(stderr," Error: missing metadata for %s\n", node_addr(toadds[i]));
       }
     }
 
