@@ -34,8 +34,8 @@ endif
 ifdef DEBUG
 CFLAGS += -O0
 CPPFLAGS += -DDEBUG
-OBJS += dbg.o
 endif
+OBJS += dbg.o
 
 
 ifdef DEBUGOUT
