@@ -104,7 +104,7 @@ static void print_usage(int argc, char *argv[])
     "\t[--chunk_log]: print a chunk level log on stderr\n"
     "\t[-F config]: configure the output module\n"
     "\t[-a alpha]: set the topology alpha value (from 0 to 100)\n"
-    "\t[-t rtt]: set the RTT threshold (in ms) for desired neighbours\n"
+    "\t[-r rtt]: set the RTT threshold (in ms) for desired neighbours\n"
     "\t[--desired_bw bw]: set the BW threshold (in bits/s) for desired neighbours. Use of K(ilo), M(ega) allowed, e.g 0.8M\n"
     "\n"
     "Special Source Peer options\n"
