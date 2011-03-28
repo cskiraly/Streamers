@@ -34,6 +34,7 @@
 double desired_bw = 0;
 double desired_rtt = 0.2;
 double alpha_target = 0.5;
+double topo_mem = 0;
 
 int NEIGHBORHOOD_TARGET_SIZE = 30;
 double NEIGHBORHOOD_ROTATE_RATIO = 1.0;
@@ -264,33 +265,39 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
   ftprintf(stderr,"Topo modify start peers:%d candidates:%d\n", n_ids, newids_size);
   {
     int desired_part;
-    const struct nodeID *oldids[max_ids], *nodeids[max_ids], *desireds[max_ids], *selecteds[max_ids], *others[max_ids], *toadds[max_ids], *toremoves[max_ids];
-    size_t oldids_size, nodeids_size, desireds_size, selecteds_size, others_size, toadds_size, toremoves_size;
-    nodeids_size = desireds_size = selecteds_size = others_size = toadds_size = toremoves_size = max_ids;
+    const struct nodeID *oldids[max_ids], *nodeids[max_ids], *candidates[max_ids], *desireds[max_ids], *selecteds[max_ids], *others[max_ids], *toadds[max_ids], *toremoves[max_ids];
+    size_t oldids_size, nodeids_size, candidates_size, desireds_size, selecteds_size, others_size, toadds_size, toremoves_size, keep_size;
+    nodeids_size = candidates_size = desireds_size = selecteds_size = others_size = toadds_size = toremoves_size = max_ids;
 
     for (i = 0, oldids_size = 0; i < peerset_size(pset); i++) {
       oldids[oldids_size++] = peers[i].id;
       fprintf(stderr," %s - RTT: %f\n", node_addr(peers[i].id) , get_rtt_of(peers[i].id));
     }
 
+    // select the topo_mem portion of peers to be kept (uniform random)
+    nidset_shuffle(oldids, oldids_size);
+    keep_size = selecteds_size = (int) (topo_mem * oldids_size);
+    memcpy(selecteds, oldids, selecteds_size * sizeof(selecteds[0]));
 
-    //compose list of nodeids
+    // compose list of known nodeids
     nidset_add(nodeids, &nodeids_size, oldids, oldids_size, newids, newids_size);
 
+    // compose list of candidate nodeids
+    nidset_complement(candidates, &candidates_size, nodeids, nodeids_size, selecteds, selecteds_size);
+
     // select the alpha_target portion of desired peers
-    desired_part = (1 - alpha_target) * NEIGHBORHOOD_TARGET_SIZE;
-    nidset_filter(desireds, &desireds_size, nodeids, nodeids_size, is_desired);
+    desired_part = (1 - alpha_target) * (NEIGHBORHOOD_TARGET_SIZE ? (MAX (NEIGHBORHOOD_TARGET_SIZE - selecteds_size, 0)) : 0);
+    nidset_filter(desireds, &desireds_size, candidates, candidates_size, is_desired);
     nidset_shuffle(desireds, desireds_size);
-    selecteds_size = MIN(desireds_size,desired_part);
-    memcpy(selecteds, desireds, selecteds_size * sizeof(selecteds[0]));
+    nidset_add_i(selecteds, &selecteds_size, max_ids, desireds, MIN(desireds_size,desired_part));
 
     // random from the rest
-    nidset_complement(others, &others_size, nodeids, nodeids_size, selecteds, selecteds_size);
+    nidset_complement(others, &others_size, candidates, candidates_size, selecteds, selecteds_size);
     nidset_shuffle(others, others_size);
     nidset_add_i(selecteds, &selecteds_size, max_ids, others, NEIGHBORHOOD_TARGET_SIZE ? MIN(others_size, NEIGHBORHOOD_TARGET_SIZE - selecteds_size) : others_size);
 
-    fprintf(stderr,"Topo modify (from:%ld sel:%ld) - desired: %ld of %ld (target:%d sel:%ld); random: from %ld (sel:%ld)\n",
-            (long)nodeids_size, (long)selecteds_size, (long)desireds_size, (long)nodeids_size, desired_part, (long) MIN(desireds_size,desired_part), (long)others_size, (long)selecteds_size - MIN(desireds_size, desired_part));
+    fprintf(stderr,"Topo modify (from:%ld sel:%ld) - keep: %ld of %ld + desired: %ld of %ld (target:%d sel:%ld) + random: from %ld (sel:%ld)\n",
+            (long)nodeids_size, (long)selecteds_size, (long)keep_size, (long)oldids_size, (long)desireds_size, (long)nodeids_size, desired_part, (long) MIN(desireds_size,desired_part), (long)others_size, (long)selecteds_size - MIN(desireds_size, desired_part));
     // add new ones
     nidset_complement(toadds, &toadds_size, selecteds, selecteds_size, oldids, oldids_size);
     for (i = 0; i < toadds_size; i++) {
