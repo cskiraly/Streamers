@@ -29,6 +29,7 @@
 #include "streamer.h"
 
 #define MIN(A,B) (((A) < (B)) ? (A) : (B))
+#define MAX(A,B) (((A) > (B)) ? (A) : (B))
 
 double desired_bw = 0;
 double desired_rtt = 0.2;
