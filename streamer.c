@@ -357,6 +357,7 @@ int main(int argc, char *argv[])
 {
 
   (void) signal(SIGTERM,leave);
+  (void) signal(SIGINT,leave);
 
   cmdline_parse(argc, argv);
 
