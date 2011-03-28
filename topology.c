@@ -305,7 +305,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 
     // finally, remove those not needed
     fprintf(stderr,"Topo remove start (peers:%d)\n", n_ids);
-    nidset_complement(toremoves, &toremoves_size, nodeids, nodeids_size, selecteds, selecteds_size);
+    nidset_complement(toremoves, &toremoves_size, oldids, oldids_size, selecteds, selecteds_size);
     for (i = 0; i < toremoves_size; i++) {
       fprintf(stderr," removing %s\n", node_addr(toremoves[i]));
       remove_peer(toremoves[i]);
