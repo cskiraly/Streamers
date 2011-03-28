@@ -338,6 +338,7 @@ static struct nodeID *init(void)
 }
 
 void leave(int sig) {
+  fprintf(stderr, "Received signal %d, exiting!\n", sig);
   end_measures();
   exit(sig);
 }
