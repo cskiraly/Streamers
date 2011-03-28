@@ -74,7 +74,7 @@ ifdef ALTO
 OBJS += topology-ALTO.o
 OBJS += config.o
 else
-OBJS += topology.o
+OBJS += topology.o nodeid_set.o
 endif
 
 OBJS += chunk_signaling.o
