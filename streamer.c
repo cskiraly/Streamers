@@ -69,6 +69,7 @@ extern uint64_t CB_SIZE_TIME;
 extern double desired_bw;
 extern double desired_rtt;
 extern double alpha_target;
+extern double topo_mem;
 
 #ifndef MONL
 extern struct timeval print_tdiff;
@@ -106,6 +107,7 @@ static void print_usage(int argc, char *argv[])
     "\t[-a alpha]: set the topology alpha value (from 0 to 100)\n"
     "\t[-r rtt]: set the RTT threshold (in ms) for desired neighbours\n"
     "\t[--desired_bw bw]: set the BW threshold (in bits/s) for desired neighbours. Use of K(ilo), M(ega) allowed, e.g 0.8M\n"
+    "\t[--topo_mem p]: keep p (0..1) portion of peers between topology operations\n"
     "\n"
     "Special Source Peer options\n"
     "\t[-m chunks]: set the number of copies the source injects in the overlay.\n"
@@ -179,6 +181,7 @@ static void cmdline_parse(int argc, char *argv[])
         {"randomize_start", required_argument, 0, 0},
         {"capacity_override", required_argument, 0, 0},
         {"desired_bw", required_argument, 0, 0},
+        {"topo_mem", required_argument, 0, 0},
 	{0, 0, 0, 0}
   };
 
@@ -194,6 +197,7 @@ static void cmdline_parse(int argc, char *argv[])
         if( strcmp( "randomize_start", long_options[option_index].name ) == 0 ) { randomize_start = atoi(optarg); }
         if( strcmp( "capacity_override", long_options[option_index].name ) == 0 ) { capacity_override = atod_kmg(optarg); }
         if( strcmp( "desired_bw", long_options[option_index].name ) == 0 ) { desired_bw = atod_kmg(optarg); }
+        if( strcmp( "topo_mem", long_options[option_index].name ) == 0 ) { topo_mem = atof(optarg); }
         break;
       case 'a':
         alpha_target = (double)atoi(optarg) / 100.0;
