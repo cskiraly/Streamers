@@ -63,6 +63,7 @@ static void *source_receive(void *dummy)
     }
     switch (buff[0] /* Message Type */) {
 	  case MSG_TYPE_TMAN:
+      case MSG_TYPE_STREAMER_TOPOLOGY:
       case MSG_TYPE_TOPOLOGY:
         pthread_mutex_lock(&topology_mutex);
         update_peers(remote, buff, len);
@@ -101,6 +102,7 @@ static void *receive(void *dummy)
     dprintf("Received message (%c) from %s\n", buff[0], node_addr(remote));
     switch (buff[0] /* Message Type */) {
 	  case MSG_TYPE_TMAN:
+      case MSG_TYPE_STREAMER_TOPOLOGY:
       case MSG_TYPE_TOPOLOGY:
         pthread_mutex_lock(&topology_mutex);
         update_peers(remote, buff, len);

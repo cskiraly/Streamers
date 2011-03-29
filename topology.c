@@ -41,6 +41,9 @@ double NEIGHBORHOOD_ROTATE_RATIO = 1.0;
 #define TMAN_MAX_IDLE 10
 #define TMAN_LOG_EVERY 1000
 
+#define STREAMER_TOPOLOGY_MSG_ADD 0
+#define STREAMER_TOPOLOGY_MSG_REMOVE 1
+
 static struct peerset *pset;
 static struct timeval tout_bmap = {20, 0};
 static int counter = 0;
@@ -57,7 +60,7 @@ struct metadata {
 static struct metadata my_metadata;
 static int cnt = 0;
 static struct nodeID *me = NULL;
-static unsigned char mTypes[] = {MSG_TYPE_TOPOLOGY,MSG_TYPE_TMAN};
+static unsigned char mTypes[] = {MSG_TYPE_TOPOLOGY,MSG_TYPE_TMAN,MSG_TYPE_STREAMER_TOPOLOGY};
 static struct nodeID ** neighbors;
 
 static void update_metadata(void) {
@@ -162,7 +165,16 @@ static void topoAddToBL (struct nodeID *id)
 		topAddToBlackList(id);
 }
 
-void add_peer(const struct nodeID *id, const struct metadata *m)
+//TODO: send metadata as well
+static int send_topo_msg(struct nodeID *dst, uint8_t type)
+{
+  char msg[2];
+  msg[0] = MSG_TYPE_STREAMER_TOPOLOGY;
+  msg[1] = type;
+  return send_to_peer(me, dst, msg, 2);
+}
+
+static void add_peer_silent(const struct nodeID *id, const struct metadata *m)
 {
       dprintf("Adding %s to neighbourhood! cb_size:%d\n", node_addr(id), m?m->cb_size:-1);
       peerset_add_peer(pset, id);
@@ -173,12 +185,26 @@ void add_peer(const struct nodeID *id, const struct metadata *m)
       send_bmap(id);
 }
 
-void remove_peer(const struct nodeID *id)
+static void add_peer(const struct nodeID *id, const struct metadata *m)
+{
+      add_peer_silent(id, m);
+      dtprintf("Topo: explicit topo message sent!!! to %s (peers:%d)\n", node_addr(id));
+      send_topo_msg(id, STREAMER_TOPOLOGY_MSG_ADD);
+}
+
+static void remove_peer_silent(const struct nodeID *id)
 {
       dprintf("Removing %s from neighbourhood!\n", node_addr(id));
       /* add measures here */
       delete_measures(id);
       peerset_remove_peer(pset, id);
+}
+
+static void remove_peer(const struct nodeID *id)
+{
+      remove_peer_silent(id);
+      dtprintf("Topo: explicit topo message sent!!! to %s (peers:%d)\n", node_addr(id));
+      send_topo_msg(id, STREAMER_TOPOLOGY_MSG_REMOVE);
 }
 
 //get the rtt. Currenly only MONL version is supported
@@ -248,6 +274,29 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     if (counter > TMAN_MAX_IDLE) {
 	tmanChangeMetadata(&my_metadata,sizeof(my_metadata));
     }
+  }
+
+  //handle explicit add/remove messages
+  if (buff && buff[0] == MSG_TYPE_STREAMER_TOPOLOGY) {
+    dtprintf(stderr,"Topo: explicit topo message received!!!from %s (peers:%d)\n", node_addr(from), peerset_size(pset));
+    if (len != 2) {
+      fprintf(stderr, "Bad streamer topo message received, len:%d!\n", len);
+      return;
+    }
+    switch (buff[1]) {
+      case STREAMER_TOPOLOGY_MSG_ADD:
+        ftprintf(stderr,"Topo: adding for symmetry %s (peers:%d)\n", node_addr(from), peerset_size(pset));
+        add_peer_silent(from, NULL);
+        break;
+      case STREAMER_TOPOLOGY_MSG_REMOVE:
+        ftprintf(stderr,"Topo: removing for symmetry %s (peers:%d)\n", node_addr(from), peerset_size(pset));
+        remove_peer_silent(from);
+        break;
+      default:
+        fprintf(stderr, "Bad streamer topo message received!\n");
+    }
+    reg_neigh_size(peerset_size(pset));
+    return;
   }
 
   topoParseData(buff, len);

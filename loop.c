@@ -79,6 +79,7 @@ void loop(struct nodeID *s, int csize, int buff_size)
       }
       switch (buff[0] /* Message Type */) {
         case MSG_TYPE_TMAN:
+        case MSG_TYPE_STREAMER_TOPOLOGY:
         case MSG_TYPE_TOPOLOGY:
           dtprintf("Topo message received:\n");
           update_peers(remote, buff, len);
@@ -157,6 +158,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
       dprintf("Received message (%c) from %s\n", buff[0], node_addr(remote));
       switch (buff[0] /* Message Type */) {
 		case MSG_TYPE_TMAN:
+        case MSG_TYPE_STREAMER_TOPOLOGY:
         case MSG_TYPE_TOPOLOGY:
           fprintf(stderr, "Top Parse\n");
 #ifdef HTTPIO_MHD
