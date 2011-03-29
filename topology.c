@@ -253,6 +253,8 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
   static const struct metadata *metas;
   struct peer *peers;
   struct timeval tnow, told;
+  static const struct nodeID **savedids;
+  static int savedids_size;
 
   if timerisset(&tout_bmap) {
     gettimeofday(&tnow, NULL);
@@ -311,11 +313,9 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
   n_ids = peerset_size(pset);
   newids = topoGetNeighbourhood(&newids_size);	//TODO handle both tman and topo
   metas = topGetMetadata(&metasize);	//TODO: check metasize
-  max_ids = n_ids + newids_size;
+  max_ids = n_ids + savedids_size + newids_size;
   ftprintf(stderr,"Topo modify start peers:%d candidates:%d\n", n_ids, newids_size);
   {
-    static const struct nodeID **savedids;
-    static int savedids_size;
     int desired_part;
     const struct nodeID *oldids[max_ids], *nodeids[max_ids], *candidates[max_ids], *desireds[max_ids], *selecteds[max_ids], *others[max_ids], *toadds[max_ids], *toremoves[max_ids];
     int oldids_size, nodeids_size, candidates_size, desireds_size, selecteds_size, others_size, toadds_size, toremoves_size, keep_size, random_size;
