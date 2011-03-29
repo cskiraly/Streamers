@@ -315,10 +315,10 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
   ftprintf(stderr,"Topo modify start peers:%d candidates:%d\n", n_ids, newids_size);
   {
     static const struct nodeID **savedids;
-    static size_t savedids_size;
+    static int savedids_size;
     int desired_part;
     const struct nodeID *oldids[max_ids], *nodeids[max_ids], *candidates[max_ids], *desireds[max_ids], *selecteds[max_ids], *others[max_ids], *toadds[max_ids], *toremoves[max_ids];
-    size_t oldids_size, nodeids_size, candidates_size, desireds_size, selecteds_size, others_size, toadds_size, toremoves_size, keep_size, random_size;
+    int oldids_size, nodeids_size, candidates_size, desireds_size, selecteds_size, others_size, toadds_size, toremoves_size, keep_size, random_size;
     nodeids_size = candidates_size = desireds_size = selecteds_size = others_size = toadds_size = toremoves_size = max_ids;
 
     if (topo_out) {
@@ -358,15 +358,15 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     random_size = NEIGHBORHOOD_TARGET_SIZE ? MIN(others_size, NEIGHBORHOOD_TARGET_SIZE - selecteds_size) : others_size;
     nidset_add_i(selecteds, &selecteds_size, max_ids, others, random_size);
 
-    fprintf(stderr,"Topo modify sel:%ld (from:%ld) = keep: %ld (of old:%ld) + desired: %ld (from %ld of %ld; target:%d) + random: %ld (from %ld)\n",
-            (long)selecteds_size, (long)nodeids_size,
-            (long)keep_size, (long)oldids_size,
-            (long)MIN(desireds_size,desired_part), (long)desireds_size, (long)candidates_size, desired_part,
-            (long)random_size, (long)others_size);
+    fprintf(stderr,"Topo modify sel:%d (from:%d) = keep: %d (of old:%d) + desired: %d (from %d of %d; target:%d) + random: %d (from %d)\n",
+            selecteds_size, nodeids_size,
+            keep_size, oldids_size,
+            MIN(desireds_size,desired_part), desireds_size, candidates_size, desired_part,
+            random_size, others_size);
     // add new ones
     nidset_complement(toadds, &toadds_size, selecteds, selecteds_size, oldids, oldids_size);
     for (i = 0; i < toadds_size; i++) {
-      size_t j;
+      int j;
       //searching for the metadata
       if (nidset_find(&j, newids, newids_size, toadds[i])) {
         fprintf(stderr," adding %s\n", node_addr(toadds[i]));

@@ -14,7 +14,7 @@
 #define MIN(A,B) (((A) < (B)) ? (A) : (B))
 
 // The usual shuffle
-void shuffle(void *base, size_t nmemb, size_t size) {
+void shuffle(void *base, int nmemb, int size) {
   int i;
   unsigned char t[size];
   unsigned char* b = base;
@@ -27,13 +27,13 @@ void shuffle(void *base, size_t nmemb, size_t size) {
   }
 }
 
-void nidset_shuffle(const struct nodeID **base, size_t nmemb) {
+void nidset_shuffle(const struct nodeID **base, int nmemb) {
   shuffle(base, nmemb, sizeof(struct nodeID *));
 }
 
-int nidset_filter(const struct nodeID **dst, size_t *dst_size, const struct nodeID **src, size_t src_size, bool(*f)(const struct nodeID *)) {
-  size_t i;
-  size_t max_size = *dst_size;
+int nidset_filter(const struct nodeID **dst, int *dst_size, const struct nodeID **src, int src_size, bool(*f)(const struct nodeID *)) {
+  int i;
+  int max_size = *dst_size;
   *dst_size = 0;
 
   for (i = 0; i < src_size; i++) {
@@ -50,9 +50,9 @@ int nidset_filter(const struct nodeID **dst, size_t *dst_size, const struct node
 }
 
 // B \ A
-int nidset_complement(const struct nodeID **dst, size_t *dst_size, const struct nodeID **bs, size_t bs_size, const struct nodeID **as, size_t as_size) {
-  size_t i, j;
-  size_t max_size = *dst_size;
+int nidset_complement(const struct nodeID **dst, int *dst_size, const struct nodeID **bs, int bs_size, const struct nodeID **as, int as_size) {
+  int i, j;
+  int max_size = *dst_size;
   *dst_size = 0;
 
   for (i = 0; i < bs_size; i++) {
@@ -73,7 +73,7 @@ int nidset_complement(const struct nodeID **dst, size_t *dst_size, const struct 
   return 0;
 }
 
-bool nidset_find(size_t *i, const struct nodeID **ids, size_t ids_size, const struct nodeID *id) {
+bool nidset_find(int *i, const struct nodeID **ids, int ids_size, const struct nodeID *id) {
   for (*i = 0; *i < ids_size; (*i)++) {
     if (nodeid_equal(ids[*i],id)) {
       return true;
@@ -82,10 +82,10 @@ bool nidset_find(size_t *i, const struct nodeID **ids, size_t ids_size, const st
   return false;
 }
 
-int nidset_add(const struct nodeID **dst, size_t *dst_size, const struct nodeID **as, size_t as_size, const struct nodeID **bs, size_t bs_size) {
+int nidset_add(const struct nodeID **dst, int *dst_size, const struct nodeID **as, int as_size, const struct nodeID **bs, int bs_size) {
   int r;
-  size_t i;
-  size_t max_size = *dst_size;
+  int i;
+  int max_size = *dst_size;
 
   i = MIN(as_size, max_size);
   memcpy(dst, as, i * sizeof(struct nodeID*));
@@ -99,7 +99,7 @@ int nidset_add(const struct nodeID **dst, size_t *dst_size, const struct nodeID 
   return r;
 }
 
-int nidset_add_i(const struct nodeID **dst, size_t *dst_size, size_t max_size, const struct nodeID **as, size_t as_size) {
+int nidset_add_i(const struct nodeID **dst, int *dst_size, int max_size, const struct nodeID **as, int as_size) {
   int r;
 
   max_size -= *dst_size;
