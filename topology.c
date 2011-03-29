@@ -314,14 +314,25 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
   max_ids = n_ids + newids_size;
   ftprintf(stderr,"Topo modify start peers:%d candidates:%d\n", n_ids, newids_size);
   {
+    static const struct nodeID **savedids;
+    static size_t savedids_size;
     int desired_part;
     const struct nodeID *oldids[max_ids], *nodeids[max_ids], *candidates[max_ids], *desireds[max_ids], *selecteds[max_ids], *others[max_ids], *toadds[max_ids], *toremoves[max_ids];
     size_t oldids_size, nodeids_size, candidates_size, desireds_size, selecteds_size, others_size, toadds_size, toremoves_size, keep_size, random_size;
     nodeids_size = candidates_size = desireds_size = selecteds_size = others_size = toadds_size = toremoves_size = max_ids;
 
-    for (i = 0, oldids_size = 0; i < peerset_size(pset); i++) {
-      oldids[oldids_size++] = peers[i].id;
-      fprintf(stderr," %s - RTT: %f\n", node_addr(peers[i].id) , get_rtt_of(peers[i].id));
+    if (topo_out) {
+      for (i = 0, oldids_size = 0; i < peerset_size(pset); i++) {
+        oldids[oldids_size++] = peers[i].id;
+        fprintf(stderr," %s - RTT: %f\n", node_addr(peers[i].id) , get_rtt_of(peers[i].id));
+      }
+    } else {
+      for (i = 0, oldids_size = 0; i < savedids_size; i++) {
+        oldids[oldids_size++] = savedids[i];
+        fprintf(stderr," %s - RTT: %f\n", node_addr(savedids[i]) , get_rtt_of(savedids[i]));
+      }
+      savedids_size = 0;
+      free(savedids);
     }
 
     // select the topo_mem portion of peers to be kept (uniform random)
@@ -373,6 +384,16 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
       remove_peer(toremoves[i], topo_out, topo_in);
     }
     fprintf(stderr,"Topo remove end\n");
+
+    if (!topo_out) {
+      savedids = malloc(selecteds_size * sizeof(savedids[0]));	//TODO: handle errors
+      for (i = 0, savedids_size = 0; i < selecteds_size; i++) {
+        savedids[savedids_size++] = nodeid_dup(selecteds[i]);
+      }
+      for (i = 0; i < oldids_size; i++) {
+        nodeid_free(oldids[i]);
+      }
+    }
   }
 
   reg_neigh_size(peerset_size(pset));
