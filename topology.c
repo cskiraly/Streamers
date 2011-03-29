@@ -37,7 +37,7 @@ double alpha_target = 0.5;
 double topo_mem = 0;
 
 bool topo_out = true; //peer selects out-neighbours
-bool topo_in = true; //peer selects in-neighbours (combined means bidirectional)
+bool topo_in = false; //peer selects in-neighbours (combined means bidirectional)
 
 int NEIGHBORHOOD_TARGET_SIZE = 30;
 double NEIGHBORHOOD_ROTATE_RATIO = 1.0;
