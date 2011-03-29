@@ -355,7 +355,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     // random from the rest
     nidset_complement(others, &others_size, candidates, candidates_size, selecteds, selecteds_size);
     nidset_shuffle(others, others_size);
-    random_size = NEIGHBORHOOD_TARGET_SIZE ? MIN(others_size, NEIGHBORHOOD_TARGET_SIZE - selecteds_size) : others_size;
+    random_size = NEIGHBORHOOD_TARGET_SIZE ? MIN(others_size, MAX(NEIGHBORHOOD_TARGET_SIZE - selecteds_size, 0)) : others_size;
     nidset_add_i(selecteds, &selecteds_size, max_ids, others, random_size);
 
     fprintf(stderr,"Topo modify sel:%d (from:%d) = keep: %d (of old:%d) + desired: %d (from %d of %d; target:%d) + random: %d (from %d)\n",
