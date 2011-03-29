@@ -286,11 +286,11 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     }
     switch (buff[1]) {
       case STREAMER_TOPOLOGY_MSG_ADD:
-        ftprintf(stderr,"Topo: adding for symmetry %s (peers:%d)\n", node_addr(from), peerset_size(pset));
+        ftprintf(stderr,"Topo: adding on request %s (peers:%d)\n", node_addr(from), peerset_size(pset));
         add_peer(from, NULL, true, false);
         break;
       case STREAMER_TOPOLOGY_MSG_REMOVE:
-        ftprintf(stderr,"Topo: removing for symmetry %s (peers:%d)\n", node_addr(from), peerset_size(pset));
+        ftprintf(stderr,"Topo: removing on request %s (peers:%d)\n", node_addr(from), peerset_size(pset));
         remove_peer(from, true, false);
         break;
       default:
