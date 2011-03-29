@@ -84,7 +84,7 @@ static int simpleRanker (const void *tin, const void *p1in, const void *p2in) {
 int topologyInit(struct nodeID *myID, const char *config)
 {
 	int i;
-	for (i=0;i<2;i++)
+	for (i=0;i<sizeof(mTypes)/sizeof(mTypes[0]);i++)
 		bind_msg_type(mTypes[i]);
 	update_metadata();
 	me = myID;
