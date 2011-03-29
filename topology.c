@@ -36,6 +36,9 @@ double desired_rtt = 0.2;
 double alpha_target = 0.5;
 double topo_mem = 0;
 
+bool topo_out = true; //peer selects out-neighbours
+bool topo_in = true; //peer selects in-neighbours (combined means bidirectional)
+
 int NEIGHBORHOOD_TARGET_SIZE = 30;
 double NEIGHBORHOOD_ROTATE_RATIO = 1.0;
 #define TMAN_MAX_IDLE 10
@@ -275,7 +278,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
   }
 
   //handle explicit add/remove messages
-  if (buff && buff[0] == MSG_TYPE_STREAMER_TOPOLOGY) {
+  if (topo_in && buff && buff[0] == MSG_TYPE_STREAMER_TOPOLOGY) {
     dtprintf(stderr,"Topo: explicit topo message received!!!from %s (peers:%d)\n", node_addr(from), peerset_size(pset));
     if (len != 2) {
       fprintf(stderr, "Bad streamer topo message received, len:%d!\n", len);
@@ -356,7 +359,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
       //searching for the metadata
       if (nidset_find(&j, newids, newids_size, toadds[i])) {
         fprintf(stderr," adding %s\n", node_addr(toadds[i]));
-        add_peer(newids[j], &metas[j], true, true);
+        add_peer(newids[j], &metas[j], topo_out, topo_in);
       } else {
         fprintf(stderr," Error: missing metadata for %s\n", node_addr(toadds[i]));
       }
@@ -367,7 +370,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     nidset_complement(toremoves, &toremoves_size, oldids, oldids_size, selecteds, selecteds_size);
     for (i = 0; i < toremoves_size; i++) {
       fprintf(stderr," removing %s\n", node_addr(toremoves[i]));
-      remove_peer(toremoves[i], true, true);
+      remove_peer(toremoves[i], topo_out, topo_in);
     }
     fprintf(stderr,"Topo remove end\n");
   }
@@ -381,7 +384,7 @@ struct peer *nodeid_to_peer(const struct nodeID* id, int reg)
   if (!p) {
     //fprintf(stderr,"warning: received message from unknown peer: %s!%s\n",node_addr(id), reg ? " Adding it to pset." : "");
     if (reg) {
-      add_peer(id,NULL, true, false);
+      add_peer(id,NULL, topo_out, false);
       fprintf(stderr,"Topo: ext adding %s (peers:%d)\n", node_addr(id), peerset_size(pset));
       p = peerset_get_peer(pset,id);
     }
