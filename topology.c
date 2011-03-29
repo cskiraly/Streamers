@@ -174,8 +174,9 @@ static int send_topo_msg(struct nodeID *dst, uint8_t type)
   return send_to_peer(me, dst, msg, 2);
 }
 
-static void add_peer_silent(const struct nodeID *id, const struct metadata *m)
+static void add_peer(const struct nodeID *id, const struct metadata *m, bool local, bool remote)
 {
+  if (local) {
       dprintf("Adding %s to neighbourhood! cb_size:%d\n", node_addr(id), m?m->cb_size:-1);
       peerset_add_peer(pset, id);
       if (m) peerset_get_peer(pset, id)->cb_size = m->cb_size;
@@ -183,28 +184,25 @@ static void add_peer_silent(const struct nodeID *id, const struct metadata *m)
       /* add measures here */
       add_measures(id);
       send_bmap(id);
-}
-
-static void add_peer(const struct nodeID *id, const struct metadata *m)
-{
-      add_peer_silent(id, m);
+  }
+  if (remote) {
       dtprintf("Topo: explicit topo message sent!!! to %s (peers:%d)\n", node_addr(id));
       send_topo_msg(id, STREAMER_TOPOLOGY_MSG_ADD);
+  }
 }
 
-static void remove_peer_silent(const struct nodeID *id)
+static void remove_peer(const struct nodeID *id, bool local, bool remote)
 {
+  if (local) {
       dprintf("Removing %s from neighbourhood!\n", node_addr(id));
       /* add measures here */
       delete_measures(id);
       peerset_remove_peer(pset, id);
-}
-
-static void remove_peer(const struct nodeID *id)
-{
-      remove_peer_silent(id);
+  }
+  if (remote) {
       dtprintf("Topo: explicit topo message sent!!! to %s (peers:%d)\n", node_addr(id));
       send_topo_msg(id, STREAMER_TOPOLOGY_MSG_REMOVE);
+  }
 }
 
 //get the rtt. Currenly only MONL version is supported
@@ -263,7 +261,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
         ftprintf(stderr,"Topo: dropping inactive %s (peers:%d)\n", node_addr(peers[i].id), peerset_size(pset));
         //if (peerset_size(pset) > 1) {	// avoid dropping our last link to the world
         topoAddToBL(peers[i].id);
-        remove_peer(peers[i--].id);
+        remove_peer(peers[i--].id, true, true);
         //}
       }
     }
@@ -286,11 +284,11 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     switch (buff[1]) {
       case STREAMER_TOPOLOGY_MSG_ADD:
         ftprintf(stderr,"Topo: adding for symmetry %s (peers:%d)\n", node_addr(from), peerset_size(pset));
-        add_peer_silent(from, NULL);
+        add_peer(from, NULL, true, false);
         break;
       case STREAMER_TOPOLOGY_MSG_REMOVE:
         ftprintf(stderr,"Topo: removing for symmetry %s (peers:%d)\n", node_addr(from), peerset_size(pset));
-        remove_peer_silent(from);
+        remove_peer(from, true, false);
         break;
       default:
         fprintf(stderr, "Bad streamer topo message received!\n");
@@ -358,7 +356,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
       //searching for the metadata
       if (nidset_find(&j, newids, newids_size, toadds[i])) {
         fprintf(stderr," adding %s\n", node_addr(toadds[i]));
-        add_peer(newids[j], &metas[j]);
+        add_peer(newids[j], &metas[j], true, true);
       } else {
         fprintf(stderr," Error: missing metadata for %s\n", node_addr(toadds[i]));
       }
@@ -369,7 +367,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     nidset_complement(toremoves, &toremoves_size, oldids, oldids_size, selecteds, selecteds_size);
     for (i = 0; i < toremoves_size; i++) {
       fprintf(stderr," removing %s\n", node_addr(toremoves[i]));
-      remove_peer(toremoves[i]);
+      remove_peer(toremoves[i], true, true);
     }
     fprintf(stderr,"Topo remove end\n");
   }
@@ -383,7 +381,7 @@ struct peer *nodeid_to_peer(const struct nodeID* id, int reg)
   if (!p) {
     //fprintf(stderr,"warning: received message from unknown peer: %s!%s\n",node_addr(id), reg ? " Adding it to pset." : "");
     if (reg) {
-      add_peer(id,NULL);
+      add_peer(id,NULL, true, false);
       fprintf(stderr,"Topo: ext adding %s (peers:%d)\n", node_addr(id), peerset_size(pset));
       p = peerset_get_peer(pset,id);
     }
