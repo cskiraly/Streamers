@@ -51,8 +51,10 @@ bool chunk_log = false;
 
 extern int NEIGHBORHOOD_TARGET_SIZE;
 
+#ifndef MONL
 extern struct timeval print_tdiff;
 extern struct timeval tstartdiff;
+#endif
 
 static void print_usage(int argc, char *argv[])
 {
@@ -123,8 +125,10 @@ static void cmdline_parse(int argc, char *argv[])
     switch(o) {
       case 0: //for long options
         if( strcmp( "chunk_log", long_options[option_index].name ) == 0 ) { chunk_log = true; }
+#ifndef MONL
         if( strcmp( "measure_start", long_options[option_index].name ) == 0 ) { tstartdiff.tv_sec = atoi(optarg); }
         if( strcmp( "measure_every", long_options[option_index].name ) == 0 ) { print_tdiff.tv_sec = atoi(optarg); }
+#endif
         break;
       case 'b':
         buff_size = atoi(optarg);
