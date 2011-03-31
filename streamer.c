@@ -72,6 +72,8 @@ extern double alpha_target;
 extern double topo_mem;
 extern bool topo_out;
 extern bool topo_in;
+extern bool topo_keep_best;
+extern bool topo_add_best;
 
 #ifndef MONL
 extern struct timeval print_tdiff;
@@ -113,6 +115,8 @@ static void print_usage(int argc, char *argv[])
     "\t[--topo_out]: peers only choose out-neighbours\n"
     "\t[--topo_in]: peers only choose in-neighbours\n"
     "\t[--topo_bidir]: peers choose both in- and out-neighbours (bidir)\n"
+    "\t[--topo_keep_best]: keep best peers, not random subset\n"
+    "\t[--topo_add_best]: add best peers among desired ones, not random subset\n"
     "\n"
     "Special Source Peer options\n"
     "\t[-m chunks]: set the number of copies the source injects in the overlay.\n"
@@ -190,6 +194,8 @@ static void cmdline_parse(int argc, char *argv[])
         {"topo_in", no_argument, 0, 0},
         {"topo_out", no_argument, 0, 0},
         {"topo_bidir", no_argument, 0, 0},
+        {"topo_keep_best", no_argument, 0, 0},
+        {"topo_add_best", no_argument, 0, 0},
 	{0, 0, 0, 0}
   };
 
@@ -209,6 +215,8 @@ static void cmdline_parse(int argc, char *argv[])
         else if( strcmp( "topo_in", long_options[option_index].name ) == 0 ) { topo_in = true; topo_out = false; }
         else if( strcmp( "topo_out", long_options[option_index].name ) == 0 ) { topo_in = false; topo_out = true; }
         else if( strcmp( "topo_bidir", long_options[option_index].name ) == 0 ) { topo_in = true; topo_out = true; }
+        else if( strcmp( "topo_keep_best", long_options[option_index].name ) == 0 ) { topo_keep_best = true; }
+        else if( strcmp( "topo_add_best", long_options[option_index].name ) == 0 ) { topo_add_best = true; }
         break;
       case 'a':
         alpha_target = (double)atoi(optarg) / 100.0;

@@ -39,6 +39,9 @@ double topo_mem = 0;
 bool topo_out = true; //peer selects out-neighbours
 bool topo_in = false; //peer selects in-neighbours (combined means bidirectional)
 
+bool topo_keep_best = false;
+bool topo_add_best = false;
+
 int NEIGHBORHOOD_TARGET_SIZE = 30;
 double NEIGHBORHOOD_ROTATE_RATIO = 1.0;
 #define TMAN_MAX_IDLE 10
@@ -245,6 +248,19 @@ bool is_desired(const struct nodeID* n) {
   return (desiredness(n) == 1);
 }
 
+int cmp_rtt(const struct nodeID* a, const struct nodeID* b) {
+  double ra, rb;
+  ra = get_rtt_of(a);
+  rb = get_rtt_of(a);
+  if ((isnan(ra) && isnan(rb)) || ra == rb) return 0;
+  else if (isnan(rb) || ra < rb) return -1;
+  else return 1;
+}
+
+int vcmp_rtt(const void* a, const void* b) {
+  return cmp_rtt((const struct nodeID*)a, (const struct nodeID*)b);
+}
+
 // currently it just makes the peerset grow
 void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 {
@@ -336,7 +352,11 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     }
 
     // select the topo_mem portion of peers to be kept (uniform random)
-    nidset_shuffle(oldids, oldids_size);
+    if (topo_keep_best) {
+      qsort(oldids, oldids_size, sizeof(oldids[0]), vcmp_rtt);
+    } else {
+      nidset_shuffle(oldids, oldids_size);
+    }
     keep_size = selecteds_size = (int) (topo_mem * oldids_size);
     memcpy(selecteds, oldids, selecteds_size * sizeof(selecteds[0]));
 
@@ -349,7 +369,11 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     // select the alpha_target portion of desired peers
     desired_part = (1 - alpha_target) * (NEIGHBORHOOD_TARGET_SIZE ? (MAX (NEIGHBORHOOD_TARGET_SIZE - selecteds_size, 0)) : 0);
     nidset_filter(desireds, &desireds_size, candidates, candidates_size, is_desired);
-    nidset_shuffle(desireds, desireds_size);
+    if (topo_add_best) {
+      qsort(desireds, desireds_size, sizeof(desireds[0]), vcmp_rtt);
+    } else {
+      nidset_shuffle(desireds, desireds_size);
+    }
     nidset_add_i(selecteds, &selecteds_size, max_ids, desireds, MIN(desireds_size,desired_part));
 
     // random from the rest
