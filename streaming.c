@@ -111,7 +111,7 @@ void stream_init(int size, struct nodeID *myID)
   init_measures();
 }
 
-int source_init(const char *fname, struct nodeID *myID, bool loop, int *fds, int fds_size)
+int source_init(const char *fname, struct nodeID *myID, bool loop, int *fds, int fds_size, int buff_size)
 {
   int flags = 0;
 
@@ -132,7 +132,7 @@ int source_init(const char *fname, struct nodeID *myID, bool loop, int *fds, int
     return -1;
   }
 
-  stream_init(1, myID);
+  stream_init(buff_size, myID);
   return 0;
 }
 
@@ -623,9 +623,9 @@ void send_chunk()
     struct peer *nodeids[n];
     struct PeerChunk selectedpairs[1];
   
-    for (i = 0;i < size; i++) chunkids[i] = (buff+i)->id;
+    for (i = 0;i < size; i++) chunkids[size - 1 - i] = (buff+i)->id;
     for (i = 0; i<n; i++) nodeids[i] = (neighbours+i);
-    SCHED_TYPE(SCHED_WEIGHTING, nodeids, n, chunkids, size, selectedpairs, &selectedpairs_len, SCHED_NEEDS, SCHED_PEER, SCHED_CHUNK);
+    SCHED_TYPE(SCHED_WEIGHTING, nodeids, n, chunkids, 1, selectedpairs, &selectedpairs_len, SCHED_NEEDS, SCHED_PEER, SCHED_CHUNK);
   /************ /USE SCHEDULER ****************/
 
     for (i=0; i<selectedpairs_len ; i++){

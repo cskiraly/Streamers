@@ -403,7 +403,7 @@ int main(int argc, char *argv[])
 
     loop(my_sock, 1000000 / chunks_per_second, buff_size);
   } else {
-    source_loop(fname, my_sock, period * 1000, multiply, loop_input);
+    source_loop(fname, my_sock, period * 1000, multiply, loop_input, buff_size);
   }
   return 0;
 }

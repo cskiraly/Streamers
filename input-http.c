@@ -85,6 +85,7 @@ int enqueueBlock(const uint8_t *block, const int block_size) {
 		for(i=0; i < multiply; i++) {	// @TODO: why this cycle?
 			send_chunk();
 		}
+		send_offer();
 		if (cnt++ % 10 == 0) {
 			update_peers(NULL, NULL, 0);
 		}
