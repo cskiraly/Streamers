@@ -39,14 +39,22 @@ static MonHandler chunk_dup, chunk_playout, neigh_size, chunk_receive, chunk_sen
 //static MonHandler rx_chunks, tx_chunks;
 
 /*
- * Initialize one measure
+ * Start one measure
 */
-void add_measure(MonHandler *mh, MeasurementId id, MeasurementCapabilities mc, MonParameterValue rate, const char *pubname, enum stat_types st[], int length, SocketId dst, MsgType mt)
+void start_measure(MonHandler mh, MonParameterValue rate, const char *pubname, enum stat_types st[], int length, SocketId dst, MsgType mt)
 {
-	*mh = monCreateMeasure(id, mc);
-	if (rate) monSetParameter (*mh, P_PUBLISHING_RATE, rate);
-	if (length) monPublishStatisticalType(*mh, pubname, channel_get_name(), st , length, NULL);
-	monActivateMeasure(*mh, dst, mt);
+	if (rate) monSetParameter (mh, P_PUBLISHING_RATE, rate);
+	if (length) monPublishStatisticalType(mh, pubname, channel_get_name(), st , length, NULL);
+	monActivateMeasure(mh, dst, mt);
+}
+
+/*
+ * Initialize and start one measure
+ */
+void add_measure(MonHandler *mhp, MeasurementId id, MeasurementCapabilities mc, MonParameterValue rate, const char *pubname, enum stat_types st[], int length, SocketId dst, MsgType mt)
+{
+	*mhp = monCreateMeasure(id, mc);
+	start_measure(*mhp, rate, pubname, st, length, dst, mt);
 }
 
 /*
@@ -109,7 +117,7 @@ void reg_chunk_playout(int id, bool b, uint64_t timestamp)
 void reg_neigh_size(int s)
 {
 	if (!neigh_size) {
-		enum stat_types st[] = {LAST};
+		enum stat_types st[] = {LAST, WIN_AVG};
 		// number of peers in the neighboorhood
 		add_measure(&neigh_size, GENERIC, 0, PEER_PUBLISH_INTERVAL, "NeighSize", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
 	}
@@ -205,36 +213,55 @@ void add_measures(struct nodeID *id)
 
 	/* HopCount */
 	// number of hops at IP level
-       add_measure(&id->mhs[j++], HOPCOUNT, PACKET | IN_BAND, P2P_PUBLISH_INTERVAL, "HopCount", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_SIGNALLING);	//[IP hops]
+       id->mhs[j] = monCreateMeasure(HOPCOUNT, PACKET | IN_BAND);
+       start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "HopCount", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_SIGNALLING);	//[IP hops]
 
 	/* Round Trip Time */
-       add_measure(&id->mhs[j++], RTT, PACKET | IN_BAND, P2P_PUBLISH_INTERVAL, "RoundTripDelay", stwinavgwinvar, sizeof(stwinavgwinvar)/sizeof(enum stat_types), id->addr, MSG_TYPE_SIGNALLING);	//[seconds]
+       id->mhs[j] = monCreateMeasure(RTT, PACKET | IN_BAND);
+       start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "RoundTripDelay", stwinavgwinvar, sizeof(stwinavgwinvar)/sizeof(enum stat_types), id->addr, MSG_TYPE_SIGNALLING);	//[seconds]
 
 	/* Loss */
-       add_measure(&id->mhs[j++], SEQWIN, PACKET | IN_BAND, 0, NULL, NULL, 0, id->addr, MSG_TYPE_CHUNK);
-       add_measure(&id->mhs[j++], LOSS, PACKET | IN_BAND, P2P_PUBLISH_INTERVAL, "LossRate", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//LossRate_avg [probability 0..1] LossRate_rate [lost_pkts/sec]
+       id->mhs[j] = monCreateMeasure(SEQWIN, PACKET | IN_BAND);
+       start_measure(id->mhs[j++], 0, NULL, NULL, 0, id->addr, MSG_TYPE_CHUNK);
+       id->mhs[j] = monCreateMeasure(LOSS, PACKET | IN_BAND);
+       start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "LossRate", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//LossRate_avg [probability 0..1] LossRate_rate [lost_pkts/sec]
 
        /* RX,TX volume in bytes (only chunks) */
-       add_measure(&id->mhs[j++], RX_BYTE, PACKET | IN_BAND, P2P_PUBLISH_INTERVAL, "RxBytesChunk", stsumwinsumrate, sizeof(stsumwinsumrate)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//[bytes]
-       add_measure(&id->mhs[j++], TX_BYTE, PACKET | IN_BAND, P2P_PUBLISH_INTERVAL, "TxBytesChunk", stsumwinsumrate, sizeof(stsumwinsumrate)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//[bytes]
+       id->mhs[j] = monCreateMeasure(RX_BYTE, PACKET | IN_BAND);
+       start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "RxBytesChunk", stsumwinsumrate, sizeof(stsumwinsumrate)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//[bytes]
+       id->mhs[j] = monCreateMeasure(TX_BYTE, PACKET | IN_BAND);
+       start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "TxBytesChunk", stsumwinsumrate, sizeof(stsumwinsumrate)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//[bytes]
 
        /* RX,TX volume in bytes (only signaling) */
-       add_measure(&id->mhs[j++], RX_BYTE, PACKET | IN_BAND, P2P_PUBLISH_INTERVAL, "RxBytesSig", stsumwinsumrate, sizeof(stsumwinsumrate)/sizeof(enum stat_types), id->addr, MSG_TYPE_SIGNALLING);	//[bytes]
-       add_measure(&id->mhs[j++], TX_BYTE, PACKET | IN_BAND, P2P_PUBLISH_INTERVAL, "TxBytesSig", stsumwinsumrate, sizeof(stsumwinsumrate)/sizeof(enum stat_types), id->addr, MSG_TYPE_SIGNALLING);	//[bytes]
+       id->mhs[j] = monCreateMeasure(RX_BYTE, PACKET | IN_BAND);
+       start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "RxBytesSig", stsumwinsumrate, sizeof(stsumwinsumrate)/sizeof(enum stat_types), id->addr, MSG_TYPE_SIGNALLING);	//[bytes]
+       id->mhs[j] = monCreateMeasure(TX_BYTE, PACKET | IN_BAND);
+       start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "TxBytesSig", stsumwinsumrate, sizeof(stsumwinsumrate)/sizeof(enum stat_types), id->addr, MSG_TYPE_SIGNALLING);	//[bytes]
 
 	// Chunks
-       add_measure(&id->mhs[j++], RX_PACKET, DATA | IN_BAND, P2P_PUBLISH_INTERVAL, "RxChunks", stwinavgrate, sizeof(stwinavgrate)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//RxChunks_sum [chunks] RxChunks_rate [chunks/sec]
-       add_measure(&id->mhs[j++], TX_PACKET, DATA | IN_BAND, P2P_PUBLISH_INTERVAL, "TxChunks", stwinavgrate, sizeof(stwinavgrate)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//TxChunks_sum [chunks] TxChunks_rate [chunks/sec]
+       id->mhs[j] = monCreateMeasure(RX_PACKET, DATA | IN_BAND);
+       start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "RxChunks", stsumwinsumrate, sizeof(stsumwinsumrate)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//RxChunks_sum [chunks] RxChunks_rate [chunks/sec]
+       id->mhs[j] = monCreateMeasure(TX_PACKET, DATA | IN_BAND);
+       start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "TxChunks", stsumwinsumrate, sizeof(stsumwinsumrate)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//TxChunks_sum [chunks] TxChunks_rate [chunks/sec]
+
+/*
 //	// Capacity
-//	add_measure(&id->mhs[j++], CLOCKDRIFT, PACKET | IN_BAND, 0, NULL, NULL, 0, id->addr, MSG_TYPE_CHUNK);
-//	monSetParameter (id->mhs[j-1], P_CLOCKDRIFT_ALGORITHM, 1);
-//	add_measure(&id->mhs[j++], CORRECTED_DELAY, PACKET | IN_BAND, 0, NULL, NULL, 0, id->addr, MSG_TYPE_CHUNK);
-//	add_measure(&id->mhs[j++], CAPACITY_CAPPROBE, PACKET | IN_BAND, P2P_PUBLISH_INTERVAL, "Capacity", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//[bytes/s]
-//	monSetParameter (id->mhs[j-1], P_CAPPROBE_DELAY_TH, -1);
-//	monSetParameter (id->mhs[j-1], P_DEBUG_FILE, 3);
-//	monSetParameter (mh, P_CAPPROBE_PKT_TH, 100);
-//	monSetParameter (mh, P_CAPPROBE_IPD_TH, 60);
-//	monPublishStatisticalType(mh, NULL, st , sizeof(st)/sizeof(enum stat_types), repoclient);
+	id->mhs[j] = monCreateMeasure(CLOCKDRIFT, PACKET | IN_BAND);
+	monSetParameter (id->mhs[j], P_CLOCKDRIFT_ALGORITHM, 1);
+	start_measure(id->mhs[j++], 0, NULL, NULL, 0, id->addr, MSG_TYPE_CHUNK);
+	id->mhs[j] = monCreateMeasure(CORRECTED_DELAY, PACKET | IN_BAND);
+	start_measure(id->mhs[j++], 0, NULL, NULL, 0, id->addr, MSG_TYPE_CHUNK);
+	id->mhs[j] = monCreateMeasure(CAPACITY_CAPPROBE, PACKET | IN_BAND);
+	monSetParameter (id->mhs[j], P_CAPPROBE_DELAY_TH, -1);
+//	monSetParameter (id->mhs[j], P_CAPPROBE_PKT_TH, 5);
+	start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "Capacity", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//[bytes/s]
+
+	//Available capacity
+       id->mhs[j] = monCreateMeasure(BULK_TRANSFER, PACKET | DATA | IN_BAND);
+       start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "BulkTransfer", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK); //Bulktransfer [bit/s]
+	id->mhs[j] = monCreateMeasure(AVAILABLE_BW_FORECASTER, PACKET | IN_BAND);
+	start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "AvailableBW", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//[bytes/s]
+*/
 
 	// for static must not be more then 10 or whatever size is in net_helper-ml.c
 	id->n_mhs = j;

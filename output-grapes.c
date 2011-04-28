@@ -17,9 +17,15 @@
 #include "measures.h"
 #include "dbg.h"
 
+static int last_chunk = -1;
 static int next_chunk = -1;
 static int buff_size;
 extern bool chunk_log;
+extern int start_id;
+extern int end_id;
+
+static char sflag = 0;
+static char eflag = 0;
 
 struct outbuf {
   struct chunk c;
@@ -35,8 +41,12 @@ void output_init(int bufsize, const char *config)
     config += 4;
     sprintf(cfg, "dechunkiser=udp");
     sprintf(cfg + strlen(cfg), ",%s", config);
+  } else if (config && (strlen(config) >= 6) && (memcmp(config, "dummy:", 6) == 0)) {
+    config += 6;
+    sprintf(cfg, "dechunkiser=dummy,type=stats");
+    sprintf(cfg + strlen(cfg), ",%s", config);
   } else {
-    sprintf(cfg, "dechunkiser=avf,media=av");
+    sprintf(cfg, "dechunkiser=avf,media=v");
   }
   out = out_stream_init(config, cfg);
   if (out == NULL) {
@@ -85,7 +95,20 @@ static void buffer_print(void)
 static void buffer_free(int i)
 {
   dprintf("\t\tFlush Buf %d: %s\n", i, buff[i].c.data);
-  chunk_write(out, &buff[i].c);
+  if(start_id == -1 || buff[i].c.id >= start_id) {
+    if(end_id == -1 || buff[i].c.id <= end_id) {
+      if(sflag == 0) {
+        fprintf(stderr, "\nFirst chunk id played out: %d\n\n",buff[i].c.id);
+        sflag = 1;
+      }
+      chunk_write(out, &buff[i].c);
+      last_chunk = buff[i].c.id;
+    } else if (eflag == 0 && last_chunk != -1) {
+      fprintf(stderr, "\nLast chunk id played out: %d\n\n", last_chunk);
+      eflag = 1;
+    }
+  }
+
   free(buff[i].c.data);
   buff[i].c.data = NULL;
   dprintf("Next Chunk: %d -> %d\n", next_chunk, buff[i].c.id + 1);
@@ -122,6 +145,7 @@ void output_deliver(const struct chunk *c)
   /* Initialize buffer with first chunk */
   if (next_chunk == -1) {
     next_chunk = c->id; // FIXME: could be anything between c->id and (c->id - buff_size + 1 > 0) ? c->id - buff_size + 1 : 0
+    fprintf(stderr,"First RX Chunk ID: %d\n", c->id);
   }
 
   if (c->id >= next_chunk + buff_size) {
@@ -145,7 +169,20 @@ void output_deliver(const struct chunk *c)
   dprintf("%d == %d?\n", c->id, next_chunk);
   if (c->id == next_chunk) {
     dprintf("\tOut Chunk[%d] - %d: %s\n", c->id, c->id % buff_size, c->data);
-    chunk_write(out, c);
+
+    if(start_id == -1 || c->id >= start_id) {
+      if(end_id == -1 || c->id <= end_id) {
+        if(sflag == 0) {
+          fprintf(stderr, "\nFirst chunk id played out: %d\n\n",c->id);
+          sflag = 1;
+        }
+        chunk_write(out, c);
+        last_chunk = c->id;
+      } else if (eflag == 0 && last_chunk != -1) {
+        fprintf(stderr, "\nLast chunk id played out: %d\n\n", last_chunk);
+        eflag = 1;
+      }
+    }
     reg_chunk_playout(c->id, true, c->timestamp);
     next_chunk++;
     buffer_flush(next_chunk);

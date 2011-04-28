@@ -34,8 +34,8 @@ endif
 ifdef DEBUG
 CFLAGS += -O0
 CPPFLAGS += -DDEBUG
-OBJS += dbg.o
 endif
+OBJS += dbg.o
 
 
 ifdef DEBUGOUT
@@ -74,7 +74,7 @@ ifdef ALTO
 OBJS += topology-ALTO.o
 OBJS += config.o
 else
-OBJS += topology.o
+OBJS += topology.o nodeid_set.o
 endif
 
 OBJS += chunk_signaling.o

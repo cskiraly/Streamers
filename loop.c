@@ -79,6 +79,7 @@ void loop(struct nodeID *s, int csize, int buff_size)
       }
       switch (buff[0] /* Message Type */) {
         case MSG_TYPE_TMAN:
+        case MSG_TYPE_STREAMER_TOPOLOGY:
         case MSG_TYPE_TOPOLOGY:
           dtprintf("Topo message received:\n");
           update_peers(remote, buff, len);
@@ -108,7 +109,7 @@ void loop(struct nodeID *s, int csize, int buff_size)
   }
 }
 
-void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, bool loop)
+void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, bool loop, int buff_size)
 {
   int done = 0;
   static uint8_t buff[BUFFSIZE];
@@ -121,7 +122,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
   
   peers_init();
 
-  if (source_init(fname, s, loop, fds, FDSSIZE) < 0) {
+  if (source_init(fname, s, loop, fds, FDSSIZE, buff_size) < 0) {
     fprintf(stderr,"Cannot initialize source, exiting");
     return;
   }
@@ -157,6 +158,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
       dprintf("Received message (%c) from %s\n", buff[0], node_addr(remote));
       switch (buff[0] /* Message Type */) {
 		case MSG_TYPE_TMAN:
+        case MSG_TYPE_STREAMER_TOPOLOGY:
         case MSG_TYPE_TOPOLOGY:
           fprintf(stderr, "Top Parse\n");
 #ifdef HTTPIO_MHD
@@ -195,6 +197,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
         for (i = 0; i < chunks; i++) {	// @TODO: why this cycle?
           send_chunk();
         }
+        send_offer();
         if (cnt++ % 10 == 0) {
             update_peers(NULL, NULL, 0);
         }

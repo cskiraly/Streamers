@@ -17,6 +17,7 @@
 
 #include "measures.h"
 #include "grapes_msg_types.h"
+#include "streamer.h"
 
 struct timeval print_tdiff = {3600, 0};
 struct timeval tstartdiff = {60, 0};
@@ -28,11 +29,11 @@ struct measures {
   int duplicates;
   int chunks;
   int played;
-  uint64_t sum_reorder_delay;
+  int64_t sum_reorder_delay;
 
   int chunks_received_dup, chunks_received_nodup, chunks_received_old;
   int sum_hopcount;
-  uint64_t sum_receive_delay;
+  int64_t sum_receive_delay;
 
   int chunks_sent;
 
@@ -70,7 +71,17 @@ double tdiff_sec(const struct timeval *a, const struct timeval *b)
 
 void print_measure(const char *name, double value)
 {
-  fprintf(stderr,"abouttopublish,,,,%s,%f,,,%f\n", name, value, tdiff_sec(&tnext, &tstart));
+  static const struct nodeID *my_addr;
+  static char *my_addr_str;
+
+  //cache address to avoid recalculating it at every call
+  if (my_addr != get_my_addr()) {
+    if (my_addr) nodeid_free(my_addr);
+    my_addr = nodeid_dup(get_my_addr());
+    my_addr_str = strdup(node_addr(my_addr));
+  }
+
+  fprintf(stderr,"abouttopublish,%s,,,%s,%f,,,%f\n", my_addr_str, name, value, tdiff_sec(&tnext, &tstart));
 }
 
 void print_measures()
@@ -349,4 +360,8 @@ void add_measures(struct nodeID *id)
 */
 void delete_measures(struct nodeID *id)
 {
+}
+
+double get_receive_delay(void) {
+	return m.chunks_received_nodup ? (double)m.sum_receive_delay / 1e6 / m.chunks_received_nodup : NAN;
 }
