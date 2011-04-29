@@ -108,6 +108,7 @@ LDLIBS += $(call ld-option, -lavcore)
 LDLIBS += -lm
 LDLIBS += $(call ld-option, -lz)
 LDLIBS += $(call ld-option, -lbz2)
+LDLIBS += $(call ld-option, -lva)
 ifdef X264_DIR
 CPPFLAGS += -I$(X264_DIR) -I$(X264_DIR)/include
 LDFLAGS += -L$(X264_DIR) -L$(X264_DIR)/lib
