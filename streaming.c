@@ -111,23 +111,9 @@ void stream_init(int size, struct nodeID *myID)
   init_measures();
 }
 
-int source_init(const char *fname, struct nodeID *myID, bool loop, int *fds, int fds_size, int buff_size)
+int source_init(const char *fname, struct nodeID *myID, int *fds, int fds_size, int buff_size)
 {
-  int flags = 0;
-
-  if (memcmp(fname, "udp:", 4) == 0) {
-    fname += 4;
-    flags = INPUT_UDP;
-  }
-  if (memcmp(fname, "ipb:", 4) == 0) {
-    fname += 4;
-    flags = INPUT_IPB;
-  }
-  if (loop) {
-    flags |= INPUT_LOOP;
-  }
-
-  input = input_open(fname, flags, fds, fds_size);
+  input = input_open(fname, fds, fds_size);
   if (input == NULL) {
     return -1;
   }

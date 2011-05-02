@@ -100,7 +100,7 @@ int enqueueBlock(const uint8_t *block, const int block_size) {
   return 0;
 }
 
-struct input_desc *input_open(const char *fname, uint16_t flags, int *fds, int fds_size)
+struct input_desc *input_open(const char *fname, int *fds, int fds_size)
 {
   struct input_desc *res;
 

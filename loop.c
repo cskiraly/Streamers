@@ -109,7 +109,7 @@ void loop(struct nodeID *s, int csize, int buff_size)
   }
 }
 
-void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, bool loop, int buff_size)
+void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, int buff_size)
 {
   int done = 0;
   static uint8_t buff[BUFFSIZE];
@@ -122,7 +122,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, boo
   
   peers_init();
 
-  if (source_init(fname, s, loop, fds, FDSSIZE, buff_size) < 0) {
+  if (source_init(fname, s, fds, FDSSIZE, buff_size) < 0) {
     fprintf(stderr,"Cannot initialize source, exiting");
     return;
   }

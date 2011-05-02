@@ -14,7 +14,7 @@
 struct input_desc;
 struct chunk;
 
-struct input_desc *input_open(const char *fname, uint16_t flags, int *fds, int fds_size);
+struct input_desc *input_open(const char *fname, int *fds, int fds_size);
 void input_close(struct input_desc *s);
 
 /*

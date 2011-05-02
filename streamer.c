@@ -53,8 +53,7 @@ static int multiply = 3;
 static int buff_size = 50;
 static int outbuff_size = 50;
 static const char *fname = "/dev/stdin";
-static const char *output_config;
-static bool loop_input = false;
+static const char *output_config ="";
 static const char *net_helper_config = "";
 static const char *topo_config = "";
 unsigned char msgTypes[] = {MSG_TYPE_CHUNK,MSG_TYPE_SIGNALLING};
@@ -121,7 +120,6 @@ static void print_usage(int argc, char *argv[])
     "Special Source Peer options\n"
     "\t[-m chunks]: set the number of copies the source injects in the overlay.\n"
     "\t[-f filename]: name of the video stream file to transmit.\n"
-    "\t[-l]: loop the video stream.\n"
     "\t[-S]: set initial chunk_id (source only).\n"
     "\t[-s]: set start_id from which to start output.\n"
     "\t[-e]: set end_id at which to end output.\n"
@@ -253,9 +251,6 @@ static void cmdline_parse(int argc, char *argv[])
         break;
       case 'F':
         output_config = strdup(optarg);
-        break;
-      case 'l':
-        loop_input = true;
         break;
       case 'C':
         channel_set_name(optarg);
@@ -403,7 +398,7 @@ int main(int argc, char *argv[])
 
     loop(my_sock, 1000000 / chunks_per_second, buff_size);
   } else {
-    source_loop(fname, my_sock, period * 1000, multiply, loop_input, buff_size);
+    source_loop(fname, my_sock, period * 1000, multiply, buff_size);
   }
   return 0;
 }

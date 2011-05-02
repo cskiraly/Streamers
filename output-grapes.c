@@ -35,20 +35,13 @@ static struct output_stream *out;
 
 void output_init(int bufsize, const char *config)
 {
-  char cfg[256];
+  char *c;
 
-  if (config && (strlen(config) > 4) && (memcmp(config, "udp:", 4) == 0)) {
-    config += 4;
-    sprintf(cfg, "dechunkiser=udp");
-    sprintf(cfg + strlen(cfg), ",%s", config);
-  } else if (config && (strlen(config) >= 6) && (memcmp(config, "dummy:", 6) == 0)) {
-    config += 6;
-    sprintf(cfg, "dechunkiser=dummy,type=stats");
-    sprintf(cfg + strlen(cfg), ",%s", config);
-  } else {
-    sprintf(cfg, "dechunkiser=avf,media=v");
+  c = strchr(config,',');
+  if (c) {
+    *(c++) = 0;
   }
-  out = out_stream_init(config, cfg);
+  out = out_stream_init(config, c);
   if (out == NULL) {
      fprintf(stderr, "Error: can't initialize output module\n");
      exit(1);

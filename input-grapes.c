@@ -27,29 +27,22 @@ struct input_desc {
   uint64_t first_ts;
 };
 
-struct input_desc *input_open(const char *fname, uint16_t flags, int *fds, int fds_size)
+struct input_desc *input_open(const char *fname, int *fds, int fds_size)
 {
   struct input_desc *res;
   struct timeval tv;
-  char cfg[256];
+  char *c;
 
-  memset(cfg, 0, 256);
   res = malloc(sizeof(struct input_desc));
   if (res == NULL) {
     return NULL;
   }
-  if (flags & INPUT_UDP) {
-    sprintf(cfg, "chunkiser=udp");
-    sprintf(cfg + strlen(cfg), ",%s", fname);
-  } else if (flags & INPUT_IPB) {
-    sprintf(cfg, "chunkiser=ipb,media=v");
-  } else {
-    sprintf(cfg, "chunkiser=avf,media=av");
+
+  c = strchr(fname,',');
+  if (c) {
+    *(c++) = 0;
   }
-  if (flags & INPUT_LOOP) {
-    sprintf(cfg + strlen(cfg), ",loop=1");
-  }
-  res->s = input_stream_open(fname, &res->interframe, cfg);
+  res->s = input_stream_open(fname, &res->interframe, c);
   if (res->s == NULL) {
     free(res);
     res = NULL;
