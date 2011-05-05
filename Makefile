@@ -19,8 +19,6 @@ STATIC ?= 0
 
 NAPA ?= ../../NAPA-BASELIBS
 GRAPES ?= ../../GRAPES
-ULPLAYER ?= ../StreamerPlayerChunker
-ULPLAYER_EXTERNAL_LIBS ?= external_libs
 
 CPPFLAGS = -I$(NAPA)/include
 CPPFLAGS += -I$(GRAPES)/include
@@ -116,40 +114,6 @@ LDLIBS += -lx264
 endif
 endif
 endif
-ifeq ($(IO), httpmhd)
-CPPFLAGS += -DHTTPIO_MHD
-CPPFLAGS += -DHTTPIO
-OBJS += $(ULPLAYER)/chunker_player/chunk_puller.o
-OBJS += $(ULPLAYER)/chunker_streamer/chunk_pusher_curl.o
-CPPFLAGS += -DCRAP -I$(ULPLAYER) -I$(ULPLAYER)/chunk_transcoding
-CFLAGS += -pthread
-LDFLAGS += -pthread
-OBJS += input-http.o
-OBJS += output-http.o output.o
-
-CPPFLAGS += -I$(LOCAL_MHD)/include
-LDFLAGS += -L$(LOCAL_MHD)/lib
-LDLIBS += $(LOCAL_MHD)/lib/libmicrohttpd.a
-
-CPPFLAGS += -I$(LOCAL_CURL)/include
-LDFLAGS += -L$(LOCAL_CURL)/lib
-LDLIBS += $(LOCAL_CURL)/lib/libcurl.a -lrt
-endif
-ifeq ($(IO), httpevent)
-CPPFLAGS += -DHTTPIO_EVENT
-CPPFLAGS += -DHTTPIO
-OBJS += $(ULPLAYER)/event_http/event_http_server.o
-LDFLAGS += -L$(NAPA)/dclog
-LDLIBS += -ldclog
-OBJS += $(ULPLAYER)/chunker_streamer/chunk_pusher_curl.o
-CPPFLAGS += -I$(ULPLAYER) -I$(ULPLAYER)/chunk_transcoding -I$(ULPLAYER)/event_http -DCRAP
-OBJS += input-http.o
-OBJS += output-http.o output.o
-
-CPPFLAGS += -I$(LOCAL_CURL)/include
-LDFLAGS += -L$(LOCAL_CURL)/lib
-LDLIBS += $(LOCAL_CURL)/lib/libcurl.a -lrt
-endif
 
 EXECTARGET = streamer
 ifdef ML
@@ -198,8 +162,6 @@ endif
 $(EXECTARGET).o: streamer.o
 	ln -sf streamer.o $(EXECTARGET).o
 
-out-stream-avf.o Chunkiser/input-stream-avs.o: CPPFLAGS += -I$(FFMPEG_DIR)/include 
-
 GRAPES:
 	git clone http://www.disi.unitn.it/~kiraly/PublicGits/GRAPES.git
 	cd GRAPES; git checkout -b for-streamer-0.8.3 origin/for-streamer-0.8.3
@@ -221,6 +183,3 @@ clean:
 	rm -f $(GRAPES)/src/net_helper.o
 	rm -f *.o
 	rm -f Chunkiser/*.o
-	rm -f $(ULPLAYER)/chunker_player/chunk_puller.o
-	rm -f $(ULPLAYER)/chunker_streamer/chunk_pusher_curl.o
-	rm -f $(ULPLAYER)/event_http/event_http_server.o
