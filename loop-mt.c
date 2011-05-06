@@ -99,7 +99,7 @@ static void *receive(void *dummy)
       nodeid_free(remote);
       continue;
     }
-    dprintf("Received message (%c) from %s\n", buff[0], node_addr(remote));
+    dprintf("Received message (%d) from %s\n", buff[0], node_addr(remote));
     switch (buff[0] /* Message Type */) {
 	  case MSG_TYPE_TMAN:
       case MSG_TYPE_STREAMER_TOPOLOGY:
