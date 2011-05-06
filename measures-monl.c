@@ -89,7 +89,7 @@ void reg_chunk_playout(int id, bool b, uint64_t timestamp)
 
 	if (!playout_delay) {
 		enum stat_types st[] = {WIN_AVG, WIN_VAR};
-		//delay after reorder buffer, however http module does not use reorder buffer
+		//delay after reorder buffer, however chunkstream module does not use reorder buffer
 		add_measure(&playout_delay, GENERIC, 0, PEER_PUBLISH_INTERVAL, "ReorderDelay", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[seconds]
 	}
 	if (b) {	//count delay only if chunk has arrived

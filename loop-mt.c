@@ -218,15 +218,11 @@ void source_loop(const char *fname, struct nodeID *s1, int csize, int chunks, in
   pthread_mutex_init(&topology_mutex, NULL);
   pthread_create(&receive_thread, NULL, source_receive, NULL); 
   pthread_create(&gossiping_thread, NULL, topology_sending, NULL); 
-#ifndef HTTPIO
   pthread_create(&distributing_thread, NULL, chunk_sending, NULL); 
   pthread_create(&generate_thread, NULL, chunk_forging, NULL); 
-#endif
 
-#ifndef HTTPIO
   pthread_join(generate_thread, NULL);
   pthread_join(distributing_thread, NULL);
-#endif
   pthread_join(receive_thread, NULL);
   pthread_join(gossiping_thread, NULL);
 }

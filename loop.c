@@ -31,10 +31,6 @@
 static struct timeval period = {0, 500000};
 static struct timeval tnext;
 
-#ifdef HTTPIO_MHD
-extern pthread_mutex_t cb_mutex;
-#endif
-
 void tout_init(struct timeval *tv)
 {
   struct timeval tnow;
@@ -131,10 +127,6 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, int
     struct timeval tv, *ptv;
     int wait4fds[FDSSIZE], *pfds;
 
-#ifdef HTTPIO
-    memcpy(wait4fds, fds, sizeof(fds));
-    res = wait4data(s, NULL, wait4fds);
-#else
     if (fds[0] == -1) {
       tout_init(&tv);
       ptv = &tv;
@@ -145,7 +137,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, int
       ptv = NULL;
     }
     res = wait4data(s, ptv, pfds);
-#endif
+
     if (res == 1) {
       struct nodeID *remote;
 
@@ -161,25 +153,13 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, int
         case MSG_TYPE_STREAMER_TOPOLOGY:
         case MSG_TYPE_TOPOLOGY:
           fprintf(stderr, "Top Parse\n");
-#ifdef HTTPIO_MHD
-          pthread_mutex_lock(&cb_mutex);
-#endif
           update_peers(remote, buff, len);
-#ifdef HTTPIO_MHD
-          pthread_mutex_unlock(&cb_mutex);
-#endif
           break;
         case MSG_TYPE_CHUNK:
           fprintf(stderr, "Some dumb peer pushed a chunk to me! peer:%s\n",node_addr(remote));
           break;
         case MSG_TYPE_SIGNALLING:
-#ifdef HTTPIO_MHD
-          pthread_mutex_lock(&cb_mutex);
-#endif
           sigParseData(remote, buff, len);
-#ifdef HTTPIO_MHD
-          pthread_mutex_unlock(&cb_mutex);
-#endif
           break;
         default:
           fprintf(stderr, "Bad Message Type %x\n", buff[0]);
