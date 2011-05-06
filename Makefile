@@ -114,6 +114,9 @@ LDLIBS += -lx264
 endif
 endif
 endif
+ifeq ($(IO), chunkstream)
+OBJS += input-chunkstream.o output-chunkstream.o
+endif
 
 EXECTARGET = streamer
 ifdef ML
