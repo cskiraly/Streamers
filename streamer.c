@@ -125,7 +125,7 @@ static void print_usage(int argc, char *argv[])
     "\t[-e]: set end_id at which to end output.\n"
     "\n"
     "Special options\n"
-    "\t[--randomize_start ms]: random wait before starting in to ms millisecs.\n"
+    "\t[--randomize_start us]: random wait before starting [0..us] microseconds.\n"
     "\n"
     "NOTE: by deafult the peer will dump the received video on STDOUT in raw format\n"
     "      it can be played by your favourite player simply using a pipe\n"
@@ -357,6 +357,7 @@ void leave(int sig) {
   exit(sig);
 }
 
+// wait [0..max] microsec
 static void random_wait(int max) {
     struct timespec t;
     uint64_t ms;
