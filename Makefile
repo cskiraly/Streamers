@@ -64,7 +64,8 @@ ifneq ($(STATIC), 0)
 LINKER=$(CXX)
 endif
 endif
-LDLIBS += -levent -lrt
+LDLIBS += -levent
+LDLIBS += $(call ld-option, -lrt)
 endif
 
 OBJS += streaming.o
