@@ -51,8 +51,10 @@ struct measures {
   double sum_queue_delay;
   int samples_queue_delay;
 
-  int offers;
-  int accepts;
+  int offers_out;
+  int accepts_out;
+  int offers_in;
+  int accepts_in;
 };
 
 static struct measures m;
@@ -137,10 +139,16 @@ void print_measures()
   if (m.samples_queue_delay) print_measure("QueueDelay", m.sum_queue_delay / m.samples_queue_delay);
 
   if (timerisset(&print_tstart)) {
-    print_measure("OfferRate", (double) m.offers / timespan);
-    print_measure("AcceptRate", (double) m.accepts / timespan);
+    print_measure("OfferOutRate", (double) m.offers_out / timespan);
+    print_measure("AcceptOutRate", (double) m.accepts_out / timespan);
   }
-  if (m.offers) print_measure("OfferAcceptRatio", (double)m.accepts / m.offers);
+  if (m.offers_out) print_measure("OfferAcceptOutRatio", (double)m.accepts_out / m.offers_out);
+
+  if (timerisset(&print_tstart)) {
+    print_measure("OfferInRate", (double) m.offers_in / timespan);
+    print_measure("AcceptInRate", (double) m.accepts_in / timespan);
+  }
+  if (m.offers_in) print_measure("OfferAcceptInRatio", (double)m.accepts_in / m.offers_in);
 }
 
 bool print_every()
@@ -243,14 +251,25 @@ void reg_chunk_send(int id)
 }
 
 /*
- * Register chunk accept evemt
+ * Register offer-accept transaction initited by us (accept receive event)
 */
-void reg_offer_accept(bool b)
+void reg_offer_accept_out(bool b)
 {
   if (!print_every()) return;
 
-  m.offers++;
-  if (b) m.accepts++;
+  m.offers_out++;
+  if (b) m.accepts_out++;
+}
+
+/*
+ * Register offer-accept transaction initited by others (offer receive event)
+*/
+void reg_offer_accept_in(bool b)
+{
+  if (!print_every()) return;
+
+  m.offers_in++;
+  if (b) m.accepts_in++;
 }
 
 /*

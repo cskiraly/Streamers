@@ -94,7 +94,6 @@ void loop(struct nodeID *s, int csize, int buff_size)
       nodeid_free(remote);
     } else {
       struct timeval tmp;
-      //send_chunk();
       send_offer();
       if (cnt++ % 10 == 0) {
         update_peers(NULL, NULL, 0);
@@ -149,7 +148,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, int
       }
       dprintf("Received message (%d) from %s\n", buff[0], node_addr(remote));
       switch (buff[0] /* Message Type */) {
-		case MSG_TYPE_TMAN:
+	case MSG_TYPE_TMAN:
         case MSG_TYPE_STREAMER_TOPOLOGY:
         case MSG_TYPE_TOPOLOGY:
           fprintf(stderr, "Top Parse\n");

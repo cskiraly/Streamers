@@ -33,6 +33,10 @@
 #include "measures.h"
 #include "streamer.h"
 
+#ifndef EXTRAVERSION
+#define EXTRAVERSION "Unknown"
+#endif
+
 static struct nodeID *my_sock;
 
 const char *peername = NULL;
@@ -121,6 +125,7 @@ static void print_usage(int argc, char *argv[])
     "\n"
     "Special options\n"
     "\t[--randomize_start us]: random wait before starting [0..us] microseconds.\n"
+    "\t[-v]: print version.\n"
     "\n"
     "NOTE: by deafult the peer will dump the received video on STDOUT in raw format\n"
     "      it can be played by your favourite player simply using a pipe\n"
@@ -192,7 +197,7 @@ static void cmdline_parse(int argc, char *argv[])
 	{0, 0, 0, 0}
   };
 
-    while ((o = getopt_long (argc, argv, "r:a:b:o:c:p:i:P:I:f:F:m:lC:N:n:M:t:s:e:S:",long_options, &option_index)) != -1) { //use this function to manage long options
+    while ((o = getopt_long (argc, argv, "r:a:b:o:c:p:i:P:I:f:F:m:lC:N:n:M:t:s:e:S:v",long_options, &option_index)) != -1) { //use this function to manage long options
     switch(o) {
       case 0: //for long options
         if( strcmp( "chunk_log", long_options[option_index].name ) == 0 ) { chunk_log = true; }
@@ -271,6 +276,9 @@ static void cmdline_parse(int argc, char *argv[])
       case 'e':
         end_id = atoi(optarg);
         break;
+      case 'v':
+        fprintf(stderr, "Version: %s\n", EXTRAVERSION);
+	    exit(0);
       default:
         fprintf(stderr, "Error: unknown option %c\n", o);
         print_usage(argc, argv);
