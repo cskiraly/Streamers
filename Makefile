@@ -96,6 +96,7 @@ endif
 
 IO ?= grapes
 ifeq ($(IO), grapes)
+CFLAGS += -DIO_GRAPES
 OBJS += input-grapes.o output-grapes.o
 ifdef FFMPEG_DIR
 CPPFLAGS += -I$(FFMPEG_DIR)
@@ -116,6 +117,7 @@ endif
 endif
 endif
 ifeq ($(IO), chunkstream)
+CFLAGS += -DIO_CHUNKSTREAM
 OBJS += input-chunkstream.o output-chunkstream.o
 endif
 

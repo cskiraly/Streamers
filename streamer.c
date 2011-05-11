@@ -127,6 +127,7 @@ static void print_usage(int argc, char *argv[])
     "\t[--randomize_start us]: random wait before starting [0..us] microseconds.\n"
     "\t[-v]: print version.\n"
     "\n"
+#ifdef IO_GRAPES
     "NOTE: by deafult the peer will dump the received video on STDOUT in raw format\n"
     "      it can be played by your favourite player simply using a pipe\n"
     "      e.g., | cvlc /dev/stdin\n"
@@ -135,12 +136,18 @@ static void print_usage(int argc, char *argv[])
     "\n"
     "Start a source peer on port 6600:\n"
     "\n"
-    "%s -l -f foreman.mpg -P 6600\n"
+    "%s -f foreman.mpg -P 6600\n"
     "\n"
     "Start a peer connecting to the previous source, and using videolan as player:\n"
     "\n"
     "%s -i <sourceIP> -p <sourcePort> | cvlc /dev/stdin\n"
+    "\n"
+    "See usage examples on http://peerstreamer.org\n\n"
     "=======================================================\n", argv[0], argv[0], argv[0]
+#else 
+    "See usage examples on http://peerstreamer.org\n\n"
+    "=======================================================\n", argv[0]
+#endif
     );
   }
 
