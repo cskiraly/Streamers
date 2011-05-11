@@ -34,7 +34,9 @@ typedef struct nodeID {
 	int n_mhs;
 } nodeID;
 
-static MonHandler chunk_dup, chunk_playout, neigh_size, chunk_receive, chunk_send, offer_accept, chunk_hops, chunk_delay, playout_delay;
+static MonHandler chunk_dup = -1, chunk_playout = -1 , neigh_size = -1, chunk_receive = -1, chunk_send = -1, offer_accept = -1, chunk_hops = -1, chunk_delay = -1, playout_delay = -1;
+static MonHandler queue_delay = -1 , offers_in_flight = -1;
+
 //static MonHandler rx_bytes_chunk_per_sec, tx_bytes_chunk_per_sec, rx_bytes_sig_per_sec, tx_bytes_sig_per_sec;
 //static MonHandler rx_chunks, tx_chunks;
 
@@ -62,7 +64,7 @@ void add_measure(MonHandler *mhp, MeasurementId id, MeasurementCapabilities mc, 
 */
 void reg_chunk_duplicate()
 {
-	if (!chunk_dup) {
+	if (chunk_dup < 0) {
 		enum stat_types st[] = {SUM, RATE};
 		// number of chunks which have been received more then once
 		add_measure(&chunk_dup, GENERIC, 0, PEER_PUBLISH_INTERVAL, "ChunkDuplicates", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[chunks]
@@ -80,14 +82,14 @@ void reg_chunk_playout(int id, bool b, uint64_t timestamp)
 	static int last_arrived_chunk = -1;
 
 	struct timeval tnow;
-	if (!chunk_playout && b) {	//don't count losses before the first arrived chunk
+	if (chunk_playout < 0 && b) {	//don't count losses before the first arrived chunk
 		enum stat_types st[] = {WIN_AVG, AVG, SUM, RATE};
 		//number of chunks played
 		add_measure(&chunk_playout, GENERIC, 0, PEER_PUBLISH_INTERVAL, "ChunksPlayed", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[chunks]
 	}
 	monNewSample(chunk_playout, b);
 
-	if (!playout_delay) {
+	if (playout_delay < 0) {
 		enum stat_types st[] = {WIN_AVG, WIN_VAR};
 		//delay after reorder buffer, however http module does not use reorder buffer
 		add_measure(&playout_delay, GENERIC, 0, PEER_PUBLISH_INTERVAL, "ReorderDelay", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[seconds]
@@ -116,7 +118,7 @@ void reg_chunk_playout(int id, bool b, uint64_t timestamp)
 */
 void reg_neigh_size(int s)
 {
-	if (!neigh_size) {
+	if (neigh_size < 0) {
 		enum stat_types st[] = {LAST, WIN_AVG};
 		// number of peers in the neighboorhood
 		add_measure(&neigh_size, GENERIC, 0, PEER_PUBLISH_INTERVAL, "NeighSize", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
@@ -131,7 +133,7 @@ void reg_chunk_receive(int id, uint64_t timestamp, int hopcount, bool old, bool 
 {
 	struct timeval tnow;
 
-	if (!chunk_receive) {
+	if (chunk_receive < 0) {
 		enum stat_types st[] = {RATE};
 		// total number of received chunks per second
 		add_measure(&chunk_receive, GENERIC, 0, PEER_PUBLISH_INTERVAL, "TotalRxChunk", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[chunks/s]
@@ -139,14 +141,14 @@ void reg_chunk_receive(int id, uint64_t timestamp, int hopcount, bool old, bool 
 	}
 	monNewSample(chunk_receive, 1);
 
-	if (!chunk_hops) {
+	if (chunk_hops < 0) {
 		enum stat_types st[] = {WIN_AVG};
 		// number of hops from source on the p2p network
 		add_measure(&chunk_hops, GENERIC, 0, PEER_PUBLISH_INTERVAL, "OverlayHops", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
 	}
 	monNewSample(chunk_hops, hopcount);
 
-	if (!chunk_delay) {
+	if (chunk_delay < 0) {
 		enum stat_types st[] = {WIN_AVG, WIN_VAR};
 		// time elapsed since the source emitted the chunk
 		add_measure(&chunk_delay, GENERIC, 0, PEER_PUBLISH_INTERVAL, "ReceiveDelay", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[seconds]
@@ -160,7 +162,7 @@ void reg_chunk_receive(int id, uint64_t timestamp, int hopcount, bool old, bool 
 */
 void reg_chunk_send(int id)
 {
-	if (!chunk_send) {
+	if (chunk_send < 0) {
 		enum stat_types st[] = {RATE};
 		add_measure(&chunk_send, GENERIC, 0, PEER_PUBLISH_INTERVAL, "TotalTxChunk", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[chunks/s]
 		monNewSample(chunk_send, 0);	//force publish even if there are no events
@@ -173,7 +175,7 @@ void reg_chunk_send(int id)
 */
 void reg_offer_accept(bool b)
 {
-	if (!offer_accept) {
+	if (offer_accept < 0) {
 		enum stat_types st[] = {WIN_AVG};
 		// ratio between number of offers and number of accepts
 		add_measure(&offer_accept, GENERIC, 0, PEER_PUBLISH_INTERVAL, "OfferAccept", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[no unit -> ratio]
@@ -345,5 +347,5 @@ double get_average_lossrate(struct nodeID **ids, int len){
 }
 
 double get_receive_delay(void) {
-	return chunk_delay ? monRetrieveResult(chunk_delay, WIN_AVG) : NAN;
+	return chunk_delay >= 0 ? monRetrieveResult(chunk_delay, WIN_AVG) : NAN;
 }
