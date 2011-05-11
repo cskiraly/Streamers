@@ -59,10 +59,11 @@ LDFLAGS += -L$(NAPA)/dclog -L$(NAPA)/rep -L$(NAPA)/monl -L$(NAPA)/common
 LDLIBS += -lstdc++ -lmon -lrep -ldclog -lcommon
 CPPFLAGS += -DMONL
 ifneq ($(STATIC), 0)
-LINKER=g++
+LINKER=$(CXX)
 endif
 endif
-LDLIBS += -levent -lrt
+LDLIBS += -levent
+LDLIBS += $(call ld-option, -lrt)
 endif
 
 OBJS += streaming.o
