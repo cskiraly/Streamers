@@ -34,7 +34,7 @@ typedef struct nodeID {
 	int n_mhs;
 } nodeID;
 
-static MonHandler chunk_dup = -1, chunk_playout = -1 , neigh_size = -1, chunk_receive = -1, chunk_send = -1, offer_accept = -1, chunk_hops = -1, chunk_delay = -1, playout_delay = -1;
+static MonHandler chunk_dup = -1, chunk_playout = -1 , neigh_size = -1, chunk_receive = -1, chunk_send = -1, offer_accept_in = -1, offer_accept_out = -1, chunk_hops = -1, chunk_delay = -1, playout_delay = -1;
 static MonHandler queue_delay = -1 , offers_in_flight = -1;
 
 //static MonHandler rx_bytes_chunk_per_sec, tx_bytes_chunk_per_sec, rx_bytes_sig_per_sec, tx_bytes_sig_per_sec;
@@ -171,16 +171,29 @@ void reg_chunk_send(int id)
 }
 
 /*
- * Register chunk accept evemt
+ * Register chunk accept event
 */
-void reg_offer_accept(bool b)
+void reg_offer_accept_in(bool b)
 {
-	if (offer_accept < 0) {
+	if (offer_accept_in < 0) {
 		enum stat_types st[] = {WIN_AVG};
 		// ratio between number of offers and number of accepts
-		add_measure(&offer_accept, GENERIC, 0, PEER_PUBLISH_INTERVAL, "OfferAccept", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[no unit -> ratio]
+		add_measure(&offer_accept_in, GENERIC, 0, PEER_PUBLISH_INTERVAL, "OfferAcceptIn", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[no unit -> ratio]
 	}
-	monNewSample(offer_accept, b);
+	monNewSample(offer_accept_in, b);
+}
+
+/*
+ * Register chunk accept event
+*/
+void reg_offer_accept_out(bool b)
+{
+	if (offer_accept_out < 0) {
+		enum stat_types st[] = {WIN_AVG};
+		// ratio between number of offers and number of accepts
+		add_measure(&offer_accept_out, GENERIC, 0, PEER_PUBLISH_INTERVAL, "OfferAcceptOut", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[no unit -> ratio]
+	}
+	monNewSample(offer_accept_out, b);
 }
 
 /*
