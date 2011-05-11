@@ -37,7 +37,7 @@ double alpha_target = 0.4;
 double topo_mem = 0.7;
 
 bool topo_out = true; //peer selects out-neighbours
-bool topo_in = false; //peer selects in-neighbours (combined means bidirectional)
+bool topo_in = true; //peer selects in-neighbours (combined means bidirectional)
 
 bool topo_keep_best = false;
 bool topo_add_best = false;
