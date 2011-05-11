@@ -35,6 +35,7 @@
 #include "topology.h"
 #include "measures.h"
 #include "scheduling.h"
+#include "transaction.h"
 
 #include "scheduler_la.h"
 
@@ -56,7 +57,6 @@ extern bool chunk_log;
 struct chunk_buffer *cb;
 static struct input_desc *input;
 static int cb_size;
-static int transid=0;
 
 static int offer_per_tick = 1;	//N_p parameter of POLITO
 
@@ -262,6 +262,13 @@ void bcast_bmap()
   chunkID_set_free(my_bmap);
 }
 
+void send_ack(struct nodeID *toid, uint16_t trans_id)
+{
+  struct chunkID_set *my_bmap = cb_to_bmap(cb);
+  sendAck(toid, my_bmap,trans_id);
+  chunkID_set_free(my_bmap);
+}
+
 double get_average_lossrate_pset(struct peerset *pset)
 {
   int i, n;
@@ -280,7 +287,7 @@ double get_average_lossrate_pset(struct peerset *pset)
   }
 }
 
-void ack_chunk(struct chunk *c, struct nodeID *from)
+void ack_chunk(struct chunk *c, struct nodeID *from, uint16_t trans_id)
 {
   //reduce load a little bit if there are losses on the path from this guy
   double average_lossrate = get_average_lossrate_pset(get_peers());
@@ -288,7 +295,7 @@ void ack_chunk(struct chunk *c, struct nodeID *from)
   if (rand()/((double)RAND_MAX + 1) < 1 * average_lossrate ) {
     return;
   }
-  send_bmap(from);	//send explicit ack
+  send_ack(from, trans_id);	//send explicit ack
 }
 
 void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
@@ -319,7 +326,7 @@ void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
     if (p) {	//now we have it almost sure
       chunkID_set_add_chunk(p->bmap,c.id);	//don't send it back
     }
-    ack_chunk(&c,from);	//send explicit ack
+    ack_chunk(&c, from, transid);	//send explicit ack
     if (bcast_after_receive_every && bcast_cnt % bcast_after_receive_every == 0) {
        bcast_bmap();
     }
@@ -498,6 +505,8 @@ void send_accepted_chunks(struct nodeID *toid, struct chunkID_set *cset_acc, int
   int i, d, cset_acc_size, res;
   struct peer *to = nodeid_to_peer(toid, 0);
 
+  transaction_reg_accept(trans_id, toid);
+
   cset_acc_size = chunkID_set_size(cset_acc);
   reg_offer_accept_out(cset_acc_size > 0 ? 1 : 0);	//this only works if accepts are sent back even if 0 is accepted
   for (i = 0, d=0; i < cset_acc_size && d < max_deliver; i++) {
@@ -573,6 +582,7 @@ void send_offer()
     selectPeersForChunks(SCHED_WEIGHTING, nodeids, n, chunkids, size, selectedpeers, &selectedpeers_len, SCHED_NEEDS, SCHED_PEER);
 
     for (i=0; i<selectedpeers_len ; i++){
+      int transid = transaction_create(selectedpeers[i]);
       int max_deliver = offer_max_deliver(selectedpeers[i]->id);
       struct chunkID_set *my_bmap = cb_to_bmap(cb);
       dprintf("\t sending offer(%d) to %s, cb_size: %d\n", transid, node_addr(selectedpeers[i]->id), selectedpeers[i]->cb_size);
