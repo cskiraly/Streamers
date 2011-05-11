@@ -24,6 +24,7 @@
 #include <chunkidset.h>
 #include <limits.h>
 #include <trade_sig_ha.h>
+#include <chunkiser_attrib.h>
 
 #include "streaming.h"
 #include "output.h"
@@ -36,6 +37,9 @@
 #include "scheduling.h"
 
 #include "scheduler_la.h"
+
+# define CB_SIZE_TIME_UNLIMITED 1e12
+uint64_t CB_SIZE_TIME = CB_SIZE_TIME_UNLIMITED;	//in millisec, defaults to unlimited
 
 static bool heuristics_distance_maxdeliver = false;
 static int bcast_after_receive_every = 0;
@@ -107,37 +111,37 @@ void stream_init(int size, struct nodeID *myID)
   init_measures();
 }
 
-int source_init(const char *fname, struct nodeID *myID, bool loop, int *fds, int fds_size)
+int source_init(const char *fname, struct nodeID *myID, int *fds, int fds_size, int buff_size)
 {
-  int flags = 0;
-
-  if (memcmp(fname, "udp:", 4) == 0) {
-    fname += 4;
-    flags = INPUT_UDP;
-  }
-  if (loop) {
-    flags |= INPUT_LOOP;
-  }
-  input = input_open(fname, flags, fds, fds_size);
+  input = input_open(fname, fds, fds_size);
   if (input == NULL) {
     return -1;
   }
 
-  stream_init(1, myID);
+  stream_init(buff_size, myID);
   return 0;
 }
 
 void chunk_attributes_fill(struct chunk* c)
 {
   struct chunk_attributes * ca;
+  int priority = 1;
 
-  assert(!c->attributes && c->attributes_size == 0);
+  assert((!c->attributes && c->attributes_size == 0) ||
+         chunk_attributes_chunker_verify(c->attributes, c->attributes_size));
+
+  if (chunk_attributes_chunker_verify(c->attributes, c->attributes_size)) {
+    priority = ((struct chunk_attributes_chunker*) c->attributes)->priority;
+    free(c->attributes);
+    c->attributes = NULL;
+    c->attributes_size = 0;
+  }
 
   c->attributes_size = sizeof(struct chunk_attributes);
   c->attributes = ca = malloc(c->attributes_size);
 
-  ca->deadline = c->timestamp;
-  ca->deadline_increment = 2;
+  ca->deadline = c->id;
+  ca->deadline_increment = priority * 2;
   ca->hopcount = 0;
 }
 
@@ -178,7 +182,7 @@ void chunk_attributes_update_sending(const struct chunk* c)
 
   ca = (struct chunk_attributes *) c->attributes;
   ca->deadline += ca->deadline_increment;
-  dprintf("Sending chunk %d with deadline %lu\n", c->id, ca->deadline);
+  dprintf("Sending chunk %d with deadline %lu (increment: %d)\n", c->id, ca->deadline, ca->deadline_increment);
 }
 
 struct chunkID_set *cb_to_bmap(struct chunk_buffer *chbuf)
@@ -300,7 +304,7 @@ void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
     chunk_attributes_update_received(&c);
     chunk_unlock(c.id);
     dprintf("Received chunk %d from peer: %s\n", c.id, node_addr(from));
-    if(chunk_log){fprintf(stderr, "TEO: Received chunk %d from peer: %s at: %"PRIu64" hopcount: %i\n", c.id, node_addr(from), gettimeofday_in_us(), chunk_get_hopcount(&c));}
+    if(chunk_log){fprintf(stderr, "TEO: Received chunk %d from peer: %s at: %"PRIu64" hopcount: %i Size: %d bytes\n", c.id, node_addr(from), gettimeofday_in_us(), chunk_get_hopcount(&c), c.size);}
     output_deliver(&c);
     res = cb_add_chunk(cb, &c);
     reg_chunk_receive(c.id, c.timestamp, chunk_get_hopcount(&c), res==E_CB_OLD, res==E_CB_DUPLICATE);
@@ -363,6 +367,13 @@ int add_chunk(struct chunk *c)
   return 1;
 }
 
+uint64_t get_chunk_timestamp(int cid){
+  const struct chunk *c = cb_get_chunk(cb, cid);
+  if (!c) return 0;
+
+  return c->timestamp;
+}
+
 /**
  *example function to filter chunks based on whether a given peer needs them.
  *
@@ -370,6 +381,14 @@ int add_chunk(struct chunk *c)
  */
 int needs(struct peer *n, int cid){
   struct peer * p = n;
+
+  if (CB_SIZE_TIME < CB_SIZE_TIME_UNLIMITED) {
+    uint64_t ts;
+    ts = get_chunk_timestamp(cid);
+    if (ts && (ts < gettimeofday_in_us() - CB_SIZE_TIME)) {	//if we don't know the timestamp, we accept
+      return 0;
+    }
+  }
 
   //dprintf("\t%s needs c%d ? :",node_addr(p->id),c->id);
   if (! p->bmap) {
@@ -380,8 +399,17 @@ int needs(struct peer *n, int cid){
 }
 
 int _needs(struct chunkID_set *cset, int cb_size, int cid){
+
   if (cb_size == 0) { //if it declared it does not needs chunks
     return 0;
+  }
+
+  if (CB_SIZE_TIME < CB_SIZE_TIME_UNLIMITED) {
+    uint64_t ts;
+    ts = get_chunk_timestamp(cid);
+    if (ts && (ts < gettimeofday_in_us() - CB_SIZE_TIME)) {	//if we don't know the timestamp, we accept
+      return 0;
+    }
   }
 
   if (chunkID_set_check(cset,cid) < 0) { //it might need the chunk
@@ -442,11 +470,28 @@ double chunkScoreChunkID(int *cid){
   return (double) *cid;
 }
 
-double getChunkTimestamp(int *cid){
-  const struct chunk *c = cb_get_chunk(cb, *cid);
+uint64_t get_chunk_deadline(int cid){
+  const struct chunk_attributes * ca;
+  const struct chunk *c;
+
+  c = cb_get_chunk(cb, cid);
   if (!c) return 0;
 
-  return (double) c->timestamp;
+  if (!c->attributes || c->attributes_size != sizeof(struct chunk_attributes)) {
+    fprintf(stderr,"Warning, chunk %d with strange attributes block\n", c->id);
+    return 0;
+  }
+
+  ca = (struct chunk_attributes *) c->attributes;
+  return ca->deadline;
+}
+
+double chunkScoreDL(int *cid){
+  return - (double)get_chunk_deadline(*cid);
+}
+
+double chunkScoreTimestamp(int *cid){
+  return (double) get_chunk_timestamp(*cid);
 }
 
 void send_accepted_chunks(struct nodeID *toid, struct chunkID_set *cset_acc, int max_deliver, uint16_t trans_id){
@@ -466,7 +511,7 @@ void send_accepted_chunks(struct nodeID *toid, struct chunkID_set *cset_acc, int
         if(to) chunkID_set_add_chunk(to->bmap, c->id); //don't send twice ... assuming that it will actually arrive
         d++;
         reg_chunk_send(c->id);
-        if(chunk_log){fprintf(stderr, "TEO: Sending chunk %d to peer: %s at: %"PRIu64" Result: %d\n", c->id, node_addr(toid), gettimeofday_in_us(), res);}
+        if(chunk_log){fprintf(stderr, "TEO: Sending chunk %d to peer: %s at: %"PRIu64" Result: %d Size: %d bytes\n", c->id, node_addr(toid), gettimeofday_in_us(), res, c->size);}
       } else {
         fprintf(stderr,"ERROR sending chunk %d\n",c->id);
       }
@@ -566,9 +611,9 @@ void send_chunk()
     struct peer *nodeids[n];
     struct PeerChunk selectedpairs[1];
   
-    for (i = 0;i < size; i++) chunkids[i] = (buff+i)->id;
+    for (i = 0;i < size; i++) chunkids[size - 1 - i] = (buff+i)->id;
     for (i = 0; i<n; i++) nodeids[i] = (neighbours+i);
-    SCHED_TYPE(SCHED_WEIGHTING, nodeids, n, chunkids, size, selectedpairs, &selectedpairs_len, SCHED_NEEDS, SCHED_PEER, SCHED_CHUNK);
+    SCHED_TYPE(SCHED_WEIGHTING, nodeids, n, chunkids, 1, selectedpairs, &selectedpairs_len, SCHED_NEEDS, SCHED_PEER, SCHED_CHUNK);
   /************ /USE SCHEDULER ****************/
 
     for (i=0; i<selectedpairs_len ; i++){

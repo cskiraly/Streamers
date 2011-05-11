@@ -11,6 +11,13 @@
 #include <string.h>
 #include <getopt.h>
 #include <signal.h>
+#include <time.h>
+#include <errno.h>
+#include <math.h>
+#ifndef NAN	//NAN is missing in some old math.h versions
+#define NAN            (0.0/0.0)
+#endif
+
 #include <grapes_msg_types.h>
 #include <net_helper.h>
 
@@ -24,6 +31,9 @@
 #include "channel.h"
 #include "topology.h"
 #include "measures.h"
+#include "streamer.h"
+
+static struct nodeID *my_sock;
 
 const char *peername = NULL;
 
@@ -33,6 +43,7 @@ static int srv_port;
 static const char *srv_ip = "";
 static int period = 40;
 static int chunks_per_second = 25;
+static double capacity_override = NAN;
 #ifdef HTTPIO
 //input-http.c needs this in order to accomplish the -m multiple send_chunk()
 int multiply = 3;
@@ -42,14 +53,26 @@ static int multiply = 3;
 static int buff_size = 50;
 static int outbuff_size = 50;
 static const char *fname = "/dev/stdin";
-static const char *output_config;
-static bool loop_input = false;
+static const char *output_config ="";
 static const char *net_helper_config = "";
 static const char *topo_config = "";
 unsigned char msgTypes[] = {MSG_TYPE_CHUNK,MSG_TYPE_SIGNALLING};
 bool chunk_log = false;
+static int randomize_start = 0;
+int start_id = -1;
+int end_id = -1;
+int initial_id = -1;
 
 extern int NEIGHBORHOOD_TARGET_SIZE;
+extern uint64_t CB_SIZE_TIME;
+extern double desired_bw;
+extern double desired_rtt;
+extern double alpha_target;
+extern double topo_mem;
+extern bool topo_out;
+extern bool topo_in;
+extern bool topo_keep_best;
+extern bool topo_add_best;
 
 #ifndef MONL
 extern struct timeval print_tdiff;
@@ -84,11 +107,25 @@ static void print_usage(int argc, char *argv[])
     "\t[-n options]: pass configuration options to the net-helper\n"
     "\t[--chunk_log]: print a chunk level log on stderr\n"
     "\t[-F config]: configure the output module\n"
+    "\t[-a alpha]: set the topology alpha value (from 0 to 100)\n"
+    "\t[-r rtt]: set the RTT threshold (in ms) for desired neighbours\n"
+    "\t[--desired_bw bw]: set the BW threshold (in bits/s) for desired neighbours. Use of K(ilo), M(ega) allowed, e.g 0.8M\n"
+    "\t[--topo_mem p]: keep p (0..1) portion of peers between topology operations\n"
+    "\t[--topo_out]: peers only choose out-neighbours\n"
+    "\t[--topo_in]: peers only choose in-neighbours\n"
+    "\t[--topo_bidir]: peers choose both in- and out-neighbours (bidir)\n"
+    "\t[--topo_keep_best]: keep best peers, not random subset\n"
+    "\t[--topo_add_best]: add best peers among desired ones, not random subset\n"
     "\n"
     "Special Source Peer options\n"
     "\t[-m chunks]: set the number of copies the source injects in the overlay.\n"
     "\t[-f filename]: name of the video stream file to transmit.\n"
-    "\t[-l]: loop the video stream.\n"
+    "\t[-S]: set initial chunk_id (source only).\n"
+    "\t[-s]: set start_id from which to start output.\n"
+    "\t[-e]: set end_id at which to end output.\n"
+    "\n"
+    "Special options\n"
+    "\t[--randomize_start us]: random wait before starting [0..us] microseconds.\n"
     "\n"
     "NOTE: by deafult the peer will dump the received video on STDOUT in raw format\n"
     "      it can be played by your favourite player simply using a pipe\n"
@@ -108,6 +145,35 @@ static void print_usage(int argc, char *argv[])
   }
 
 
+static double atod_kmg(const char *s) {
+  double d;
+  char *e;
+
+  errno = 0;
+  d = strtod(s, &e);
+  if (errno) {
+    fprintf(stderr, "Error parsing option: %s\n", s);
+    exit(-1);
+  }
+  switch (*e) {
+    case 'g':
+    case 'G':
+      d *= 1024;
+    case 'm':
+    case 'M':
+      d *= 1024;
+    case 'k':
+    case 'K':
+      d *= 1024;
+    case 0:
+      break;
+    default:
+      fprintf(stderr, "Error parsing option: %s\n", s);
+      exit(-1);
+  }
+
+  return d;
+}
 
 static void cmdline_parse(int argc, char *argv[])
 {
@@ -118,10 +184,20 @@ static void cmdline_parse(int argc, char *argv[])
         {"chunk_log", no_argument, 0, 0},
         {"measure_start", required_argument, 0, 0},
         {"measure_every", required_argument, 0, 0},
+        {"playout_limit", required_argument, 0, 0},
+        {"randomize_start", required_argument, 0, 0},
+        {"capacity_override", required_argument, 0, 0},
+        {"desired_bw", required_argument, 0, 0},
+        {"topo_mem", required_argument, 0, 0},
+        {"topo_in", no_argument, 0, 0},
+        {"topo_out", no_argument, 0, 0},
+        {"topo_bidir", no_argument, 0, 0},
+        {"topo_keep_best", no_argument, 0, 0},
+        {"topo_add_best", no_argument, 0, 0},
 	{0, 0, 0, 0}
   };
 
-    while ((o = getopt_long (argc, argv, "b:o:c:p:i:P:I:f:F:m:lC:N:n:M:t:",long_options, &option_index)) != -1) { //use this function to manage long options
+    while ((o = getopt_long (argc, argv, "r:a:b:o:c:p:i:P:I:f:F:m:lC:N:n:M:t:s:e:S:",long_options, &option_index)) != -1) { //use this function to manage long options
     switch(o) {
       case 0: //for long options
         if( strcmp( "chunk_log", long_options[option_index].name ) == 0 ) { chunk_log = true; }
@@ -129,6 +205,22 @@ static void cmdline_parse(int argc, char *argv[])
         if( strcmp( "measure_start", long_options[option_index].name ) == 0 ) { tstartdiff.tv_sec = atoi(optarg); }
         if( strcmp( "measure_every", long_options[option_index].name ) == 0 ) { print_tdiff.tv_sec = atoi(optarg); }
 #endif
+        if( strcmp( "playout_limit", long_options[option_index].name ) == 0 ) { CB_SIZE_TIME = atoi(optarg); }
+        if( strcmp( "randomize_start", long_options[option_index].name ) == 0 ) { randomize_start = atoi(optarg); }
+        if( strcmp( "capacity_override", long_options[option_index].name ) == 0 ) { capacity_override = atod_kmg(optarg); }
+        if( strcmp( "desired_bw", long_options[option_index].name ) == 0 ) { desired_bw = atod_kmg(optarg); }
+        if( strcmp( "topo_mem", long_options[option_index].name ) == 0 ) { topo_mem = atof(optarg); }
+        else if( strcmp( "topo_in", long_options[option_index].name ) == 0 ) { topo_in = true; topo_out = false; }
+        else if( strcmp( "topo_out", long_options[option_index].name ) == 0 ) { topo_in = false; topo_out = true; }
+        else if( strcmp( "topo_bidir", long_options[option_index].name ) == 0 ) { topo_in = true; topo_out = true; }
+        else if( strcmp( "topo_keep_best", long_options[option_index].name ) == 0 ) { topo_keep_best = true; }
+        else if( strcmp( "topo_add_best", long_options[option_index].name ) == 0 ) { topo_add_best = true; }
+        break;
+      case 'a':
+        alpha_target = (double)atoi(optarg) / 100.0;
+        break;
+      case 'r':
+        desired_rtt = (double)atoi(optarg) / 1000.0;
         break;
       case 'b':
         buff_size = atoi(optarg);
@@ -160,9 +252,6 @@ static void cmdline_parse(int argc, char *argv[])
       case 'F':
         output_config = strdup(optarg);
         break;
-      case 'l':
-        loop_input = true;
-        break;
       case 'C':
         channel_set_name(optarg);
         break;
@@ -177,6 +266,15 @@ static void cmdline_parse(int argc, char *argv[])
         break;
       case 't':
         topo_config = strdup(optarg);
+        break;
+      case 'S':
+        initial_id = atoi(optarg);
+        break;
+      case 's':
+        start_id = atoi(optarg);
+        break;
+      case 'e':
+        end_id = atoi(optarg);
         break;
       default:
         fprintf(stderr, "Error: unknown option %c\n", o);
@@ -194,6 +292,11 @@ static void cmdline_parse(int argc, char *argv[])
     print_usage(argc, argv);
     fprintf(stderr, "Trying to start a source with default parameters, reading from %s\n", fname);
   }
+}
+
+const struct nodeID *get_my_addr(void)
+{
+  return my_sock;
 }
 
 static void init_rand(const char * s)
@@ -249,15 +352,27 @@ static struct nodeID *init(void)
 }
 
 void leave(int sig) {
+  fprintf(stderr, "Received signal %d, exiting!\n", sig);
   end_measures();
   exit(sig);
 }
 
+// wait [0..max] microsec
+static void random_wait(int max) {
+    struct timespec t;
+    uint64_t ms;
+
+    ms = (rand()/(RAND_MAX + 1.0)) * max;
+    t.tv_sec = ms / 1000000;
+    t.tv_nsec = (ms % 1000000) * 1000;
+    nanosleep(&t, NULL);
+}
+
 int main(int argc, char *argv[])
 {
-  struct nodeID *my_sock;
 
   (void) signal(SIGTERM,leave);
+  (void) signal(SIGINT,leave);
 
   cmdline_parse(argc, argv);
 
@@ -268,6 +383,9 @@ int main(int argc, char *argv[])
   }
   if (srv_port != 0) {
     struct nodeID *srv;
+
+    //random wait a bit before starting
+    if (randomize_start) random_wait(randomize_start);
 
     output_init(outbuff_size, output_config);
 
@@ -281,7 +399,28 @@ int main(int argc, char *argv[])
 
     loop(my_sock, 1000000 / chunks_per_second, buff_size);
   } else {
-    source_loop(fname, my_sock, period * 1000, multiply, loop_input);
+    source_loop(fname, my_sock, period * 1000, multiply, buff_size);
   }
   return 0;
+}
+
+int am_i_source()
+{
+  return (srv_port == 0);
+}
+
+int get_cb_size()
+{
+  return buff_size;
+}
+
+int get_chunks_per_sec()
+{
+  return chunks_per_second;
+}
+
+//capacity in bits/s, or NAN if unknown
+double get_capacity()
+{
+  return capacity_override;
 }

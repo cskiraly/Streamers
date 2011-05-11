@@ -42,7 +42,7 @@ void bmap_received(const struct nodeID *fromid, const struct nodeID *ownerid, st
   }
   
   if (owner) {	//now we have it almost sure
-    chunkID_set_clear(owner->bmap,cb_size+5);	//TODO: some better solution might be needed to keep info about chunks we sent in flight.
+    chunkID_set_clear(owner->bmap,0);	//TODO: some better solution might be needed to keep info about chunks we sent in flight.
     chunkID_set_union(owner->bmap,c_set);
     owner->cb_size = cb_size;
     gettimeofday(&owner->bmap_timestamp, NULL);

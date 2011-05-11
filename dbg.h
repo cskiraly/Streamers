@@ -7,15 +7,13 @@
 #ifndef DBG_H
 #define DBG_H
 
+#include <stdio.h>
+
+int ftprintf(FILE *stream, const char *format, ...);
+
 #ifdef DEBUG
-
-#include <stdio.h>
-
-int dtprintf2(const char *format, ...);
-
-#include <stdio.h>
 #define dprintf(...) fprintf(stderr,__VA_ARGS__)
-#define dtprintf(...) dtprintf2(__VA_ARGS__)
+#define dtprintf(...) ftprintf(stderr,__VA_ARGS__)
 #else
 #define dprintf(...)
 #define dtprintf(...)

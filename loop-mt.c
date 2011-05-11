@@ -63,6 +63,7 @@ static void *source_receive(void *dummy)
     }
     switch (buff[0] /* Message Type */) {
 	  case MSG_TYPE_TMAN:
+      case MSG_TYPE_STREAMER_TOPOLOGY:
       case MSG_TYPE_TOPOLOGY:
         pthread_mutex_lock(&topology_mutex);
         update_peers(remote, buff, len);
@@ -101,6 +102,7 @@ static void *receive(void *dummy)
     dprintf("Received message (%c) from %s\n", buff[0], node_addr(remote));
     switch (buff[0] /* Message Type */) {
 	  case MSG_TYPE_TMAN:
+      case MSG_TYPE_STREAMER_TOPOLOGY:
       case MSG_TYPE_TOPOLOGY:
         pthread_mutex_lock(&topology_mutex);
         update_peers(remote, buff, len);
@@ -195,7 +197,7 @@ void loop(struct nodeID *s1, int csize, int buff_size)
   pthread_join(distributing_thread, NULL);
 }
 
-void source_loop(const char *fname, struct nodeID *s1, int csize, int chunks, bool loop)
+void source_loop(const char *fname, struct nodeID *s1, int csize, int chunks, int buff_size)
 {
   pthread_t generate_thread, receive_thread, gossiping_thread, distributing_thread;
   
@@ -208,7 +210,7 @@ void source_loop(const char *fname, struct nodeID *s1, int csize, int chunks, bo
 
 //  sigInit(s);
   peers_init();
-  if (source_init(fname, s, loop, fds, FDSSIZE) < 0) {
+  if (source_init(fname, s, fds, FDSSIZE, buff_size) < 0) {
     fprintf(stderr,"Cannot initialize source, exiting");
     return;
   }

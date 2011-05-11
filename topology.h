@@ -10,6 +10,8 @@
 
 #include <stdint.h>
 
+#define MSG_TYPE_STREAMER_TOPOLOGY   0x22
+
 int peers_init(void);
 struct peerset *get_peers(void);
 void update_peers(struct nodeID *from, const uint8_t *buff, int len);

@@ -34,8 +34,8 @@ endif
 ifdef DEBUG
 CFLAGS += -O0
 CPPFLAGS += -DDEBUG
-OBJS += dbg.o
 endif
+OBJS += dbg.o
 
 
 ifdef DEBUGOUT
@@ -61,10 +61,11 @@ LDFLAGS += -L$(NAPA)/dclog -L$(NAPA)/rep -L$(NAPA)/monl -L$(NAPA)/common
 LDLIBS += -lstdc++ -lmon -lrep -ldclog -lcommon
 CPPFLAGS += -DMONL
 ifneq ($(STATIC), 0)
-LINKER=g++
+LINKER=$(CXX)
 endif
 endif
-LDLIBS += -levent -lrt
+LDLIBS += -levent
+LDLIBS += $(call ld-option, -lrt)
 endif
 
 OBJS += streaming.o
@@ -74,7 +75,7 @@ ifdef ALTO
 OBJS += topology-ALTO.o
 OBJS += config.o
 else
-OBJS += topology.o
+OBJS += topology.o nodeid_set.o
 endif
 
 OBJS += chunk_signaling.o
