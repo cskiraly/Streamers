@@ -31,10 +31,10 @@
 #define MIN(A,B) (((A) < (B)) ? (A) : (B))
 #define MAX(A,B) (((A) > (B)) ? (A) : (B))
 
-double desired_bw = 0;
+double desired_bw = 1000000;
 double desired_rtt = 0.2;
-double alpha_target = 0.5;
-double topo_mem = 0;
+double alpha_target = 0.4;
+double topo_mem = 0.7;
 
 bool topo_out = true; //peer selects out-neighbours
 bool topo_in = false; //peer selects in-neighbours (combined means bidirectional)
