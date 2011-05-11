@@ -228,6 +228,8 @@ struct chunkID_set *get_chunks_to_accept(struct nodeID *fromid, const struct chu
   //    dtprintf("accepting -- from %s loss:%f rtt:%f\n", node_addr(fromid), lossrate, get_rtt(fromid));
   //}
 
+  reg_offer_accept_in(chunkID_set_size(cset_acc) > 0 ? 1 : 0);
+
   return cset_acc;
 }
 
@@ -452,7 +454,7 @@ void send_accepted_chunks(struct nodeID *toid, struct chunkID_set *cset_acc, int
   struct peer *to = nodeid_to_peer(toid, 0);
 
   cset_acc_size = chunkID_set_size(cset_acc);
-  reg_offer_accept(cset_acc_size > 0 ? 1 : 0);	//this only works if accepts are sent back even if 0 is accepted
+  reg_offer_accept_out(cset_acc_size > 0 ? 1 : 0);	//this only works if accepts are sent back even if 0 is accepted
   for (i = 0, d=0; i < cset_acc_size && d < max_deliver; i++) {
     const struct chunk *c;
     int chunkid = chunkID_set_get_chunk(cset_acc, i);
