@@ -31,6 +31,10 @@
 #define MIN(A,B) (((A) < (B)) ? (A) : (B))
 #define MAX(A,B) (((A) > (B)) ? (A) : (B))
 
+#ifndef NAN	//NAN is missing in some old math.h versions
+#define NAN            (0.0/0.0)
+#endif
+
 double desired_bw = 1000000;
 double desired_rtt = 0.2;
 double alpha_target = 0.4;
