@@ -336,6 +336,20 @@ static struct nodeID *init(void)
   struct nodeID *myID;
   char *my_addr;
 
+#ifdef _WIN32
+  {
+    WORD wVersionRequested;
+    WSADATA wsaData;
+    int err;
+    wVersionRequested = MAKEWORD(2, 2);
+    err = WSAStartup(wVersionRequested, &wsaData);
+    if (err != 0) {
+        fprintf(stderr, "WSAStartup failed with error: %d\n", err);
+        return NULL;
+    }
+  }
+#endif
+
   if (my_iface) {
     my_addr = iface_addr(my_iface);
   } else {
