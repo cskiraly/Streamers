@@ -65,21 +65,21 @@ static void output_connect(void)
       mode = TCP_MODE;
       fd = socket(AF_INET, SOCK_STREAM, 0);
       if (fd < 0) {
-        fprintf(stderr,"Error creating socket\n");
+        fprintf(stderr,"output-chunkstream: Error creating socket\n");
       } else {
         struct sockaddr_in servaddr;
 
-        fprintf(stderr,"tcp socket opened fd=%d\n", fd);
+        fprintf(stderr,"output-chunkstream: tcp socket opened fd=%d\n", fd);
         servaddr.sin_family = AF_INET;
         servaddr.sin_port = htons(port);
         if (inet_aton(ip, &servaddr.sin_addr) < 0) {
-          fprintf(stderr,"Error converting IP address: %s\n", ip);
+          fprintf(stderr,"output-chunkstream: Error converting IP address: %s\n", ip);
           return;
         }
         if (connect(fd, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
-          fprintf(stderr,"Error connecting to %s:%d\n", ip, port);
+          fprintf(stderr,"output-chunkstream: Error connecting to %s:%d\n", ip, port);
         } else {
-          fprintf(stderr,"Connected to %s:%d\n", ip, port);
+          fprintf(stderr,"output-chunkstream: Connected to %s:%d\n", ip, port);
         }
       }
     } else {
@@ -94,10 +94,10 @@ static void output_connect(void)
       }
 #endif
       if (fd < 0) {
-        fprintf(stderr,"Error opening output file %s", fname);
+        fprintf(stderr,"output-chunkstream: Error opening output file %s", fname);
         perror(NULL);
       } else {
-        fprintf(stderr,"opened output file %s\n", fname);
+        fprintf(stderr,"output-chunkstream: opened output file %s\n", fname);
       }
     }
   }
@@ -118,7 +118,7 @@ void output_deliver(const struct chunk *c)
 
   size = encodeChunk(c, sendbuf + pos + sizeof(size), BUFSIZE - pos);
   if (size <= 0) {
-    fprintf(stderr,"Error encoding chunk\n");
+    fprintf(stderr,"output-chunkstream: Error encoding chunk or no space in output buffer, skipping\n");
   } else {
     *((uint32_t*)(sendbuf + pos)) = htonl(size);
     pos += sizeof(size) + size;
@@ -150,7 +150,9 @@ void output_deliver(const struct chunk *c)
       close(fd);
       pos = 0;
       fd = -1;
+    }
   } else {
+    fprintf(stderr,"output-chunkstream: written %d bytes\n", ret);
     pos -= ret;
     memmove(sendbuf, sendbuf + ret, pos);
   }
