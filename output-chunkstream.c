@@ -105,7 +105,7 @@ void output_deliver(const struct chunk *c)
   int ret;
   uint32_t size;
 
-  size = encodeChunk(c, sendbuf + pos + sizeof(size), BUFSIZE);
+  size = encodeChunk(c, sendbuf + pos + sizeof(size), BUFSIZE - pos);
   if (size <= 0) {
     fprintf(stderr,"Error encoding chunk\n");
   } else {
