@@ -118,8 +118,18 @@ void output_deliver(const struct chunk *c)
   }
 
   ret = write(fd, sendbuf, pos);
-  if (ret <= 0) {
-    perror("Error writing to output");
+  if (ret < 0) {
+#ifndef _WIN32
+    if (ret == -1 &&  (errno == EAGAIN || errno == EWOULDBLOCK)) {
+#else
+    if (ret == -1 &&  WSAGetLastError() == WSAEWOULDBLOCK) {
+#endif
+      fprintf(stderr,"output-chunkstream: Output stalled ...\n");
+    } else {
+      perror("output-chunkstream: Error writing to output");
+      close(fd);
+      pos = 0;
+      fd = -1;
   } else {
     pos -= ret;
     memmove(sendbuf, sendbuf + ret, pos);
