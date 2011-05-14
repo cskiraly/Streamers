@@ -117,7 +117,11 @@ void output_deliver(const struct chunk *c)
     pos += sizeof(size) + size;
   }
 
-  ret = write(fd, sendbuf, pos);
+  if (mode == TCP_MODE) {  //distiction needed by Win32
+    ret = send(fd, sendbuf, pos, 0);
+  } else {
+    ret = write(fd, sendbuf, pos);
+  }
   if (ret < 0) {
 #ifndef _WIN32
     if (ret == -1 &&  (errno == EAGAIN || errno == EWOULDBLOCK)) {
