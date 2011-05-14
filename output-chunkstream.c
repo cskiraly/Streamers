@@ -65,6 +65,7 @@ void output_init(int bufsize, const char *fname)
       } else {
         struct sockaddr_in servaddr;
 
+        fprintf(stderr,"tcp socket opened fd=%d\n", fd);
         servaddr.sin_family = AF_INET;
         servaddr.sin_port = htons(port);
         if (inet_aton(ip, &servaddr.sin_addr) < 0) {
@@ -73,6 +74,8 @@ void output_init(int bufsize, const char *fname)
         }
         if (connect(fd, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
           fprintf(stderr,"Error connecting to %s:%d\n", ip, port);
+        } else {
+          fprintf(stderr,"Connected to %s:%d\n", ip, port);
         }
       }
     } else {
@@ -85,6 +88,12 @@ void output_init(int bufsize, const char *fname)
          ioctlsocket(fd, FIONBIO, (unsigned long*) &nonblocking);
       }
 #endif
+      if (fd < 0) {
+        fprintf(stderr,"Error opening output file %s", fname);
+        perror(NULL);
+      } else {
+        fprintf(stderr,"opened output file %s\n", fname);
+      }
     }
   }
 }
