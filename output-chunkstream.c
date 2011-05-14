@@ -80,7 +80,7 @@ void output_init(int bufsize, const char *fname)
       fd = open(fname, O_CREAT | O_WRONLY | O_TRUNC | O_NONBLOCK, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 #else
       fd = open(fname, O_CREAT | O_WRONLY | O_TRUNC);
-      {
+      if (fd >= 0) {
          unsigned long nonblocking = 1;
          ioctlsocket(fd, FIONBIO, (unsigned long*) &nonblocking);
       }
