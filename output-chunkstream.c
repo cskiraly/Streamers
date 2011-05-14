@@ -29,6 +29,7 @@
 
 #define BUFSIZE 65536*8
 static int fd = -1;
+static enum MODE {FILE_MODE, TCP_MODE} mode;
 
 #ifdef _WIN32
 static int inet_aton(const char *cp, struct in_addr *addr)
@@ -46,6 +47,7 @@ static int inet_aton(const char *cp, struct in_addr *addr)
 void output_init(int bufsize, const char *fname)
 {
   if (!fname){
+    mode = FILE_MODE;
     fd = STDOUT_FILENO;
   } else {
     char *c;
@@ -59,6 +61,7 @@ void output_init(int bufsize, const char *fname)
 
     if (sscanf(fname,"tcp://%[0-9.]:%d", ip, &port) == 2) {
 
+      mode = TCP_MODE;
       fd = socket(AF_INET, SOCK_STREAM, 0);
       if (fd < 0) {
         fprintf(stderr,"Error creating socket\n");
@@ -79,6 +82,7 @@ void output_init(int bufsize, const char *fname)
         }
       }
     } else {
+      mode = FILE_MODE;
 #ifndef _WIN32
       fd = open(fname, O_CREAT | O_WRONLY | O_TRUNC | O_NONBLOCK, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 #else
