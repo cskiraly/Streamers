@@ -29,6 +29,7 @@
 
 #define BUFSIZE 65536*8
 static int fd = -1;
+static char *fname = NULL;
 static enum MODE {FILE_MODE, TCP_MODE} mode;
 
 #ifdef _WIN32
@@ -44,7 +45,7 @@ static int inet_aton(const char *cp, struct in_addr *addr)
 }
 #endif
 
-void output_init(int bufsize, const char *fname)
+static void output_connect(void)
 {
   if (!fname){
     mode = FILE_MODE;
@@ -102,6 +103,12 @@ void output_init(int bufsize, const char *fname)
   }
 }
 
+void output_init(int bufsize, const char *fn)
+{
+  if (fn) fname = strdup(fn);
+  output_connect();
+}
+
 void output_deliver(const struct chunk *c)
 {
   static char sendbuf[BUFSIZE];
@@ -115,6 +122,15 @@ void output_deliver(const struct chunk *c)
   } else {
     *((uint32_t*)(sendbuf + pos)) = htonl(size);
     pos += sizeof(size) + size;
+  }
+
+  if (mode == TCP_MODE && fd < 0) {
+    fprintf(stderr,"output-chunkstream: reconnecting ...\n");
+    output_connect();
+  }
+  if (fd < 0) {
+    fprintf(stderr,"output-chunkstream: not conected\n");
+    return;
   }
 
   if (mode == TCP_MODE) {  //distiction needed by Win32
