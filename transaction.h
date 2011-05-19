@@ -11,7 +11,7 @@
 #include <stdbool.h>
 
 /* timeout of the offers thread. If it is not updated, it is deleted */
-#define TRANS_ID_MAX_LIFETIME 1.0
+#define TRANS_ID_MAX_LIFETIME 10.0
 
 struct nodeID;
 
