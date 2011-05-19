@@ -113,10 +113,12 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, int
   static uint8_t buff[BUFFSIZE];
   int cnt = 0;
   struct timeval tnext;
+  struct timeval tnextp;	//next offer time instance
   int fds[FDSSIZE];
   fds[0] = -1;
 
   gettimeofday(&tnext, NULL);
+  gettimeofday(&tnextp, NULL);
   period.tv_sec = csize  / 1000000;
   period.tv_usec = csize % 1000000;
   
@@ -188,6 +190,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, int
     } else if (res == 0 || res == 2) {	//timeout or data arrived from source
       int i;
       struct timeval tmp, d;
+      struct timeval tnow;
       struct chunk *c;
 
       d.tv_sec = 0;
@@ -201,8 +204,24 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, int
             update_peers(NULL, NULL, 0);
         }
       }
+
+      //check whether to send offer
+      gettimeofday(&tnow, NULL);
+      if(timercmp(&tnow, &tnextp, >=)) {
+        send_offer();
+        if (cnt++ % 10 == 0) {
+          update_peers(NULL, NULL, 0);
+        }
+        timeradd(&tnextp, &period, &tmp);
+        tnextp = tmp;
+      }
+
+      //calculate next timeout
       timeradd(&tnext, &d, &tmp);
       tnext = tmp;
+      if(timercmp(&tnextp, &tnext, <)) {
+        tnext = tnextp;
+      }
     }
   }
 }
