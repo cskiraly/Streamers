@@ -29,24 +29,21 @@
 #define BUFFSIZE 512 * 1024
 #define FDSSIZE 16
 static struct timeval period = {0, 500000};
-static struct timeval tnext;
 
 #ifdef HTTPIO_MHD
 extern pthread_mutex_t cb_mutex;
 #endif
 
-void tout_init(struct timeval *tv)
+//calculate timeout based on tnext
+void tout_init(struct timeval *tout, const struct timeval *tnext)
 {
   struct timeval tnow;
 
-  if (tnext.tv_sec == 0) {
-    gettimeofday(&tnext, NULL);
-  }
   gettimeofday(&tnow, NULL);
-  if(timercmp(&tnow, &tnext, <)) {
-    timersub(&tnext, &tnow, tv);
+  if(timercmp(&tnow, tnext, <)) {
+    timersub(tnext, &tnow, tout);
   } else {
-    *tv = (struct timeval){0, 0};
+    *tout = (struct timeval){0, 0};
   }
 }
 
@@ -55,7 +52,9 @@ void loop(struct nodeID *s, int csize, int buff_size)
   int done = 0;
   static uint8_t buff[BUFFSIZE];
   int cnt = 0;
+  struct timeval tnext;
   
+  gettimeofday(&tnext, NULL);
   period.tv_sec = csize / 1000000;
   period.tv_usec = csize % 1000000;
   
@@ -66,7 +65,7 @@ void loop(struct nodeID *s, int csize, int buff_size)
     int len, res;
     struct timeval tv;
 
-    tout_init(&tv);
+    tout_init(&tv, &tnext);
     res = wait4data(s, &tv, NULL);
     if (res > 0) {
       struct nodeID *remote;
@@ -113,9 +112,11 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, int
   int done = 0;
   static uint8_t buff[BUFFSIZE];
   int cnt = 0;
+  struct timeval tnext;
   int fds[FDSSIZE];
   fds[0] = -1;
 
+  gettimeofday(&tnext, NULL);
   period.tv_sec = csize  / 1000000;
   period.tv_usec = csize % 1000000;
   
@@ -135,7 +136,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, int
     res = wait4data(s, NULL, wait4fds);
 #else
     if (fds[0] == -1) {
-      tout_init(&tv);
+      tout_init(&tv, &tnext);
       ptv = &tv;
       pfds = NULL;
     } else {
