@@ -16,6 +16,8 @@
 #define MAX(A,B)    ((A)>(B) ? (A) : (B))
 #define MIN(A,B)    ((A)<(B) ? (A) : (B))
 
+bool autotune_period = false;
+
 static double offer_accept = 1;
 static double acc_to_ack = 0;
 
@@ -101,7 +103,9 @@ static void update_acc_to_ack(double t)
 {
   reg_queue_delay(t);
   acc_to_ack = t;
-  update_period();
+  if (autotune_period) {
+    update_period();
+  }
 }
 
 
