@@ -535,7 +535,7 @@ void send_offer()
     selectPeersForChunks(SCHED_WEIGHTING, nodeids, n, chunkids, size, selectedpeers, &selectedpeers_len, SCHED_NEEDS, SCHED_PEER);
 
     for (i=0; i<selectedpeers_len ; i++){
-      int transid = transaction_create(selectedpeers[i]);
+      int transid = transaction_create(selectedpeers[i]->id);
       int max_deliver = offer_max_deliver(selectedpeers[i]->id);
       struct chunkID_set *my_bmap = cb_to_bmap(cb);
       dprintf("\t sending offer(%d) to %s, cb_size: %d\n", transid, node_addr(selectedpeers[i]->id), selectedpeers[i]->cb_size);
