@@ -27,6 +27,7 @@
 
 #include "streaming.h"
 #include "topology.h"
+#include "ratecontrol.h"
 #include "dbg.h"
 
 static bool neigh_on_sign_recv = false;
@@ -40,6 +41,8 @@ void ack_received(const struct nodeID *fromid, struct chunkID_set *cset, int max
     chunkID_set_union(from->bmap,cset);
     gettimeofday(&from->bmap_timestamp, NULL);
   }
+
+  rc_reg_ack(trans_id);
 }
 
 void bmap_received(const struct nodeID *fromid, const struct nodeID *ownerid, struct chunkID_set *c_set, int cb_size, uint16_t trans_id) {
@@ -88,6 +91,8 @@ void accept_received(const struct nodeID *fromid, struct chunkID_set *cset, int 
   //struct peer *from = nodeid_to_peer(fromid,0);   //verify that we have really offered, 0 at least garantees that we've known the peer before
 
   dprintf("The peer %s accepted our offer for %d chunks, max deliver %d.\n", node_addr(fromid), chunkID_set_size(cset), max_deliver);
+
+  rc_reg_accept(trans_id, chunkID_set_size(cset));
 
   send_accepted_chunks(fromid, cset, max_deliver, trans_id);
 }
