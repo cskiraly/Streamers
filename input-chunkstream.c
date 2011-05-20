@@ -13,8 +13,12 @@
 #include <errno.h>
 #include <limits.h>
 #include <sys/types.h>
+#ifndef _WIN32
 #include <sys/socket.h>
 #include <netinet/in.h>
+#else
+#include <winsock2.h>
+#endif
 
 #include <chunk.h>
 #include <trade_msg_la.h>
@@ -76,14 +80,24 @@ struct input_desc *input_open(const char *fname, int *fds, int fds_size)
         close(accept_fd);
       }
     } else {
-      res->fd = open(fname, O_RDONLY | O_NONBLOCK);
+      res->fd = open(fname, O_RDONLY); //TODO
     }
   }
 
   if (res->fd < 0) {
     free(res);
     return NULL;
+  } else {
+#ifndef _WIN32
+    if (fcntl(res->fd, F_SETFL, O_NONBLOCK) == -1) {
+      perror("fcntl(O_NONBLOCK)");
+    }
+#else
+    unsigned long nonblocking = 1;
+    ioctlsocket(res->fd, FIONBIO, (unsigned long*) &nonblocking);
+#endif
   }
+
   fds[0] = res->fd;
   fds[1] = -1;
 
@@ -104,9 +118,13 @@ int input_get(struct input_desc *s, struct chunk *c)
   static int pos = 0;
 
   c->data = NULL;
-  ret = recv(s->fd, recvbuf + pos, BUFSIZE - pos, MSG_DONTWAIT);
+  ret = recv(s->fd, recvbuf + pos, BUFSIZE - pos, 0);
   if (ret <= 0 && pos < sizeof(size)) {
+#ifndef _WIN32
     if (ret == -1 &&  (errno == EAGAIN || errno == EWOULDBLOCK)) {
+#else
+    if (ret == -1 &&  WSAGetLastError() == WSAEWOULDBLOCK) {
+#endif
       return 999999;
     } else {
       perror("chunkstream connection error");

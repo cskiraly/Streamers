@@ -12,9 +12,13 @@
 #include <errno.h>
 #include <limits.h>
 #include <sys/types.h>
+#ifndef _WIN32
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#else
+#include <winsock2.h>
+#endif
 
 #include <chunk.h>
 #include <trade_msg_la.h>
@@ -25,6 +29,19 @@
 
 #define BUFSIZE 65536*8
 static int fd = -1;
+
+#ifdef _WIN32
+static int inet_aton(const char *cp, struct in_addr *addr)
+{
+    if( cp==NULL || addr==NULL )
+    {
+        return(0);
+    }
+
+    addr->s_addr = inet_addr(cp);
+    return (addr->s_addr == INADDR_NONE) ? 0 : 1;
+}
+#endif
 
 void output_init(int bufsize, const char *fname)
 {
@@ -59,7 +76,15 @@ void output_init(int bufsize, const char *fname)
         }
       }
     } else {
+#ifndef _WIN32
       fd = open(fname, O_CREAT | O_WRONLY | O_TRUNC | O_NONBLOCK, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+#else
+      fd = open(fname, O_CREAT | O_WRONLY | O_TRUNC);
+      {
+         unsigned long nonblocking = 1;
+         ioctlsocket(fd, FIONBIO, (unsigned long*) &nonblocking);
+      }
+#endif
     }
   }
 }
