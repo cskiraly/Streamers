@@ -116,7 +116,7 @@ static void print_usage(int argc, char *argv[])
     "\t[--topo_bidir]: peers choose both in- and out-neighbours (bidir)\n"
     "\t[--topo_keep_best]: keep best peers, not random subset\n"
     "\t[--topo_add_best]: add best peers among desired ones, not random subset\n"
-    "\t[--autotune_period]: automatically tune output bandwidth\n"
+    "\t[--autotune_period]: automatically tune output bandwidth, 1:on, 0:off\n"
     "\n"
     "Special Source Peer options\n"
     "\t[-m chunks]: set the number of copies the source injects in the overlay.\n"
@@ -196,7 +196,7 @@ static void cmdline_parse(int argc, char *argv[])
         {"topo_bidir", no_argument, 0, 0},
         {"topo_keep_best", no_argument, 0, 0},
         {"topo_add_best", no_argument, 0, 0},
-        {"autotune_period", no_argument, 0, 0},
+        {"autotune_period", required_argument, 0, 0},
 	{0, 0, 0, 0}
   };
 
@@ -218,7 +218,7 @@ static void cmdline_parse(int argc, char *argv[])
         else if( strcmp( "topo_bidir", long_options[option_index].name ) == 0 ) { topo_in = true; topo_out = true; }
         else if( strcmp( "topo_keep_best", long_options[option_index].name ) == 0 ) { topo_keep_best = true; }
         else if( strcmp( "topo_add_best", long_options[option_index].name ) == 0 ) { topo_add_best = true; }
-        else if( strcmp( "autotune_period", long_options[option_index].name ) == 0 ) { autotune_period = true; }
+        else if( strcmp( "autotune_period", long_options[option_index].name ) == 0 ) { autotune_period = (bool) atoi(optarg); }
         break;
       case 'a':
         alpha_target = (double)atoi(optarg) / 100.0;
