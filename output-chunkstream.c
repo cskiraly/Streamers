@@ -152,7 +152,7 @@ void output_deliver(const struct chunk *c)
       fd = -1;
     }
   } else {
-    fprintf(stderr,"output-chunkstream: written %d bytes\n", ret);
+    dprintf("output-chunkstream: written %d bytes\n", ret);
     pos -= ret;
     memmove(sendbuf, sendbuf + ret, pos);
   }
