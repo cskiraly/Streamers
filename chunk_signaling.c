@@ -27,9 +27,23 @@
 
 #include "streaming.h"
 #include "topology.h"
+#include "ratecontrol.h"
 #include "dbg.h"
 
 static bool neigh_on_sign_recv = false;
+
+void ack_received(const struct nodeID *fromid, struct chunkID_set *cset, int max_deliver, uint16_t trans_id) {
+  struct peer *from = nodeid_to_peer(fromid,0);   //verify that we have really sent, 0 at least garantees that we've known the peer before
+  dprintf("The peer %s acked our chunk %d chunks, max deliver %d, trans_id %d.\n", node_addr(fromid), chunkID_set_get_latest(cset), max_deliver, trans_id);
+
+  if (from) {
+    chunkID_set_clear(from->bmap,0);	//TODO: some better solution might be needed to keep info about chunks we sent in flight.
+    chunkID_set_union(from->bmap,cset);
+    gettimeofday(&from->bmap_timestamp, NULL);
+  }
+
+  rc_reg_ack(trans_id);
+}
 
 void bmap_received(const struct nodeID *fromid, const struct nodeID *ownerid, struct chunkID_set *c_set, int cb_size, uint16_t trans_id) {
   struct peer *owner;
@@ -78,6 +92,8 @@ void accept_received(const struct nodeID *fromid, struct chunkID_set *cset, int 
 
   dprintf("The peer %s accepted our offer for %d chunks, max deliver %d.\n", node_addr(fromid), chunkID_set_size(cset), max_deliver);
 
+  rc_reg_accept(trans_id, chunkID_set_size(cset));
+
   send_accepted_chunks(fromid, cset, max_deliver, trans_id);
 }
 
@@ -116,6 +132,9 @@ int sigParseData(const struct nodeID *fromid, uint8_t *buff, int buff_len) {
           break;
         case sig_accept:
           accept_received(fromid, c_set, chunkID_set_size(c_set), trans_id);
+          break;
+	    case sig_ack:
+	      ack_received(fromid, c_set, chunkID_set_size(c_set), trans_id);
           break;
         default:
           ret = -1;

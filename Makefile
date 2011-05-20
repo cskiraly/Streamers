@@ -78,6 +78,8 @@ endif
 
 OBJS += chunk_signaling.o
 OBJS += chunklock.o
+OBJS += transaction.o
+OBJS += ratecontrol.o
 OBJS += channel.o
 ifdef THREADS
 CPPFLAGS += -DTHREADS

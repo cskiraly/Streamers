@@ -22,6 +22,8 @@ void reg_chunk_receive(int id, uint64_t timestamp, int hopcount, bool old, bool 
 void reg_chunk_send(int id);
 void reg_offer_accept_out(bool b);
 void reg_offer_accept_in(bool b);
+void reg_offers_in_flight(int running_offer_threads);
+void reg_queue_delay(double last_queue_delay);
 
 double get_receive_delay(void);
 #ifdef MONL
