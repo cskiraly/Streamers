@@ -16,7 +16,7 @@
 #define MAX(A,B)    ((A)>(B) ? (A) : (B))
 #define MIN(A,B)    ((A)<(B) ? (A) : (B))
 
-bool autotune_period = false;
+bool autotune_period = true;
 
 static double offer_accept = 1;
 static double acc_to_ack = 0;
