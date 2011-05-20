@@ -8,6 +8,8 @@
 #ifndef TRANSACTION_H
 #define TRANSACTION_H
 
+#include <stdbool.h>
+
 /* timeout of the offers thread. If it is not updated, it is deleted */
 #define TRANS_ID_MAX_LIFETIME 1.0
 

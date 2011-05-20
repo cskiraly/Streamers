@@ -12,6 +12,7 @@
 #include <sys/time.h>
 
 #include "dbg.h"
+#include "measures.h"
 #include "transaction.h"
 
 typedef struct {
