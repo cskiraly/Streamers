@@ -45,6 +45,7 @@ uint64_t CB_SIZE_TIME = CB_SIZE_TIME_UNLIMITED;	//in millisec, defaults to unlim
 static bool heuristics_distance_maxdeliver = false;
 static int bcast_after_receive_every = 0;
 static bool neigh_on_chunk_recv = false;
+static bool send_bmap_before_push = true;
 
 struct chunk_attributes {
   uint64_t deadline;
@@ -632,7 +633,9 @@ void send_chunk()
       dprintf("\t sending chunk[%d] to ", c->id);
       dprintf("%s\n", node_addr(p->id));
 
-      send_bmap(p->id);
+      if (send_bmap_before_push) {
+        send_bmap(p->id);
+      }
 
       chunk_attributes_update_sending(c);
       res = sendChunk(p->id, c, 0);	//we do not use transactions in pure push
