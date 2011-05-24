@@ -27,6 +27,7 @@
 #include <chunkiser_attrib.h>
 
 #include "streaming.h"
+#include "streamer.h"
 #include "output.h"
 #include "input.h"
 #include "dbg.h"
@@ -552,7 +553,18 @@ int offer_max_deliver(struct nodeID *n)
 
 static struct chunkID_set * compose_offer_cset(void)
 {
-  return cb_to_bmap(cb);
+  if (am_i_source()) {
+    struct chunk *chunks;
+    int num_chunks, j;
+    struct chunkID_set *my_bmap = chunkID_set_init("type=bitmap");
+    chunks = cb_get_chunks(cb, &num_chunks);
+    for(j=((num_chunks-1)*3)/4; j>=0; j--) {
+      chunkID_set_add_chunk(my_bmap, chunks[j].id);
+    }
+    return my_bmap;
+  } else {
+    return cb_to_bmap(cb);
+  }
 }
 
 
