@@ -550,6 +550,12 @@ int offer_max_deliver(struct nodeID *n)
 #endif
 }
 
+static struct chunkID_set * compose_offer_cset(void)
+{
+  return cb_to_bmap(cb);
+}
+
+
 void send_offer()
 {
   struct chunk *buff;
@@ -585,10 +591,10 @@ void send_offer()
     for (i=0; i<selectedpeers_len ; i++){
       int transid = transaction_create(selectedpeers[i]->id);
       int max_deliver = offer_max_deliver(selectedpeers[i]->id);
-      struct chunkID_set *my_bmap = cb_to_bmap(cb);
+      struct chunkID_set *offer_cset = compose_offer_cset();
       dprintf("\t sending offer(%d) to %s, cb_size: %d\n", transid, node_addr(selectedpeers[i]->id), selectedpeers[i]->cb_size);
-      res = offerChunks(selectedpeers[i]->id, my_bmap, max_deliver, transid++);
-      chunkID_set_free(my_bmap);
+      res = offerChunks(selectedpeers[i]->id, offer_cset, max_deliver, transid++);
+      chunkID_set_free(offer_cset);
     }
   }
 }
