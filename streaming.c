@@ -45,7 +45,7 @@ uint64_t CB_SIZE_TIME = CB_SIZE_TIME_UNLIMITED;	//in millisec, defaults to unlim
 static bool heuristics_distance_maxdeliver = false;
 static int bcast_after_receive_every = 0;
 static bool neigh_on_chunk_recv = false;
-static bool send_bmap_before_push = true;
+static bool send_bmap_before_push = false;
 
 struct chunk_attributes {
   uint64_t deadline;
