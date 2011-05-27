@@ -87,10 +87,13 @@ void offer_received(const struct nodeID *fromid, struct chunkID_set *cset, int m
 }
 
 void accept_received(const struct nodeID *fromid, struct chunkID_set *cset, int max_deliver, uint16_t trans_id) {
-  //TODO: verify if such a verification is needed
-  //struct peer *from = nodeid_to_peer(fromid,0);   //verify that we have really offered, 0 at least garantees that we've known the peer before
+  struct peer *from = nodeid_to_peer(fromid,0);   //verify that we have really offered, 0 at least garantees that we've known the peer before
 
   dprintf("The peer %s accepted our offer for %d chunks, max deliver %d.\n", node_addr(fromid), chunkID_set_size(cset), max_deliver);
+
+  if (from) {
+    gettimeofday(&from->bmap_timestamp, NULL);
+  }
 
   rc_reg_accept(trans_id, chunkID_set_size(cset));
 
