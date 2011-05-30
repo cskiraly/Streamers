@@ -23,7 +23,7 @@ static double acc_to_ack = 0;
 
 double offer_accept_smoothing = 0.9;	// %
 double offer_accept_min = 0.3;	// %
-double acc_to_ack_max = 0.075;	// sec
+double acc_to_ack_max = 0.300;	// sec
 double period_change_rate_up = 1.0;	// %/sec
 double period_change_rate_down = 0.1;	// %/sec
 
