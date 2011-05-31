@@ -15,6 +15,8 @@
 #endif
 #include <sys/time.h>
 
+#include "compatibility/timer.h"
+
 #include "measures.h"
 #include "grapes_msg_types.h"
 #include "streamer.h"

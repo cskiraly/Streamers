@@ -23,6 +23,7 @@
 
 #ifdef WIN32
 #include <winsock2.h>
+#include <unistd.h>
 #endif
 
 #include "net_helpers.h"
@@ -373,13 +374,19 @@ void leave(int sig) {
 
 // wait [0..max] microsec
 static void random_wait(int max) {
+    uint64_t us;
+#ifndef _WIN32
     struct timespec t;
-    uint64_t ms;
 
-    ms = (rand()/(RAND_MAX + 1.0)) * max;
-    t.tv_sec = ms / 1000000;
-    t.tv_nsec = (ms % 1000000) * 1000;
+    us = (rand()/(RAND_MAX + 1.0)) * max;
+    t.tv_sec = us / 1000000;
+    t.tv_nsec = (us % 1000000) * 1000;
     nanosleep(&t, NULL);
+#else
+    us = (rand()/(RAND_MAX + 1.0)) * max;
+    //Sleep(us / 1000000);
+    usleep(us % 1000000);
+#endif
 }
 
 int main(int argc, char *argv[])
