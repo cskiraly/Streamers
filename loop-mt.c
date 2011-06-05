@@ -42,7 +42,7 @@ static void *chunk_forging(void *dummy)
       add_chunk(c);
       pthread_mutex_unlock(&cb_mutex);
     }
-    usleep(d);
+    usleep(d);	//TODO: handle inputs with fd instead of timer
   }
 
   return NULL;
