@@ -173,8 +173,9 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, int
       struct timeval tnow;
       struct chunk *c;
 
-      d.tv_sec = 0;
       c = generated_chunk(&d.tv_usec);
+      d.tv_sec = d.tv_usec / 1000000;
+      d.tv_usec %= 1000000;
       if (c) {
         add_chunk(c);
         for (i = 0; i < chunks; i++) {	// @TODO: why this cycle?
