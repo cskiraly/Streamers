@@ -19,7 +19,7 @@ void input_close(struct input_desc *s);
 
 /*
  * c: chunk structure to be filled. If c->data = NULL after call, there is no new chunk
- * Returns: timeout requested till next call to the function, <0 in case of input error
+ * Returns: timeout requested till next call to the function, <0 in case of input error, INT_MAX if no timeout is requested
  */
 int input_get(struct input_desc *s, struct chunk *c);
 
