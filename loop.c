@@ -136,7 +136,8 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, int
     } else {
       memcpy(wait4fds, fds, sizeof(fds));
       pfds = wait4fds;
-      ptv = NULL;
+      tout_init(&tv, &tnext);
+      ptv = &tv;
     }
     res = wait4data(s, ptv, pfds);
 
