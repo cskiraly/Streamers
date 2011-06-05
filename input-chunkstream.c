@@ -119,22 +119,21 @@ int input_get(struct input_desc *s, struct chunk *c)
 
   c->data = NULL;
   ret = recv(s->fd, recvbuf + pos, BUFSIZE - pos, 0);
-  if (ret <= 0 && pos < sizeof(size)) {
+  if (ret < 0) {
 #ifndef _WIN32
-    if (ret == -1 &&  (errno == EAGAIN || errno == EWOULDBLOCK)) {
+    if (errno != EAGAIN && errno != EWOULDBLOCK) {
 #else
-    if (ret == -1 &&  WSAGetLastError() == WSAEWOULDBLOCK) {
+    if (WSAGetLastError() != WSAEWOULDBLOCK) {
 #endif
-      return 999999;
-    } else {
       perror("chunkstream connection error");
       exit(EXIT_FAILURE);
     }
   } else {
     pos += ret;
   }
+
   if ( pos < sizeof(size)) {
-    return 999999;
+    return INT_MAX;
   }
 
   size = ntohl(*(uint32_t*)recvbuf);
@@ -142,7 +141,7 @@ int input_get(struct input_desc *s, struct chunk *c)
     ret = decodeChunk(c, recvbuf + sizeof(size), size);
     if (ret < 0) {
       printf("Error decoding chunk!\n");
-      return 999999;
+      return INT_MAX;
     }
 
     // remove attributes //TODO: verify whether this is the right place to do this
@@ -155,5 +154,14 @@ int input_get(struct input_desc *s, struct chunk *c)
     pos -= sizeof(size) + size;
     memmove(recvbuf, recvbuf + sizeof(size) + size, pos);
   }
-  return 999999;
+
+  //check if there are other chunks in the buffer
+  if ( pos >= sizeof(size)) {
+    size = ntohl(*(uint32_t*)recvbuf);
+    if (pos >= sizeof(size) + size) {
+      return 0;
+    }
+  }
+
+  return INT_MAX;
 }
