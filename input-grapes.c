@@ -115,7 +115,7 @@ int input_get(struct input_desc *s, struct chunk *c)
       delta = 0;
     }
   } else {
-    delta = 0;		/* Will not be used */
+    delta = INT_MAX;
   }
   c->timestamp = now.tv_sec * 1000000ULL + now.tv_usec;
 
