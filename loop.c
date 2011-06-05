@@ -198,8 +198,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, int
       }
 
       //calculate next timeout
-      timeradd(&tnext, &d, &tmp);
-      tnext = tmp;
+      timeradd(&tnow, &d, &tnext);
       if(timercmp(&tnextp, &tnext, <)) {
         tnext = tnextp;
       }
