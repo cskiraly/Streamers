@@ -8,6 +8,11 @@
 #define STREAMING_H
 
 #include <stdbool.h>
+#ifdef _WIN32
+typedef long suseconds_t;
+#endif
+
+struct chunk;
 
 void stream_init(int size, struct nodeID *myID);
 int source_init(const char *fname, struct nodeID *myID, int *fds, int fds_size, int buff_size);

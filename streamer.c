@@ -23,6 +23,7 @@
 
 #ifdef WIN32
 #include <winsock2.h>
+#include <unistd.h>
 #endif
 
 #include "net_helpers.h"
@@ -335,6 +336,20 @@ static struct nodeID *init(void)
   struct nodeID *myID;
   char *my_addr;
 
+#ifdef _WIN32
+  {
+    WORD wVersionRequested;
+    WSADATA wsaData;
+    int err;
+    wVersionRequested = MAKEWORD(2, 2);
+    err = WSAStartup(wVersionRequested, &wsaData);
+    if (err != 0) {
+        fprintf(stderr, "WSAStartup failed with error: %d\n", err);
+        return NULL;
+    }
+  }
+#endif
+
   if (my_iface) {
     my_addr = iface_addr(my_iface);
   } else {
@@ -373,13 +388,19 @@ void leave(int sig) {
 
 // wait [0..max] microsec
 static void random_wait(int max) {
+    uint64_t us;
+#ifndef _WIN32
     struct timespec t;
-    uint64_t ms;
 
-    ms = (rand()/(RAND_MAX + 1.0)) * max;
-    t.tv_sec = ms / 1000000;
-    t.tv_nsec = (ms % 1000000) * 1000;
+    us = (rand()/(RAND_MAX + 1.0)) * max;
+    t.tv_sec = us / 1000000;
+    t.tv_nsec = (us % 1000000) * 1000;
     nanosleep(&t, NULL);
+#else
+    us = (rand()/(RAND_MAX + 1.0)) * max;
+    //Sleep(us / 1000000);
+    usleep(us % 1000000);
+#endif
 }
 
 int main(int argc, char *argv[])

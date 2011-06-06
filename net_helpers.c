@@ -5,22 +5,27 @@
  *  This is free software; see gpl-3.0.txt
  */
 #include <sys/types.h>
+#ifndef _WIN32
 #include <ifaddrs.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <net/if.h>     /* For struct ifreq */
+#include <netdb.h>
+#else
+#include <winsock2.h>
+#endif
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <netdb.h>
 
 #include "net_helpers.h"
 
 char *iface_addr(const char *iface)
 {
+#ifndef _WIN32
     int s, res;
     struct ifreq iface_request;
     struct sockaddr_in *sin;
@@ -47,12 +52,16 @@ char *iface_addr(const char *iface)
     inet_ntop(AF_INET, &sin->sin_addr, buff, sizeof(buff));
 
     return strdup(buff);
+#else
+    if(iface != NULL && inet_addr(iface) != INADDR_NONE) return strdup(iface);
+    return default_ip_addr();
+#endif
 }
 
 
 
-/*
-char *default_ip_addr()
+
+char *simple_ip_addr()
 {
   char hostname[256];
   struct hostent *host_entry;
@@ -70,18 +79,15 @@ char *default_ip_addr()
     fprintf(stderr, "can't resolve IP\n");
     return NULL;
   }
-  inet_ntop(AF_INET, &sin->sin_addr, buff, sizeof(buff));
-  ip = inet_ntoa(host_entry->h_addr);
+  ip = strdup(inet_ntoa(*(struct in_addr*)host_entry->h_addr));
   fprintf(stderr, "IP is: %s ...", ip);
 
   return ip;
 }
-*/
+
 
 const char *autodetect_ip_address() {
-#ifndef __linux__
-	return NULL;
-#endif
+#ifdef __linux__
 
 	static char addr[128] = "";
 	char iface[IFNAMSIZ] = "";
@@ -116,11 +122,15 @@ const char *autodetect_ip_address() {
 	}
 
 	return NULL;
+#else
+        return simple_ip_addr();
+#endif
 }
 
 
 const char *hostname_ip_addr()
 {
+#ifndef _WIN32
   const char *ip;
   char hostname[256];
   struct addrinfo * result;
@@ -132,7 +142,6 @@ const char *hostname_ip_addr()
     return NULL;
   }
   fprintf(stderr, "hostname is: %s ...", hostname);
-
 
   /* resolve the domain name into a list of addresses */
   error = getaddrinfo(hostname, NULL, NULL, &result);
@@ -155,6 +164,9 @@ const char *hostname_ip_addr()
   freeaddrinfo(result);
 
   return ip;
+#else
+  return NULL;
+#endif
 }
 
 char *default_ip_addr()

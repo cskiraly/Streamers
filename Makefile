@@ -158,6 +158,13 @@ ifdef RELEASE
 EXECTARGET := $(EXECTARGET)-$(RELEASE)
 endif
 
+ifeq ($(HOSTARCH), mingw32)
+LDLIBS += -lmsvcrt -lwsock32 -lws2_32 -liberty
+EXECTARGET := $(EXECTARGET).exe
+else
+LDLIBS += $(LIBRT)
+endif
+
 all: $(EXECTARGET)
 
 ifndef ML
