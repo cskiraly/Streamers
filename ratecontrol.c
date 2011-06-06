@@ -81,13 +81,13 @@ static void update_period()
 
   if (d_period < 0) { // we are fast
     if (d_offer_accept > 0 && d_acc_to_ack < 0) { // be faster
-      set_period(MAX(PERIOD_MIN, get_period() / (1.0 + (period_change_rate_down * (1 + fabs(d_period > 0 ? d_period : 0) ) * dt / 1e6))));
+      set_period(MAX(PERIOD_MIN, get_period() / (1.0 + (period_change_rate_down * dt / 1e6))));
     } else { //slow down towards normal speed
       set_period(MIN(PERIOD_MAX, get_period() * (1.0 + (period_change_rate_up * (1 + fabs(d_period < 0 ? d_period : 0) ) * dt / 1e6))));
     }
   } else { // we are slow
     if (d_acc_to_ack > 0) { // slow down even more
-      set_period(MIN(PERIOD_MAX, get_period() * (1.0 + (period_change_rate_up * (1 + fabs(d_period < 0 ? d_period : 0) ) * dt / 1e6))));
+      set_period(MIN(PERIOD_MAX, get_period() * (1.0 + (period_change_rate_up * dt / 1e6))));
     } else { //recover speed
       set_period(MAX(PERIOD_MIN, get_period() / (1.0 + (period_change_rate_down * (1 + fabs(d_period > 0 ? d_period : 0) ) * dt / 1e6))));
     }
