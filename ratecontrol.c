@@ -28,7 +28,7 @@ double period_change_rate_up = 0.2;	// %/sec
 double period_change_rate_down = 0.1;	// %/sec
 
 extern struct timeval period;
-#define PERIOD_MIN 1000
+#define PERIOD_MIN 5000
 #define PERIOD_MAX 1000000
 
 int64_t tv2int(struct timeval *tv)
