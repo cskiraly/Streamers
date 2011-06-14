@@ -69,7 +69,7 @@ static void update_period()
   dprintf("update_period: offer_accept=%f acc_to_ack=%f period=%lu\n", offer_accept, acc_to_ack, get_period());
 
   if (timerisset(&period_last_updated)) {
-    dt = tv2int(&t_now) - tv2int(&period_last_updated);
+    dt = MIN(tv2int(&t_now) - tv2int(&period_last_updated), PERIOD_MAX);
   } else {
     dt = tv2int(&period);
   }
