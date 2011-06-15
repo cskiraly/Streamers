@@ -92,7 +92,8 @@ const char *autodetect_ip_address() {
 	static char addr[128] = "";
 	char iface[IFNAMSIZ] = "";
 	char line[128] = "x";
-	struct ifaddrs *ifAddrStruct = NULL;
+	struct ifaddrs *ifaddr, *ifa;
+	char *ret = NULL;
 
 	FILE *r = fopen("/proc/net/route", "r");
 	if (!r) return NULL;
@@ -110,18 +111,29 @@ const char *autodetect_ip_address() {
 	}
 	if (iface[0] == 0) return NULL;
 
-	if (getifaddrs(&ifAddrStruct) < 0) return NULL;
-
-	while (ifAddrStruct) {
-		if (ifAddrStruct->ifa_addr && ifAddrStruct->ifa_addr->sa_family == AF_INET && 
-			ifAddrStruct->ifa_name && !strcmp(ifAddrStruct->ifa_name, iface))  {
-			void *tmpAddrPtr=&((struct sockaddr_in *)ifAddrStruct->ifa_addr)->sin_addr;
-			return inet_ntop(AF_INET, tmpAddrPtr, addr, 127);
-		}
-	ifAddrStruct=ifAddrStruct->ifa_next;
+	if (getifaddrs(&ifaddr) < 0) {
+		perror("getifaddrs");
+		return NULL;
 	}
 
-	return NULL;
+	ifa = ifaddr;
+	while (ifa) {
+		if (ifa->ifa_addr && ifa->ifa_addr->sa_family == AF_INET && 
+			ifa->ifa_name && !strcmp(ifa->ifa_name, iface))  {
+			void *tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
+			if (inet_ntop(AF_INET, tmpAddrPtr, addr, 127)) {
+				ret = addr;
+			} else {
+				perror("inet_ntop error");
+				ret = NULL;
+			}
+			break;
+		}
+	ifa=ifa->ifa_next;
+	}
+
+	freeifaddrs(ifaddr);
+	return ret;
 #else
         return simple_ip_addr();
 #endif
