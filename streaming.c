@@ -24,7 +24,9 @@
 #include <chunkidset.h>
 #include <limits.h>
 #include <trade_sig_ha.h>
+#ifdef CHUNK_ATTRIB_CHUNKER
 #include <chunkiser_attrib.h>
+#endif
 
 #include "streaming.h"
 #include "streamer.h"
@@ -130,15 +132,20 @@ void chunk_attributes_fill(struct chunk* c)
   struct chunk_attributes * ca;
   int priority = 1;
 
-  assert((!c->attributes && c->attributes_size == 0) ||
-         chunk_attributes_chunker_verify(c->attributes, c->attributes_size));
+  assert((!c->attributes && c->attributes_size == 0)
+#ifdef CHUNK_ATTRIB_CHUNKER
+      || chunk_attributes_chunker_verify(c->attributes, c->attributes_size)
+#endif
+  );
 
+#ifdef CHUNK_ATTRIB_CHUNKER
   if (chunk_attributes_chunker_verify(c->attributes, c->attributes_size)) {
     priority = ((struct chunk_attributes_chunker*) c->attributes)->priority;
     free(c->attributes);
     c->attributes = NULL;
     c->attributes_size = 0;
   }
+#endif
 
   c->attributes_size = sizeof(struct chunk_attributes);
   c->attributes = ca = malloc(c->attributes_size);
