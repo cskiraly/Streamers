@@ -22,7 +22,9 @@ GRAPES ?= ../../GRAPES
 
 CPPFLAGS = -I$(NAPA)/include
 CPPFLAGS += -I$(GRAPES)/include
+
 CPPFLAGS += -Itransition
+OBJS += transition/node_addr.o
 
 ifdef GPROF
 CFLAGS += -pg -O0

@@ -37,6 +37,7 @@
 #include "measures.h"
 #include "scheduling.h"
 #include "transaction.h"
+#include "node_addr.h"
 
 #include "scheduler_la.h"
 
@@ -221,7 +222,7 @@ struct chunkID_set *get_chunks_to_accept(struct nodeID *fromid, const struct chu
       if (!chunk_islocked(chunkid) && _needs(my_bmap, cb_size, chunkid)) {
         chunkID_set_add_chunk(cset_acc, chunkid);
         chunk_lock(chunkid,from);
-        dtprintf("accepting %d from %s", chunkid, node_addr(fromid));
+        dtprintf("accepting %d from %s", chunkid, node_addr_tr(fromid));
 #ifdef MONL
         dprintf(", loss:%f rtt:%f", get_lossrate(fromid), get_rtt(fromid));
 #endif
@@ -231,7 +232,7 @@ struct chunkID_set *get_chunks_to_accept(struct nodeID *fromid, const struct chu
     }
     chunkID_set_free(my_bmap);
   //} else {
-  //    dtprintf("accepting -- from %s loss:%f rtt:%f\n", node_addr(fromid), lossrate, get_rtt(fromid));
+  //    dtprintf("accepting -- from %s loss:%f rtt:%f\n", node_addr_tr(fromid), lossrate, get_rtt(fromid));
   //}
 
   reg_offer_accept_in(chunkID_set_size(cset_acc) > 0 ? 1 : 0);
@@ -312,15 +313,15 @@ void received_chunk(struct nodeID *from, const uint8_t *buff, int len)
   if (res > 0) {
     chunk_attributes_update_received(&c);
     chunk_unlock(c.id);
-    dprintf("Received chunk %d from peer: %s\n", c.id, node_addr(from));
-    if(chunk_log){fprintf(stderr, "TEO: Received chunk %d from peer: %s at: %"PRIu64" hopcount: %i Size: %d bytes\n", c.id, node_addr(from), gettimeofday_in_us(), chunk_get_hopcount(&c), c.size);}
+    dprintf("Received chunk %d from peer: %s\n", c.id, node_addr_tr(from));
+    if(chunk_log){fprintf(stderr, "TEO: Received chunk %d from peer: %s at: %"PRIu64" hopcount: %i Size: %d bytes\n", c.id, node_addr_tr(from), gettimeofday_in_us(), chunk_get_hopcount(&c), c.size);}
     output_deliver(&c);
     res = cb_add_chunk(cb, &c);
     reg_chunk_receive(c.id, c.timestamp, chunk_get_hopcount(&c), res==E_CB_OLD, res==E_CB_DUPLICATE);
     cb_print();
     if (res < 0) {
       dprintf("\tchunk too old, buffer full with newer chunks\n");
-      if(chunk_log){fprintf(stderr, "TEO: Received chunk: %d too old (buffer full with newer chunks) from peer: %s at: %"PRIu64"\n", c.id, node_addr(from), gettimeofday_in_us());}
+      if(chunk_log){fprintf(stderr, "TEO: Received chunk: %d too old (buffer full with newer chunks) from peer: %s at: %"PRIu64"\n", c.id, node_addr_tr(from), gettimeofday_in_us());}
       free(c.data);
       free(c.attributes);
     }
@@ -400,7 +401,7 @@ int needs(struct peer *n, int cid){
     }
   }
 
-  //dprintf("\t%s needs c%d ? :",node_addr(p->id),c->id);
+  //dprintf("\t%s needs c%d ? :",node_addr_tr(p->id),c->id);
   if (! p->bmap) {
     //dprintf("no bmap\n");
     return 1;	// if we have no bmap information, we assume it needs the chunk (aggressive behaviour!)
@@ -453,7 +454,7 @@ double peerWeightUniform(struct peer **n){
 double peerWeightRtt(struct peer **n){
 #ifdef MONL
   double rtt = get_rtt((*n)->id);
-  //dprintf("RTT to %s: %f\n", node_addr(p->id), rtt);
+  //dprintf("RTT to %s: %f\n", node_addr_tr(p->id), rtt);
   return finite(rtt) ? 1 / (rtt + 0.005) : 1 / 1;
 #else
   return 1;
@@ -523,7 +524,7 @@ void send_accepted_chunks(struct nodeID *toid, struct chunkID_set *cset_acc, int
         if(to) chunkID_set_add_chunk(to->bmap, c->id); //don't send twice ... assuming that it will actually arrive
         d++;
         reg_chunk_send(c->id);
-        if(chunk_log){fprintf(stderr, "TEO: Sending chunk %d to peer: %s at: %"PRIu64" Result: %d Size: %d bytes\n", c->id, node_addr(toid), gettimeofday_in_us(), res, c->size);}
+        if(chunk_log){fprintf(stderr, "TEO: Sending chunk %d to peer: %s at: %"PRIu64" Result: %d Size: %d bytes\n", c->id, node_addr_tr(toid), gettimeofday_in_us(), res, c->size);}
       } else {
         fprintf(stderr,"ERROR sending chunk %d\n",c->id);
       }
@@ -605,7 +606,7 @@ void send_offer()
       int transid = transaction_create(selectedpeers[i]->id);
       int max_deliver = offer_max_deliver(selectedpeers[i]->id);
       struct chunkID_set *offer_cset = compose_offer_cset();
-      dprintf("\t sending offer(%d) to %s, cb_size: %d\n", transid, node_addr(selectedpeers[i]->id), selectedpeers[i]->cb_size);
+      dprintf("\t sending offer(%d) to %s, cb_size: %d\n", transid, node_addr_tr(selectedpeers[i]->id), selectedpeers[i]->cb_size);
       res = offerChunks(selectedpeers[i]->id, offer_cset, max_deliver, transid++);
       chunkID_set_free(offer_cset);
     }
@@ -650,7 +651,7 @@ void send_chunk()
       struct peer *p = selectedpairs[i].peer;
       struct chunk *c = cb_get_chunk(cb, selectedpairs[i].chunk);
       dprintf("\t sending chunk[%d] to ", c->id);
-      dprintf("%s\n", node_addr(p->id));
+      dprintf("%s\n", node_addr_tr(p->id));
 
       if (send_bmap_before_push) {
         send_bmap(p->id);
@@ -658,7 +659,7 @@ void send_chunk()
 
       chunk_attributes_update_sending(c);
       res = sendChunk(p->id, c, 0);	//we do not use transactions in pure push
-      if(chunk_log){fprintf(stderr, "TEO: Sending chunk %d to peer: %s at: %"PRIu64" Result: %d Size: %d bytes\n", c->id, node_addr(p->id), gettimeofday_in_us(), res, c->size);}
+      if(chunk_log){fprintf(stderr, "TEO: Sending chunk %d to peer: %s at: %"PRIu64" Result: %d Size: %d bytes\n", c->id, node_addr_tr(p->id), gettimeofday_in_us(), res, c->size);}
       dprintf("\tResult: %d\n", res);
       if (res>=0) {
         chunkID_set_add_chunk(p->bmap,c->id); //don't send twice ... assuming that it will actually arrive

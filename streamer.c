@@ -33,6 +33,7 @@
 #include "topology.h"
 #include "measures.h"
 #include "streamer.h"
+#include "node_addr.h"
 
 #ifndef EXTRAVERSION
 #define EXTRAVERSION "Unknown"
@@ -371,9 +372,9 @@ static struct nodeID *init(void)
     return NULL;
   }
   free(my_addr);
-  fprintf(stderr, "My network ID is: %s\n", node_addr(myID));
+  fprintf(stderr, "My network ID is: %s\n", node_addr_tr(myID));
 
-  init_rand(node_addr(myID));
+  init_rand(node_addr_tr(myID));
 
   topologyInit(myID, topo_config);
 

@@ -19,6 +19,7 @@
 #include "channel.h"
 #include "dbg.h"
 #include "measures.h"
+#include "node_addr.h"
 
 #define PEER_PUBLISH_INTERVAL 10 //in seconds
 #define P2P_PUBLISH_INTERVAL 60 //in seconds
@@ -253,7 +254,7 @@ void add_measures(struct nodeID *id)
 //	enum stat_types stsum[] = {SUM};
 	enum stat_types stsumwinsumrate[] = {SUM, PERIOD_SUM, WIN_SUM, RATE};
 
-	dprintf("adding measures to %s\n",node_addr(id));
+	dprintf("adding measures to %s\n",node_addr_tr(id));
 
 	/* HopCount */
 	// number of hops at IP level
@@ -316,7 +317,7 @@ void add_measures(struct nodeID *id)
 */
 void delete_measures(struct nodeID *id)
 {
-	dprintf("deleting measures from %s\n",node_addr(id));
+	dprintf("deleting measures from %s\n",node_addr_tr(id));
 	while(id->n_mhs) {
 		monDestroyMeasure(id->mhs[--(id->n_mhs)]);
 	}

@@ -29,12 +29,13 @@
 #include "topology.h"
 #include "ratecontrol.h"
 #include "dbg.h"
+#include "node_addr.h"
 
 static bool neigh_on_sign_recv = false;
 
 void ack_received(const struct nodeID *fromid, struct chunkID_set *cset, int max_deliver, uint16_t trans_id) {
   struct peer *from = nodeid_to_peer(fromid,0);   //verify that we have really sent, 0 at least garantees that we've known the peer before
-  dprintf("The peer %s acked our chunk %d chunks, max deliver %d, trans_id %d.\n", node_addr(fromid), chunkID_set_get_latest(cset), max_deliver, trans_id);
+  dprintf("The peer %s acked our chunk %d chunks, max deliver %d, trans_id %d.\n", node_addr_tr(fromid), chunkID_set_get_latest(cset), max_deliver, trans_id);
 
   if (from) {
     chunkID_set_clear(from->bmap,0);	//TODO: some better solution might be needed to keep info about chunks we sent in flight.
@@ -50,8 +51,8 @@ void bmap_received(const struct nodeID *fromid, const struct nodeID *ownerid, st
   if (nodeid_equal(fromid, ownerid)) {
     owner = nodeid_to_peer(ownerid, neigh_on_sign_recv);
   } else {
-    dprintf("%s might be behind ",node_addr(ownerid));
-    dprintf("NAT:%s\n",node_addr(fromid));
+    dprintf("%s might be behind ",node_addr_tr(ownerid));
+    dprintf("NAT:%s\n",node_addr_tr(fromid));
     owner = nodeid_to_peer(fromid, neigh_on_sign_recv);
   }
   
@@ -67,7 +68,7 @@ void offer_received(const struct nodeID *fromid, struct chunkID_set *cset, int m
   struct chunkID_set *cset_acc;
 
   struct peer *from = nodeid_to_peer(fromid, neigh_on_sign_recv);
-  dprintf("The peer %s offers %d chunks, max deliver %d.\n", node_addr(fromid), chunkID_set_size(cset), max_deliver);
+  dprintf("The peer %s offers %d chunks, max deliver %d.\n", node_addr_tr(fromid), chunkID_set_size(cset), max_deliver);
 
   if (from) {
     //register these chunks in the buffermap. Warning: this should be changed when offers become selective.
@@ -80,7 +81,7 @@ void offer_received(const struct nodeID *fromid, struct chunkID_set *cset, int m
     cset_acc = get_chunks_to_accept(fromid, cset, max_deliver, trans_id);
 
     //send accept message
-    dprintf("\t accept %d chunks from peer %s, trans_id %d\n", chunkID_set_size(cset_acc), node_addr(fromid), trans_id);
+    dprintf("\t accept %d chunks from peer %s, trans_id %d\n", chunkID_set_size(cset_acc), node_addr_tr(fromid), trans_id);
     acceptChunks(fromid, cset_acc, trans_id);
 
     chunkID_set_free(cset_acc);
@@ -89,7 +90,7 @@ void offer_received(const struct nodeID *fromid, struct chunkID_set *cset, int m
 void accept_received(const struct nodeID *fromid, struct chunkID_set *cset, int max_deliver, uint16_t trans_id) {
   struct peer *from = nodeid_to_peer(fromid,0);   //verify that we have really offered, 0 at least garantees that we've known the peer before
 
-  dprintf("The peer %s accepted our offer for %d chunks, max deliver %d.\n", node_addr(fromid), chunkID_set_size(cset), max_deliver);
+  dprintf("The peer %s accepted our offer for %d chunks, max deliver %d.\n", node_addr_tr(fromid), chunkID_set_size(cset), max_deliver);
 
   if (from) {
     gettimeofday(&from->bmap_timestamp, NULL);

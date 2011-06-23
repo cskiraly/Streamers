@@ -29,6 +29,7 @@
 #include "topology.h"
 #include "loop.h"
 #include "dbg.h"
+#include "node_addr.h"
 
 #define BUFFSIZE 512 * 1024
 #define FDSSIZE 16
@@ -154,7 +155,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, int
         nodeid_free(remote);
         continue;
       }
-      dprintf("Received message (%d) from %s\n", buff[0], node_addr(remote));
+      dprintf("Received message (%d) from %s\n", buff[0], node_addr_tr(remote));
       switch (buff[0] /* Message Type */) {
 	case MSG_TYPE_TMAN:
         case MSG_TYPE_STREAMER_TOPOLOGY:
@@ -163,7 +164,7 @@ void source_loop(const char *fname, struct nodeID *s, int csize, int chunks, int
           update_peers(remote, buff, len);
           break;
         case MSG_TYPE_CHUNK:
-          fprintf(stderr, "Some dumb peer pushed a chunk to me! peer:%s\n",node_addr(remote));
+          fprintf(stderr, "Some dumb peer pushed a chunk to me! peer:%s\n",node_addr_tr(remote));
           break;
         case MSG_TYPE_SIGNALLING:
           sigParseData(remote, buff, len);

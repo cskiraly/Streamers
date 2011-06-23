@@ -20,6 +20,7 @@
 #include "streaming.h"
 #include "topology.h"
 #include "loop.h"
+#include "node_addr.h"
 
 #define BUFFSIZE 512 * 1024
 #define FDSSIZE 16
@@ -70,7 +71,7 @@ static void *source_receive(void *dummy)
         pthread_mutex_unlock(&topology_mutex);
         break;
       case MSG_TYPE_CHUNK:
-        fprintf(stderr, "Some dumb peer pushed a chunk to me! peer:%s\n",node_addr(remote));
+        fprintf(stderr, "Some dumb peer pushed a chunk to me! peer:%s\n",node_addr_tr(remote));
         break;
       case MSG_TYPE_SIGNALLING:
         pthread_mutex_lock(&topology_mutex);
@@ -99,7 +100,7 @@ static void *receive(void *dummy)
       nodeid_free(remote);
       continue;
     }
-    dprintf("Received message (%d) from %s\n", buff[0], node_addr(remote));
+    dprintf("Received message (%d) from %s\n", buff[0], node_addr_tr(remote));
     switch (buff[0] /* Message Type */) {
       case MSG_TYPE_TMAN:
       case MSG_TYPE_STREAMER_TOPOLOGY:

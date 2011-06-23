@@ -20,6 +20,7 @@
 #include "measures.h"
 #include "grapes_msg_types.h"
 #include "streamer.h"
+#include "node_addr.h"
 
 struct timeval print_tdiff = {3600, 0};
 struct timeval tstartdiff = {60, 0};
@@ -82,7 +83,7 @@ void print_measure(const char *name, double value)
   if (my_addr != get_my_addr()) {
     if (my_addr) nodeid_free(my_addr);
     my_addr = nodeid_dup(get_my_addr());
-    my_addr_str = strdup(node_addr(my_addr));
+    my_addr_str = strdup(node_addr_tr(my_addr));
   }
 
   fprintf(stderr,"abouttopublish,%s,,,%s,%f,,,%f\n", my_addr_str, name, value, tdiff_sec(&tnext, &tstart));

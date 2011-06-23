@@ -27,6 +27,7 @@
 #include "dbg.h"
 #include "measures.h"
 #include "streamer.h"
+#include "node_addr.h"
 
 #define MIN(A,B) (((A) < (B)) ? (A) : (B))
 #define MAX(A,B) (((A) > (B)) ? (A) : (B))
@@ -150,13 +151,13 @@ static const struct nodeID **topoGetNeighbourhood(int *n)
 		tmanGivePeers(*n,neighbors,(void *)mdata);
 
 		if (cnt % TMAN_LOG_EVERY == 0) {
-			fprintf(stderr,"abouttopublish,%s,%s,,Tman_chunk_delay,%f\n",node_addr(me),node_addr(me),my_metadata.recv_delay);
+			fprintf(stderr,"abouttopublish,%s,%s,,Tman_chunk_delay,%f\n",node_addr_tr(me),node_addr_tr(me),my_metadata.recv_delay);
 			for (i=0;i<(*n) && i<NEIGHBORHOOD_TARGET_SIZE;i++) {
 				d = *((double *)(mdata+i*msize));
-				fprintf(stderr,"abouttopublish,%s,",node_addr(me));
-				fprintf(stderr,"%s,,Tman_chunk_delay,%f\n",node_addr(neighbors[i]),d);
+				fprintf(stderr,"abouttopublish,%s,",node_addr_tr(me));
+				fprintf(stderr,"%s,,Tman_chunk_delay,%f\n",node_addr_tr(neighbors[i]),d);
 			}
-			fprintf(stderr,"abouttopublish,%s,%s,,Tman_neighborhood_size,%d\n\n",node_addr(me),node_addr(me),*n);
+			fprintf(stderr,"abouttopublish,%s,%s,,Tman_neighborhood_size,%d\n\n",node_addr_tr(me),node_addr_tr(me),*n);
 		}
 
 		free(mdata);
@@ -186,16 +187,16 @@ static int send_topo_msg(struct nodeID *dst, uint8_t type)
 static void add_peer(const struct nodeID *id, const struct metadata *m, bool local, bool remote)
 {
   if (local) {
-      dprintf("Adding %s to neighbourhood! cb_size:%d\n", node_addr(id), m?m->cb_size:-1);
+      dprintf("Adding %s to neighbourhood! cb_size:%d\n", node_addr_tr(id), m?m->cb_size:-1);
       peerset_add_peer(pset, id);
       if (m) peerset_get_peer(pset, id)->cb_size = m->cb_size;
-      if (m) peerset_get_peer(pset, id)->capacity = m->capacity;
+      //if (m) peerset_get_peer(pset, id)->capacity = m->capacity;
       /* add measures here */
       add_measures(id);
       send_bmap(id);
   }
   if (remote) {
-      dtprintf("Topo: explicit topo message sent!!! to %s (peers:%d)\n", node_addr(id));
+      dtprintf("Topo: explicit topo message sent!!! to %s (peers:%d)\n", node_addr_tr(id));
       send_topo_msg(id, STREAMER_TOPOLOGY_MSG_ADD);
   }
 }
@@ -203,13 +204,13 @@ static void add_peer(const struct nodeID *id, const struct metadata *m, bool loc
 static void remove_peer(const struct nodeID *id, bool local, bool remote)
 {
   if (local) {
-      dprintf("Removing %s from neighbourhood!\n", node_addr(id));
+      dprintf("Removing %s from neighbourhood!\n", node_addr_tr(id));
       /* add measures here */
       delete_measures(id);
       peerset_remove_peer(pset, id);
   }
   if (remote) {
-      dtprintf("Topo: explicit topo message sent!!! to %s (peers:%d)\n", node_addr(id));
+      dtprintf("Topo: explicit topo message sent!!! to %s (peers:%d)\n", node_addr_tr(id));
       send_topo_msg(id, STREAMER_TOPOLOGY_MSG_REMOVE);
   }
 }
@@ -282,7 +283,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     for (i = 0; i < peerset_size(pset); i++) {
       if ( (!timerisset(&peers[i].bmap_timestamp) && timercmp(&peers[i].creation_timestamp, &told, <) ) ||
            ( timerisset(&peers[i].bmap_timestamp) && timercmp(&peers[i].bmap_timestamp, &told, <)     )   ) {
-        ftprintf(stderr,"Topo: dropping inactive %s (peers:%d)\n", node_addr(peers[i].id), peerset_size(pset));
+        ftprintf(stderr,"Topo: dropping inactive %s (peers:%d)\n", node_addr_tr(peers[i].id), peerset_size(pset));
         //if (peerset_size(pset) > 1) {	// avoid dropping our last link to the world
         topoAddToBL(peers[i].id);
         remove_peer(peers[i--].id, true, true);
@@ -300,19 +301,19 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 
   //handle explicit add/remove messages
   if (topo_in && buff && buff[0] == MSG_TYPE_STREAMER_TOPOLOGY) {
-    dtprintf(stderr,"Topo: explicit topo message received!!!from %s (peers:%d)\n", node_addr(from), peerset_size(pset));
+    dtprintf(stderr,"Topo: explicit topo message received!!!from %s (peers:%d)\n", node_addr_tr(from), peerset_size(pset));
     if (len != 2) {
       fprintf(stderr, "Bad streamer topo message received, len:%d!\n", len);
       return;
     }
     switch (buff[1]) {
       case STREAMER_TOPOLOGY_MSG_ADD:
-        ftprintf(stderr,"Topo: adding on request %s (peers:%d)\n", node_addr(from), peerset_size(pset));
+        ftprintf(stderr,"Topo: adding on request %s (peers:%d)\n", node_addr_tr(from), peerset_size(pset));
 	if (!peerset_get_peer(pset, from))
         	add_peer(from, NULL, true, false);
         break;
       case STREAMER_TOPOLOGY_MSG_REMOVE:
-        ftprintf(stderr,"Topo: removing on request %s (peers:%d)\n", node_addr(from), peerset_size(pset));
+        ftprintf(stderr,"Topo: removing on request %s (peers:%d)\n", node_addr_tr(from), peerset_size(pset));
         remove_peer(from, true, false);
         break;
       default:
@@ -344,12 +345,12 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     if (topo_out) {
       for (i = 0, oldids_size = 0; i < peerset_size(pset); i++) {
         oldids[oldids_size++] = peers[i].id;
-        fprintf(stderr," %s - RTT: %f\n", node_addr(peers[i].id) , get_rtt_of(peers[i].id));
+        fprintf(stderr," %s - RTT: %f\n", node_addr_tr(peers[i].id) , get_rtt_of(peers[i].id));
       }
     } else {
       for (i = 0, oldids_size = 0; i < savedids_size; i++) {
         oldids[oldids_size++] = savedids[i];
-        fprintf(stderr," %s - RTT: %f\n", node_addr(savedids[i]) , get_rtt_of(savedids[i]));
+        fprintf(stderr," %s - RTT: %f\n", node_addr_tr(savedids[i]) , get_rtt_of(savedids[i]));
       }
       savedids_size = 0;
       free(savedids);
@@ -397,10 +398,10 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
       int j;
       //searching for the metadata
       if (nidset_find(&j, newids, newids_size, toadds[i])) {
-        fprintf(stderr," adding %s\n", node_addr(toadds[i]));
+        fprintf(stderr," adding %s\n", node_addr_tr(toadds[i]));
         add_peer(newids[j], &metas[j], topo_out, topo_in);
       } else {
-        fprintf(stderr," Error: missing metadata for %s\n", node_addr(toadds[i]));
+        fprintf(stderr," Error: missing metadata for %s\n", node_addr_tr(toadds[i]));
       }
     }
 
@@ -408,7 +409,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     fprintf(stderr,"Topo remove start (peers:%d)\n", n_ids);
     nidset_complement(toremoves, &toremoves_size, oldids, oldids_size, selecteds, selecteds_size);
     for (i = 0; i < toremoves_size; i++) {
-      fprintf(stderr," removing %s\n", node_addr(toremoves[i]));
+      fprintf(stderr," removing %s\n", node_addr_tr(toremoves[i]));
       remove_peer(toremoves[i], topo_out, topo_in);
     }
     fprintf(stderr,"Topo remove end\n");
@@ -431,10 +432,10 @@ struct peer *nodeid_to_peer(const struct nodeID* id, int reg)
 {
   struct peer *p = peerset_get_peer(pset, id);
   if (!p) {
-    //fprintf(stderr,"warning: received message from unknown peer: %s!%s\n",node_addr(id), reg ? " Adding it to pset." : "");
+    //fprintf(stderr,"warning: received message from unknown peer: %s!%s\n",node_addr_tr(id), reg ? " Adding it to pset." : "");
     if (reg) {
       add_peer(id,NULL, topo_out, false);
-      fprintf(stderr,"Topo: ext adding %s (peers:%d)\n", node_addr(id), peerset_size(pset));
+      fprintf(stderr,"Topo: ext adding %s (peers:%d)\n", node_addr_tr(id), peerset_size(pset));
       p = peerset_get_peer(pset,id);
     }
   }

@@ -26,6 +26,7 @@
 #include "dbg.h"
 #include "measures.h"
 #include "config.h"
+#include "node_addr.h"
 
 static int NEIGHBORHOOD_TARGET_SIZE;
 
@@ -65,7 +66,7 @@ typedef struct {
 
 void add_peer(struct nodeID *id)
 {
-      dprintf("Adding %s to neighbourhood!\n", node_addr(id));
+      dprintf("Adding %s to neighbourhood!\n", node_addr_tr(id));
       peerset_add_peer(pset, id);
       /* add measures here */
       add_measures(id);
@@ -74,7 +75,7 @@ void add_peer(struct nodeID *id)
 
 void remove_peer(struct nodeID *id)
 {
-      dprintf("Removing %s from neighbourhood!\n", node_addr(id));
+      dprintf("Removing %s from neighbourhood!\n", node_addr_tr(id));
       /* add measures here */
       delete_measures(id);
       peerset_remove_peer(pset, id);
@@ -84,12 +85,12 @@ void remove_peer(struct nodeID *id)
 
 /**
  * As nodeID is an opaque type not exposing its in_addr, we need to convert the
- * IP string returned by node_addr() via inet_aton().
+ * IP string returned by node_addr_tr() via inet_aton().
  */
 static void node_convert_addr(const struct nodeID* node, struct in_addr* addr) {
   int rescode;
 
-//  const char* peerAddr = node_addr(node);
+//  const char* peerAddr = node_addr_tr(node);
 
   /* extract IP string without port */
   const char *peerIP = node_ip(node);
@@ -242,7 +243,7 @@ void PeerSelectorALTO(void)
 			for (i = 0; i < ALTO_bucket_size; i++) {
 				altoList[j] = findALTOPeerInNeighbourList(currentNeighborhood, c_neigh_size, i);
 				if (altoList[j]) {
-					fprintf(stderr,"ALTO peer %d: id  = %s ; rating = %d\n ", (j+1), node_addr(altoList[j]), ALTOInfo.peers[i].rating);
+					fprintf(stderr,"ALTO peer %d: id  = %s ; rating = %d\n ", (j+1), node_addr_tr(altoList[j]), ALTOInfo.peers[i].rating);
 					j++;
 				}
 			}
@@ -256,7 +257,7 @@ void PeerSelectorALTO(void)
 
 			altoList[j] = currentNeighborhood[p];
 			currentNeighborhood[p] = NULL;
-			fprintf(stderr,"ALTO peer %d: id  = %s\n ", (j+1), node_addr(altoList[j]));
+			fprintf(stderr,"ALTO peer %d: id  = %s\n ", (j+1), node_addr_tr(altoList[j]));
 			j++;
 		}
 		newAltoResults = 1;
@@ -374,7 +375,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 	if (LOG_EVERY && ++cnt % LOG_EVERY == 0) {
 		fprintf(stderr,"\nMy peerset : size = %d\n",psize);
 		for (i=0;i<psize;i++) {
-			fprintf(stderr,"\t%d : %s\n",i,node_addr(peers[i].id));
+			fprintf(stderr,"\t%d : %s\n",i,node_addr_tr(peers[i].id));
 		}
 	}
 
@@ -397,7 +398,7 @@ struct peer *nodeid_to_peer(const struct nodeID* id, int reg)
 {
 	struct peer *p = peerset_get_peer(pset, id);
 	if (!p) {
-		//fprintf(stderr,"warning: received message from unknown peer: %s!\n",node_addr(id));
+		//fprintf(stderr,"warning: received message from unknown peer: %s!\n",node_addr_tr(id));
 		if (reg && peerset_size(pset) < NEIGHBORHOOD_TARGET_SIZE) {
 	//      topoAddNeighbour(id, NULL, 0);	//@TODO: this is agressive
 			add_peer(id);
