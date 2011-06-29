@@ -257,7 +257,7 @@ void send_bmap(struct nodeID *toid)
 void bcast_bmap()
 {
   int i, n;
-  struct peer *neighbours;
+  struct peer **neighbours;
   struct peerset *pset;
   struct chunkID_set *my_bmap;
 
@@ -267,7 +267,7 @@ void bcast_bmap()
 
   my_bmap = cb_to_bmap(cb);	//cache our bmap for faster processing
   for (i = 0; i<n; i++) {
-    sendBufferMap(neighbours[i].id,NULL, my_bmap, input ? 0 : cb_size, 0);
+    sendBufferMap(neighbours[i]->id,NULL, my_bmap, input ? 0 : cb_size, 0);
   }
   chunkID_set_free(my_bmap);
 }
@@ -282,13 +282,13 @@ void send_ack(struct nodeID *toid, uint16_t trans_id)
 double get_average_lossrate_pset(struct peerset *pset)
 {
   int i, n;
-  struct peer *neighbours;
+  struct peer **neighbours;
 
   n = peerset_size(pset);
   neighbours = peerset_get_peers(pset);
   {
     struct nodeID *nodeids[n];
-    for (i = 0; i<n; i++) nodeids[i] = neighbours[i].id;
+    for (i = 0; i<n; i++) nodeids[i] = neighbours[i]->id;
 #ifdef MONL
     return get_average_lossrate(nodeids, n);
 #else
@@ -581,7 +581,7 @@ void send_offer()
 {
   struct chunk *buff;
   int size, res, i, n;
-  struct peer *neighbours;
+  struct peer **neighbours;
   struct peerset *pset;
 
   pset = get_peers();
@@ -606,7 +606,7 @@ void send_offer()
     }
 
     for (i = 0;i < size; i++) chunkids[size - 1 - i] = (buff+i)->id;
-    for (i = 0; i<n; i++) nodeids[i] = (neighbours+i);
+    for (i = 0; i<n; i++) nodeids[i] = neighbours[i];
     selectPeersForChunks(SCHED_WEIGHTING, nodeids, n, chunkids, size, selectedpeers, &selectedpeers_len, SCHED_NEEDS, SCHED_PEER);
 
     for (i=0; i<selectedpeers_len ; i++){
@@ -625,7 +625,7 @@ void send_chunk()
 {
   struct chunk *buff;
   int size, res, i, n;
-  struct peer *neighbours;
+  struct peer **neighbours;
   struct peerset *pset;
 
   pset = get_peers();
@@ -650,7 +650,7 @@ void send_chunk()
     struct PeerChunk selectedpairs[1];
   
     for (i = 0;i < size; i++) chunkids[size - 1 - i] = (buff+i)->id;
-    for (i = 0; i<n; i++) nodeids[i] = (neighbours+i);
+    for (i = 0; i<n; i++) nodeids[i] = neighbours[i];
     SCHED_TYPE(SCHED_WEIGHTING, nodeids, n, chunkids, 1, selectedpairs, &selectedpairs_len, SCHED_NEEDS, SCHED_PEER, SCHED_CHUNK);
   /************ /USE SCHEDULER ****************/
 

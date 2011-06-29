@@ -271,7 +271,7 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
   int n_ids, metasize, i, newids_size, max_ids;
   static const struct nodeID **newids;
   static const struct metadata *metas;
-  struct peer *peers;
+  struct peer **peers;
   struct timeval tnow, told;
   static const struct nodeID **savedids;
   static int savedids_size;
@@ -281,12 +281,12 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
     timersub(&tnow, &tout_bmap, &told);
     peers = peerset_get_peers(pset);
     for (i = 0; i < peerset_size(pset); i++) {
-      if ( (!timerisset(&peers[i].bmap_timestamp) && timercmp(&peers[i].creation_timestamp, &told, <) ) ||
-           ( timerisset(&peers[i].bmap_timestamp) && timercmp(&peers[i].bmap_timestamp, &told, <)     )   ) {
-        ftprintf(stderr,"Topo: dropping inactive %s (peers:%d)\n", node_addr_tr(peers[i].id), peerset_size(pset));
+      if ( (!timerisset(&peers[i]->bmap_timestamp) && timercmp(&peers[i]->creation_timestamp, &told, <) ) ||
+           ( timerisset(&peers[i]->bmap_timestamp) && timercmp(&peers[i]->bmap_timestamp, &told, <)     )   ) {
+        ftprintf(stderr,"Topo: dropping inactive %s (peers:%d)\n", node_addr_tr(peers[i]->id), peerset_size(pset));
         //if (peerset_size(pset) > 1) {	// avoid dropping our last link to the world
-        topoAddToBL(peers[i].id);
-        remove_peer(peers[i--].id, true, true);
+        topoAddToBL(peers[i]->id);
+        remove_peer(peers[i--]->id, true, true);
         //}
       }
     }
@@ -344,8 +344,8 @@ void update_peers(struct nodeID *from, const uint8_t *buff, int len)
 
     if (topo_out) {
       for (i = 0, oldids_size = 0; i < peerset_size(pset); i++) {
-        oldids[oldids_size++] = peers[i].id;
-        fprintf(stderr," %s - RTT: %f\n", node_addr_tr(peers[i].id) , get_rtt_of(peers[i].id));
+        oldids[oldids_size++] = peers[i]->id;
+        fprintf(stderr," %s - RTT: %f\n", node_addr_tr(peers[i]->id) , get_rtt_of(peers[i]->id));
       }
     } else {
       for (i = 0, oldids_size = 0; i < savedids_size; i++) {
