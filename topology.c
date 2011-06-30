@@ -35,7 +35,7 @@
 #define NAN            (0.0/0.0)
 #endif
 
-double desired_bw = 1000000;
+double desired_bw = 0;	//TODO: turn on capacity measurement and set meaningful default value
 double desired_rtt = 0.2;
 double alpha_target = 0.4;
 double topo_mem = 0.7;
