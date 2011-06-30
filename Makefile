@@ -170,7 +170,7 @@ endif
 all: $(EXECTARGET)
 
 ifndef ML
-$(EXECTARGET): $(OBJS) $(GRAPES)/src/net_helper.o $(EXECTARGET).o
+$(EXECTARGET): $(OBJS) $(GRAPES)/src/net_helper-udp.o $(EXECTARGET).o
 else
 $(EXECTARGET): $(OBJS) $(GRAPES)/src/net_helper-ml.o $(EXECTARGET).o
 endif
