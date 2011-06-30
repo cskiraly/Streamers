@@ -193,7 +193,7 @@ endif
 	$(MAKE) -C $(FFSRC)
 
 clean:
-	rm -f $(EXECTARGET)
+	rm -f streamer-*
 	rm -f $(GRAPES)/src/net_helper-ml.o
 	rm -f $(GRAPES)/src/net_helper.o
 	rm -f *.o
