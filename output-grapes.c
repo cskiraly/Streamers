@@ -27,6 +27,8 @@ extern int end_id;
 static char sflag = 0;
 static char eflag = 0;
 
+bool reorder = OUTPUT_REORDER;
+
 struct outbuf {
   struct chunk c;
 };
@@ -94,7 +96,7 @@ static void buffer_free(int i)
         fprintf(stderr, "\nFirst chunk id played out: %d\n\n",buff[i].c.id);
         sflag = 1;
       }
-      chunk_write(out, &buff[i].c);
+      if (reorder) chunk_write(out, &buff[i].c);
       last_chunk = buff[i].c.id;
     } else if (eflag == 0 && last_chunk != -1) {
       fprintf(stderr, "\nLast chunk id played out: %d\n\n", last_chunk);
@@ -128,6 +130,8 @@ void output_deliver(const struct chunk *c)
     fprintf(stderr, "Warning: code should use output_init!!! Setting output buffer to 8\n");
     output_init(8, NULL);
   }
+
+  if (!reorder) chunk_write(out, c);
 
   dprintf("Chunk %d delivered\n", c->id);
   buffer_print();
@@ -169,7 +173,7 @@ void output_deliver(const struct chunk *c)
           fprintf(stderr, "\nFirst chunk id played out: %d\n\n",c->id);
           sflag = 1;
         }
-        chunk_write(out, c);
+        if (reorder) chunk_write(out, c);
         last_chunk = c->id;
       } else if (eflag == 0 && last_chunk != -1) {
         fprintf(stderr, "\nLast chunk id played out: %d\n\n", last_chunk);

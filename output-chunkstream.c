@@ -22,9 +22,9 @@
 #endif
 
 #include <chunk.h>
+#include <chunkiser.h>
 #include <trade_msg_la.h>
 
-#include "output.h"
 #include "measures.h"
 #include "dbg.h"
 
@@ -104,13 +104,14 @@ static void output_connect(void)
   }
 }
 
-void output_init(int bufsize, const char *fn)
+struct output_stream *out_stream_init(const char *fn, const char *config)
 {
   if (fn) fname = strdup(fn);
   output_connect();
+  return 1;	//TODO: create real output_stream structure
 }
 
-void output_deliver(const struct chunk *c)
+void chunk_write(struct output_stream *out, const struct chunk *c)
 {
   static char sendbuf[BUFSIZE];
   static int pos = 0;

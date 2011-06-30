@@ -96,10 +96,12 @@ else
 OBJS += measures.o
 endif
 
+OBJS += output-grapes.o
 IO ?= grapes
 ifeq ($(IO), grapes)
 CFLAGS += -DIO_GRAPES
-OBJS += input-grapes.o output-grapes.o
+CFLAGS += -DOUTPUT_REORDER=true
+OBJS += input-grapes.o
 ifdef FFMPEG_DIR
 CPPFLAGS += -I$(FFMPEG_DIR)
 LDFLAGS += -L$(FFMPEG_DIR)/libavcodec -L$(FFMPEG_DIR)/libavformat -L$(FFMPEG_DIR)/libavutil -L$(FFMPEG_DIR)/libavcore -L$(FFMPEG_DIR)/lib
@@ -120,6 +122,7 @@ endif
 endif
 ifeq ($(IO), chunkstream)
 CFLAGS += -DIO_CHUNKSTREAM
+CFLAGS += -DOUTPUT_REORDER=false
 OBJS += input-chunkstream.o output-chunkstream.o
 endif
 
