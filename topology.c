@@ -254,7 +254,7 @@ bool is_desired(const struct nodeID* n) {
 int cmp_rtt(const struct nodeID* a, const struct nodeID* b) {
   double ra, rb;
   ra = get_rtt_of(a);
-  rb = get_rtt_of(a);
+  rb = get_rtt_of(b);
   if ((isnan(ra) && isnan(rb)) || ra == rb) return 0;
   else if (isnan(rb) || ra < rb) return -1;
   else return 1;
