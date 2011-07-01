@@ -62,7 +62,15 @@ ifneq ($(STATIC), 0)
 LINKER=$(CXX)
 endif
 endif
-LDLIBS += -levent
+
+UNAME := $(shell uname)
+ifeq ($(UNAME), Darwin)
+LIBEVENT=$(LIBEVENT_DIR)/lib/libevent.a
+else
+LIBEVENT=-levent
+endif
+
+LDLIBS += $(LIBEVENT)
 LDLIBS += $(call ld-option, -lrt)
 endif
 
