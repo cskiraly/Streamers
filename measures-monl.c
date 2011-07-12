@@ -249,7 +249,7 @@ void add_measures(struct nodeID *id)
 	int j = 0;
 	enum stat_types stwinavgwinvar[] = {WIN_AVG, WIN_VAR};
 	enum stat_types stwinavg[] = {WIN_AVG};
-	enum stat_types stwinavgrate[] = {WIN_AVG, RATE};
+//      enum stat_types stwinavgrate[] = {WIN_AVG, RATE};
 //	enum stat_types stsum[] = {SUM};
 	enum stat_types stsumwinsumrate[] = {SUM, PERIOD_SUM, WIN_SUM, RATE};
 

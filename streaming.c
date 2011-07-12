@@ -151,7 +151,7 @@ int chunk_get_hopcount(struct chunk* c) {
   struct chunk_attributes * ca;
 
   if (!c->attributes || c->attributes_size != sizeof(struct chunk_attributes)) {
-    fprintf(stderr,"Warning, chunk %d with strange attributes block. Size:%d expected:%lu\n", c->id, c->attributes ? c->attributes_size : 0, sizeof(struct chunk_attributes));
+    fprintf(stderr,"Warning, chunk %d with strange attributes block. Size:%d expected:%u\n", c->id, c->attributes ? c->attributes_size : 0, sizeof(struct chunk_attributes));
     return -1;
   }
 
@@ -164,7 +164,7 @@ void chunk_attributes_update_received(struct chunk* c)
   struct chunk_attributes * ca;
 
   if (!c->attributes || c->attributes_size != sizeof(struct chunk_attributes)) {
-    fprintf(stderr,"Warning, received chunk %d with strange attributes block. Size:%d expected:%lu\n", c->id, c->attributes ? c->attributes_size : 0, sizeof(struct chunk_attributes));
+    fprintf(stderr,"Warning, received chunk %d with strange attributes block. Size:%d expected:%u\n", c->id, c->attributes ? c->attributes_size : 0, sizeof(struct chunk_attributes));
     return;
   }
 
@@ -599,7 +599,7 @@ void send_offer()
 
     for (i = 0;i < size; i++) chunkids[size - 1 - i] = (buff+i)->id;
     for (i = 0; i<n; i++) nodeids[i] = (neighbours+i);
-    selectPeersForChunks(SCHED_WEIGHTING, nodeids, n, chunkids, size, selectedpeers, &selectedpeers_len, SCHED_NEEDS, SCHED_PEER);
+    schedSelectPeersForChunks(SCHED_WEIGHTING, nodeids, n, chunkids, size, selectedpeers, &selectedpeers_len, SCHED_NEEDS, SCHED_PEER);
 
     for (i=0; i<selectedpeers_len ; i++){
       int transid = transaction_create(selectedpeers[i]->id);
@@ -648,7 +648,7 @@ void send_chunk()
 
     for (i=0; i<selectedpairs_len ; i++){
       struct peer *p = selectedpairs[i].peer;
-      struct chunk *c = cb_get_chunk(cb, selectedpairs[i].chunk);
+      const struct chunk *c = cb_get_chunk(cb, selectedpairs[i].chunk);
       dprintf("\t sending chunk[%d] to ", c->id);
       dprintf("%s\n", node_addr(p->id));
 

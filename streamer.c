@@ -373,6 +373,17 @@ static struct nodeID *init(void)
   free(my_addr);
   fprintf(stderr, "My network ID is: %s\n", node_addr(myID));
 
+  // For communication with the GUI
+  // chunker_player needs to know the network ID in order
+  // to publish it in the repo
+  FILE* fp=fopen("NetworkID","w");
+  if(fp)
+  {
+    fprintf(fp,"%s\n",node_addr(myID));
+    fprintf(fp,"IDEnd");
+    fclose(fp);
+  }
+
   init_rand(node_addr(myID));
 
   topologyInit(myID, topo_config);
