@@ -1,5 +1,8 @@
 include utils.mak
 
+#save external LDLIBS
+LDLIBS_IN := $(LDLIBS)
+
 CFLAGS = -g -Wall
 CFLAGS += $(call cc-option, -Wdeclaration-after-statement)
 CFLAGS += $(call cc-option, -Wno-switch)
@@ -166,6 +169,9 @@ EXECTARGET := $(EXECTARGET).exe
 else
 LDLIBS += $(LIBRT)
 endif
+
+#apply external LDLIBS at the end as well to resolve lining order problems
+LDLIBS += $(LDLIBS_IN)
 
 all: $(EXECTARGET)
 
