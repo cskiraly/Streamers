@@ -516,7 +516,11 @@ void send_accepted_chunks(struct nodeID *toid, struct chunkID_set *cset_acc, int
     const struct chunk *c;
     int chunkid = chunkID_set_get_chunk(cset_acc, i);
     c = cb_get_chunk(cb, chunkid);
-    if (c && (!to || needs(to, chunkid)) ) {// we should have the chunk, and he should not have it. Although the "accept" should have been an answer to our "offer", we do some verification
+    if (!c) {	// we should have the chunk
+      dprintf("%s asked for chunk %d we do not own anymore\n", node_addr(toid), chunkid);
+      continue;
+    }
+    if (!to || needs(to, chunkid)) {	//he should not have it. Although the "accept" should have been an answer to our "offer", we do some verification
       chunk_attributes_update_sending(c);
       res = sendChunk(toid, c, trans_id);
       if (res >= 0) {
