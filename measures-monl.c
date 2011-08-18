@@ -202,7 +202,7 @@ void reg_offer_accept_out(bool b)
 */
 void reg_offers_in_flight(int running_offer_threads)
 {
-	if (!offers_in_flight) {
+	if (offers_in_flight < 0) {
 		enum stat_types st[] =  {AVG, WIN_AVG, LAST};
 		add_measure(&offers_in_flight, GENERIC, 0, PEER_PUBLISH_INTERVAL, "OffersInFlight", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
 		monNewSample(offers_in_flight, 0);	//force publish even if there are no events
@@ -217,7 +217,7 @@ void reg_offers_in_flight(int running_offer_threads)
 */
 void reg_queue_delay(double last_queue_delay)
 {
-	if (!queue_delay) {
+	if (queue_delay < 0) {
 		enum stat_types st[] =  {AVG, WIN_AVG, LAST};
 		add_measure(&queue_delay, GENERIC, 0, PEER_PUBLISH_INTERVAL, "QueueDelay", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
 		monNewSample(queue_delay, 0);	//force publish even if there are no events
