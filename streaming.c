@@ -552,7 +552,15 @@ int offer_max_deliver(struct nodeID *n)
 #endif
 }
 
-static struct chunkID_set * compose_offer_cset(void)
+//get the rtt. Currenly only MONL version is supported
+static double get_rtt_of(struct nodeID* n){
+#ifdef MONL
+  return get_rtt(n);
+#else
+  return NAN;
+#endif
+}
+
 {
   if (am_i_source()) {
     struct chunk *chunks;
