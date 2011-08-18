@@ -52,6 +52,8 @@ struct measures {
   int samples_offers_in_flight;
   double sum_queue_delay;
   int samples_queue_delay;
+  double sum_period;
+  int samples_period;
 
   int offers_out;
   int accepts_out;
@@ -139,6 +141,7 @@ void print_measures()
 
   if (m.samples_offers_in_flight) print_measure("OffersInFlight", (double)m.sum_offers_in_flight / m.samples_offers_in_flight);
   if (m.samples_queue_delay) print_measure("QueueDelay", m.sum_queue_delay / m.samples_queue_delay);
+  if (m.samples_period) print_measure("Period", m.sum_period / m.samples_period);
 
   if (timerisset(&print_tstart)) {
     print_measure("OfferOutRate", (double) m.offers_out / timespan);
@@ -352,6 +355,17 @@ void reg_queue_delay(double last_queue_delay)
 
   m.sum_queue_delay += last_queue_delay;
   m.samples_queue_delay++;
+}
+
+/*
+ * Register the offer period
+*/
+void reg_period(double period)
+{
+  if (!print_every()) return;
+
+  m.sum_period += period;
+  m.samples_period++;
 }
 
 /*

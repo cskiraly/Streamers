@@ -36,6 +36,7 @@ typedef struct nodeID {
 
 static MonHandler chunk_dup = -1, chunk_playout = -1 , neigh_size = -1, chunk_receive = -1, chunk_send = -1, offer_accept_in = -1, offer_accept_out = -1, chunk_hops = -1, chunk_delay = -1, playout_delay = -1;
 static MonHandler queue_delay = -1 , offers_in_flight = -1;
+static MonHandler period = -1;
 
 //static MonHandler rx_bytes_chunk_per_sec, tx_bytes_chunk_per_sec, rx_bytes_sig_per_sec, tx_bytes_sig_per_sec;
 //static MonHandler rx_chunks, tx_chunks;
@@ -223,6 +224,19 @@ void reg_queue_delay(double last_queue_delay)
 		monNewSample(queue_delay, 0);	//force publish even if there are no events
 	}
 	monNewSample(queue_delay, last_queue_delay);
+}
+
+/*
+ * Register period time at each change
+*/
+void reg_period(double last_period)
+{
+	if (period < 0) {
+		enum stat_types st[] =  {WIN_AVG};
+		add_measure(&period, GENERIC, 0, PEER_PUBLISH_INTERVAL, "Period", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
+		monNewSample(period, 0);	//force publish even if there are no events
+	}
+	monNewSample(period, last_period/1000000);
 }
 
 /*
