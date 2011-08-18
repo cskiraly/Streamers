@@ -276,6 +276,7 @@ void add_measures(struct nodeID *id)
 
 	/* Round Trip Time */
        id->mhs[j] = monCreateMeasure(RTT, PACKET | IN_BAND);
+       monSetParameter (id->mhs[j], P_WINDOW_SIZE, 30);	//make RTT measurement more reactive. Default sliding window is 100 packets
        start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "RoundTripDelay", stwinavgwinvar, sizeof(stwinavgwinvar)/sizeof(enum stat_types), id->addr, MSG_TYPE_SIGNALLING);	//[seconds]
 
 	/* Loss */
