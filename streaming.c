@@ -565,19 +565,39 @@ static double get_rtt_of(struct nodeID* n){
 #endif
 }
 
+#define DEFAULT_RTT_ESTIMATE 0.5
+
+static struct chunkID_set *compose_offer_cset(struct peer *p)
 {
-  if (am_i_source()) {
-    struct chunk *chunks;
-    int num_chunks, j;
-    struct chunkID_set *my_bmap = chunkID_set_init("type=bitmap");
-    chunks = cb_get_chunks(cb, &num_chunks);
-    for(j=((num_chunks-1)*3)/4; j>=0; j--) {
-      chunkID_set_add_chunk(my_bmap, chunks[j].id);
-    }
-    return my_bmap;
+  int num_chunks, j;
+  uint64_t smallest_ts, largest_ts;
+  double dt;
+  struct chunkID_set *my_bmap = chunkID_set_init("type=bitmap");
+  struct chunk *chunks = cb_get_chunks(cb, &num_chunks);
+
+  if (p) {
+    dt = get_rtt_of(p->id);
   } else {
-    return cb_to_bmap(cb);
+    dt = NAN;
   }
+  if (isnan(dt)) dt = DEFAULT_RTT_ESTIMATE;
+  dt *= 1e6;	//convert to usec
+
+  smallest_ts = chunks[0].timestamp;
+  largest_ts = chunks[num_chunks-1].timestamp;
+
+  //add chunks in latest...earliest order
+  if (am_i_source()) {
+    j = (num_chunks-1) * 3/4;	//do not send offers for the latest chunks from the source
+  } else {
+    j = num_chunks-1;
+  }
+  for(; j>=0; j--) {
+    if (chunks[j].timestamp > smallest_ts + dt)
+    chunkID_set_add_chunk(my_bmap, chunks[j].id);
+  }
+
+  return my_bmap;
 }
 
 
@@ -616,7 +636,7 @@ void send_offer()
     for (i=0; i<selectedpeers_len ; i++){
       int transid = transaction_create(selectedpeers[i]->id);
       int max_deliver = offer_max_deliver(selectedpeers[i]->id);
-      struct chunkID_set *offer_cset = compose_offer_cset();
+      struct chunkID_set *offer_cset = compose_offer_cset(selectedpeers[i]);
       dprintf("\t sending offer(%d) to %s, cb_size: %d\n", transid, node_addr(selectedpeers[i]->id), selectedpeers[i]->cb_size);
       res = offerChunks(selectedpeers[i]->id, offer_cset, max_deliver, transid++);
       chunkID_set_free(offer_cset);
