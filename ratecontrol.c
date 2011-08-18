@@ -49,6 +49,7 @@ static int64_t get_period()
 
 static void set_period(int64_t p)
 {
+  reg_period(p);
   int2tv(&period, p);
 }
 
