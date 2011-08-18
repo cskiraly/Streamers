@@ -45,6 +45,7 @@ endif
 
 LDFLAGS += -L$(GRAPES)/src
 LDLIBS += -lgrapes
+LIBFILES += $(GRAPES)/src/libgrapes.a
 ifdef ALTO
 LDFLAGS += -L$(NAPA)/ALTOclient
 LDFLAGS += -L$(LIBXML2_DIR)/lib
@@ -56,10 +57,12 @@ endif
 ifdef ML
 LDFLAGS += -L$(NAPA)/ml -L$(LIBEVENT_DIR)/lib
 LDLIBS += -lml -lm
+LIBFILES += $(NAPA)/ml/libml.a
 CPPFLAGS += -I$(NAPA)/ml/include -I$(LIBEVENT_DIR)/include
 ifdef MONL
 LDFLAGS += -L$(NAPA)/dclog -L$(NAPA)/rep -L$(NAPA)/monl -L$(NAPA)/common
 LDLIBS += -lstdc++ -lmon -lrep -ldclog -lcommon
+LIBFILES += $(NAPA)/monl/libmon.a
 CPPFLAGS += -DMONL
 ifneq ($(STATIC), 0)
 LINKER=$(CXX)
@@ -184,6 +187,7 @@ LDLIBS += $(LDLIBS_IN)
 
 all: $(EXECTARGET)
 
+$(EXECTARGET): $(LIBFILES)
 ifndef ML
 $(EXECTARGET): $(OBJS) $(GRAPES)/src/net_helper.o $(EXECTARGET).o
 else
