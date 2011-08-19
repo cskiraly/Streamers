@@ -36,7 +36,7 @@
 #define NAN            (0.0/0.0)
 #endif
 
-double desired_bw = 1000000;
+double desired_bw = 0;	//TODO: turn on capacity measurement and set meaningful default value
 double desired_rtt = 0.2;
 double alpha_target = 0.4;
 double topo_mem = 0.7;
@@ -255,7 +255,7 @@ bool is_desired(const struct nodeID* n) {
 int cmp_rtt(const struct nodeID* a, const struct nodeID* b) {
   double ra, rb;
   ra = get_rtt_of(a);
-  rb = get_rtt_of(a);
+  rb = get_rtt_of(b);
   if ((isnan(ra) && isnan(rb)) || ra == rb) return 0;
   else if (isnan(rb) || ra < rb) return -1;
   else return 1;

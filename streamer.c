@@ -52,7 +52,7 @@ static int chunks_per_second = 25;
 static double capacity_override = NAN;
 static int multiply = 3;
 static int buff_size = 50;
-static int outbuff_size = 50;
+static int outbuff_size = 75;
 static const char *fname = "/dev/stdin";
 static const char *output_config ="";
 static const char *net_helper_config = "";
@@ -373,6 +373,17 @@ static struct nodeID *init(void)
   }
   free(my_addr);
   fprintf(stderr, "My network ID is: %s\n", node_addr_tr(myID));
+
+  // For communication with the GUI
+  // chunker_player needs to know the network ID in order
+  // to publish it in the repo
+  FILE* fp=fopen("NetworkID","w");
+  if(fp)
+  {
+    fprintf(fp,"%s\n",node_addr_tr(myID));
+    fprintf(fp,"IDEnd");
+    fclose(fp);
+  }
 
   init_rand(node_addr_tr(myID));
 

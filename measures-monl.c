@@ -37,6 +37,7 @@ typedef struct nodeID {
 
 static MonHandler chunk_dup = -1, chunk_playout = -1 , neigh_size = -1, chunk_receive = -1, chunk_send = -1, offer_accept_in = -1, offer_accept_out = -1, chunk_hops = -1, chunk_delay = -1, playout_delay = -1;
 static MonHandler queue_delay = -1 , offers_in_flight = -1;
+static MonHandler period = -1;
 
 //static MonHandler rx_bytes_chunk_per_sec, tx_bytes_chunk_per_sec, rx_bytes_sig_per_sec, tx_bytes_sig_per_sec;
 //static MonHandler rx_chunks, tx_chunks;
@@ -203,7 +204,7 @@ void reg_offer_accept_out(bool b)
 */
 void reg_offers_in_flight(int running_offer_threads)
 {
-	if (!offers_in_flight) {
+	if (offers_in_flight < 0) {
 		enum stat_types st[] =  {AVG, WIN_AVG, LAST};
 		add_measure(&offers_in_flight, GENERIC, 0, PEER_PUBLISH_INTERVAL, "OffersInFlight", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
 		monNewSample(offers_in_flight, 0);	//force publish even if there are no events
@@ -218,12 +219,25 @@ void reg_offers_in_flight(int running_offer_threads)
 */
 void reg_queue_delay(double last_queue_delay)
 {
-	if (!queue_delay) {
+	if (queue_delay < 0) {
 		enum stat_types st[] =  {AVG, WIN_AVG, LAST};
 		add_measure(&queue_delay, GENERIC, 0, PEER_PUBLISH_INTERVAL, "QueueDelay", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
 		monNewSample(queue_delay, 0);	//force publish even if there are no events
 	}
 	monNewSample(queue_delay, last_queue_delay);
+}
+
+/*
+ * Register period time at each change
+*/
+void reg_period(double last_period)
+{
+	if (period < 0) {
+		enum stat_types st[] =  {WIN_AVG};
+		add_measure(&period, GENERIC, 0, PEER_PUBLISH_INTERVAL, "Period", st, sizeof(st)/sizeof(enum stat_types), NULL, MSG_TYPE_ANY);	//[peers]
+		monNewSample(period, 0);	//force publish even if there are no events
+	}
+	monNewSample(period, last_period/1000000);
 }
 
 /*
@@ -250,7 +264,7 @@ void add_measures(struct nodeID *id)
 	int j = 0;
 	enum stat_types stwinavgwinvar[] = {WIN_AVG, WIN_VAR};
 	enum stat_types stwinavg[] = {WIN_AVG};
-	enum stat_types stwinavgrate[] = {WIN_AVG, RATE};
+//      enum stat_types stwinavgrate[] = {WIN_AVG, RATE};
 //	enum stat_types stsum[] = {SUM};
 	enum stat_types stsumwinsumrate[] = {SUM, PERIOD_SUM, WIN_SUM, RATE};
 
@@ -263,6 +277,7 @@ void add_measures(struct nodeID *id)
 
 	/* Round Trip Time */
        id->mhs[j] = monCreateMeasure(RTT, PACKET | IN_BAND);
+       monSetParameter (id->mhs[j], P_WINDOW_SIZE, 30);	//make RTT measurement more reactive. Default sliding window is 100 packets
        start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "RoundTripDelay", stwinavgwinvar, sizeof(stwinavgwinvar)/sizeof(enum stat_types), id->addr, MSG_TYPE_SIGNALLING);	//[seconds]
 
 	/* Loss */

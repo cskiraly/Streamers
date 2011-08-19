@@ -35,7 +35,7 @@ static bool neigh_on_sign_recv = false;
 
 void ack_received(const struct nodeID *fromid, struct chunkID_set *cset, int max_deliver, uint16_t trans_id) {
   struct peer *from = nodeid_to_peer(fromid,0);   //verify that we have really sent, 0 at least garantees that we've known the peer before
-  dprintf("The peer %s acked our chunk %d chunks, max deliver %d, trans_id %d.\n", node_addr_tr(fromid), chunkID_set_get_latest(cset), max_deliver, trans_id);
+  dprintf("The peer %s acked our chunk, max deliver %d, trans_id %d.\n", node_addr_tr(fromid), max_deliver, trans_id);
 
   if (from) {
     chunkID_set_clear(from->bmap,0);	//TODO: some better solution might be needed to keep info about chunks we sent in flight.

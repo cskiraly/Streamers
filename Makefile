@@ -67,7 +67,15 @@ ifneq ($(STATIC), 0)
 LINKER=$(CXX)
 endif
 endif
-LDLIBS += -levent
+
+UNAME := $(shell uname)
+ifeq ($(UNAME), Darwin)
+LIBEVENT=$(LIBEVENT_DIR)/lib/libevent.a
+else
+LIBEVENT=-levent
+endif
+
+LDLIBS += $(LIBEVENT)
 LDLIBS += $(call ld-option, -lrt)
 endif
 
@@ -101,10 +109,12 @@ else
 OBJS += measures.o
 endif
 
+OBJS += output-grapes.o
 IO ?= grapes
 ifeq ($(IO), grapes)
 CFLAGS += -DIO_GRAPES
-OBJS += input-grapes.o output-grapes.o
+CFLAGS += -DOUTPUT_REORDER=true
+OBJS += input-grapes.o
 ifdef FFMPEG_DIR
 CPPFLAGS += -I$(FFMPEG_DIR)
 LDFLAGS += -L$(FFMPEG_DIR)/libavcodec -L$(FFMPEG_DIR)/libavformat -L$(FFMPEG_DIR)/libavutil -L$(FFMPEG_DIR)/libavcore -L$(FFMPEG_DIR)/lib
@@ -125,6 +135,7 @@ endif
 endif
 ifeq ($(IO), chunkstream)
 CFLAGS += -DIO_CHUNKSTREAM
+CFLAGS += -DOUTPUT_REORDER=false
 OBJS += input-chunkstream.o output-chunkstream.o
 endif
 
@@ -201,7 +212,7 @@ endif
 	$(MAKE) -C $(FFSRC)
 
 clean:
-	rm -f $(EXECTARGET)
+	rm -f streamer-*
 	rm -f $(GRAPES)/src/net_helper-ml.o
 	rm -f $(GRAPES)/src/net_helper.o
 	rm -f *.o
