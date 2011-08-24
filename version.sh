@@ -9,7 +9,7 @@ set -e
 
 prefix="../THIRDPARTY-LIBS"
 GRAPES_VERSION=$(
-  cd GRAPES; git rev-parse HEAD
+  cd $prefix/GRAPES; git rev-parse HEAD
 )
 
 FFMPEG_VERSION=$(cat $prefix/ffmpeg/version.h |\
