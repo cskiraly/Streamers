@@ -193,11 +193,13 @@ $(EXECTARGET): $(OBJS) $(GRAPES)/src/net_helper.o $(EXECTARGET).o
 else
 $(EXECTARGET): $(OBJS) $(GRAPES)/src/net_helper-ml.o $(EXECTARGET).o
 endif
-	./version.sh
 	$(LINKER) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(LDFLAGSPOST) -o $@
 
 $(EXECTARGET).o: streamer.o
 	ln -sf streamer.o $(EXECTARGET).o
+
+version.h:
+	./version.sh
 
 GRAPES:
 	git clone http://www.disi.unitn.it/~kiraly/PublicGits/GRAPES.git
