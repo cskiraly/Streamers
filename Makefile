@@ -220,3 +220,12 @@ clean:
 	rm -f $(GRAPES)/src/net_helper.o
 	rm -f *.o
 	rm -f Chunkiser/*.o
+	rm -f version.h
+
+### Automatic generation of headers dependencies ###
+%.d: %.c
+	$(CC) $(CPPFLAGS) -MM -MF $@ $<
+
+%.o: %.d
+
+-include $(OBJS:.o=.d)
