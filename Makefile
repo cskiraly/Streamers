@@ -201,6 +201,8 @@ $(EXECTARGET).o: streamer.o
 version.h:
 	./version.sh
 
+streamer.c: version.h
+
 GRAPES:
 	git clone http://www.disi.unitn.it/~kiraly/PublicGits/GRAPES.git
 	cd GRAPES; git checkout -b for-streamer-0.8.3 origin/for-streamer-0.8.3
