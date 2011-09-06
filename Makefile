@@ -232,4 +232,4 @@ clean:
 
 %.o: %.d
 
--include $(OBJS:.o=.d)
+-include $(OBJS:.o=.d) streamer.d
