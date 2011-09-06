@@ -225,6 +225,7 @@ clean:
 	rm -f *.o
 	rm -f Chunkiser/*.o
 	rm -f version.h
+	rm -f *.d
 
 ### Automatic generation of headers dependencies ###
 %.d: %.c
