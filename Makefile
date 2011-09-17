@@ -1,4 +1,5 @@
 include utils.mak
+include config.mak
 
 #save external LDLIBS
 LDLIBS_IN := $(LDLIBS)
@@ -19,9 +20,6 @@ CFLAGS += $(call cc-option, -funit-at-a-time)
 
 LINKER = $(CC)
 STATIC ?= 0
-
-NAPA ?= ../../NAPA-BASELIBS
-GRAPES ?= ../../GRAPES
 
 CPPFLAGS = -I$(NAPA)/include
 CPPFLAGS += -I$(GRAPES)/include
@@ -201,7 +199,9 @@ endif
 $(EXECTARGET).o: streamer.o
 	ln -sf streamer.o $(EXECTARGET).o
 
-version.h:
+%: config.mak
+
+version.h: config.mak
 	./version.sh
 
 streamer.d: version.h

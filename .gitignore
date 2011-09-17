@@ -2,3 +2,4 @@
 *.d
 streamer-*
 version.h
+config.mak
