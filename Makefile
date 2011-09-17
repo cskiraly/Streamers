@@ -184,6 +184,9 @@ endif
 
 #apply external LDLIBS at the end as well to resolve lining order problems
 LDLIBS += $(LDLIBS_IN)
+#lm might be needed again at the end
+LDLIBS += $(call ld-option, -lm)
+
 
 all: $(EXECTARGET)
 
