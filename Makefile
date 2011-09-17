@@ -230,6 +230,9 @@ clean:
 	rm -f version.h
 	rm -f *.d
 
+distclean: clean
+	rm -f config.mak
+
 ### Automatic generation of headers dependencies ###
 %.d: %.c
 	$(CC) $(CPPFLAGS) -MM -MF $@ $<
