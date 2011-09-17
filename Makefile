@@ -201,7 +201,7 @@ $(EXECTARGET).o: streamer.o
 version.h:
 	./version.sh
 
-streamer.c: version.h
+streamer.d: version.h
 
 GRAPES:
 	git clone http://www.disi.unitn.it/~kiraly/PublicGits/GRAPES.git
