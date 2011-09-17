@@ -185,6 +185,7 @@ LDLIBS += $(LDLIBS_IN)
 #lm might be needed again at the end
 LDLIBS += $(call ld-option, -lm)
 
+.PHONY: clean distclean
 
 all: $(EXECTARGET)
 
