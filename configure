@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 print_usage()
 {
@@ -28,37 +28,37 @@ while [ -n "$1" ] ; do
     --with-ldlibs) shift
       LDLIBS=$1  ;;
     --with-ldlibs=*)
-      LDLIBS="${1/--with-ldlibs=/}" ;;
+      LDLIBS="${1#*=}" ;;
 
     --with-ldflags) shift
       LDFLAGS=$1  ;;
     --with-ldflags=*)
-      LDFLAGS="${1/--with-ldflags=/}" ;;
+      LDFLAGS="${1#*=}" ;;
 
     --with-grapes) shift
       GRAPES=$1  ;;
     --with-grapes=*)
-      GRAPES="${1/--with-grapes=/}" ;;
+      GRAPES="${1#*=}" ;;
 
     --with-ffmpeg) shift
       FFMPEG_DIR=$1  ;;
     --with-ffmpeg=*)
-      FFMPEG_DIR="${1/--with-ffmpeg=/}" ;;
+      FFMPEG_DIR="${1#*=}" ;;
 
     --with-x264) shift
       X264_DIR=$1  ;;
     --with-x264=*)
-      X264_DIR="${1/--with-x264=/}" ;;
+      X264_DIR="${1#*=}" ;;
 
     --with-napa) shift
       NAPA=$1 ;;
     --with-napa=*)
-      NAPA="${1/--with-napa=/}" ;;
+      NAPA="${1#*=}" ;;
 
     --with-libevent) shift
       LIBEVENT_DIR=$1 ;;
     --with-libevent=*)
-      LIBEVENT_DIR="${1/--with-libevent=/}" ;;
+      LIBEVENT_DIR="${1#*=}" ;;
 
     --with-ml)
       ML=1 ;;
@@ -69,12 +69,12 @@ while [ -n "$1" ] ; do
     --with-io) shift
       IO=$1 ;;
     --with-io=*)
-      IO="${1/--with-io=/}" ;;
+      IO="${1#*=}" ;;
 
     --with-static) shift
       STATIC=$1 ;;
     --with-static=*)
-      STATIC="${1/--with-static=/}" ;;
+      STATIC="${1#*=}" ;;
 
     -h) print_usage
       exit 0 ;;
