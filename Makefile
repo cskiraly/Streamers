@@ -200,7 +200,7 @@ endif
 $(EXECTARGET).o: streamer.o
 	ln -sf streamer.o $(EXECTARGET).o
 
-%: config.mak
+$(OBJS): config.mak
 
 version.h: config.mak
 	./version.sh
