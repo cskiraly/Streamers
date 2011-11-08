@@ -34,6 +34,7 @@
 #include "measures.h"
 #include "streamer.h"
 #include "node_addr.h"
+#include "version.h"
 
 #ifndef EXTRAVERSION
 #define EXTRAVERSION "Unknown"
@@ -291,6 +292,16 @@ static void cmdline_parse(int argc, char *argv[])
         break;
       case 'v':
         fprintf(stderr, "Version: %s\n", EXTRAVERSION);
+        fprintf(stderr, "\tGRAPES: %s\n", GRAPES_VERSION);
+        fprintf(stderr, "\tNAPA-BASELIBS: %s\n", NAPA_BASELIBS_VERSION);
+        fprintf(stderr, "\tffmpeg: %s\n", FFMPEG_VERSION);
+        fprintf(stderr, "\tlibogg: %s\n", LIBOGG_VERSION);
+        fprintf(stderr, "\tlibvorbis: %s\n", LIBVORBIS_VERSION);
+        fprintf(stderr, "\tmp3lame: %s\n", MP3LAME_VERSION);
+        fprintf(stderr, "\tx264: %s\n", X264_VERSION);
+        fprintf(stderr, "\tlibconfuse: %s\n", LIBCONFUSE_VERSION);
+        fprintf(stderr, "\tlibevent: %s\n", LIBEVENT_VERSION);
+        fprintf(stderr, "\tlibxml2: %s\n", LIBXML2_VERSION);
 	    exit(0);
       default:
         fprintf(stderr, "Error: unknown option %c\n", o);

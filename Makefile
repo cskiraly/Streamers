@@ -1,4 +1,5 @@
 include utils.mak
+include config.mak
 
 #save external LDLIBS
 LDLIBS_IN := $(LDLIBS)
@@ -19,9 +20,6 @@ CFLAGS += $(call cc-option, -funit-at-a-time)
 
 LINKER = $(CC)
 STATIC ?= 0
-
-NAPA ?= ../../NAPA-BASELIBS
-GRAPES ?= ../../GRAPES
 
 CPPFLAGS = -I$(NAPA)/include
 CPPFLAGS += -I$(GRAPES)/include
@@ -47,6 +45,7 @@ endif
 
 LDFLAGS += -L$(GRAPES)/src
 LDLIBS += -lgrapes
+LIBFILES += $(GRAPES)/src/libgrapes.a
 ifdef ALTO
 LDFLAGS += -L$(NAPA)/ALTOclient
 LDFLAGS += -L$(LIBXML2_DIR)/lib
@@ -58,10 +57,12 @@ endif
 ifdef ML
 LDFLAGS += -L$(NAPA)/ml -L$(LIBEVENT_DIR)/lib
 LDLIBS += -lml -lm
+LIBFILES += $(NAPA)/ml/libml.a
 CPPFLAGS += -I$(NAPA)/ml/include -I$(LIBEVENT_DIR)/include
 ifdef MONL
 LDFLAGS += -L$(NAPA)/dclog -L$(NAPA)/rep -L$(NAPA)/monl -L$(NAPA)/common
 LDLIBS += -lstdc++ -lmon -lrep -ldclog -lcommon
+LIBFILES += $(NAPA)/monl/libmon.a
 CPPFLAGS += -DMONL
 ifneq ($(STATIC), 0)
 LINKER=$(CXX)
@@ -183,9 +184,14 @@ endif
 
 #apply external LDLIBS at the end as well to resolve lining order problems
 LDLIBS += $(LDLIBS_IN)
+#lm might be needed again at the end
+LDLIBS += $(call ld-option, -lm)
+
+.PHONY: clean distclean
 
 all: $(EXECTARGET)
 
+$(EXECTARGET): $(LIBFILES)
 ifndef ML
 $(EXECTARGET): $(OBJS) $(GRAPES)/src/net_helper-udp.o $(EXECTARGET).o
 else
@@ -195,6 +201,13 @@ endif
 
 $(EXECTARGET).o: streamer.o
 	ln -sf streamer.o $(EXECTARGET).o
+
+$(OBJS): config.mak
+
+version.h: config.mak
+	./version.sh
+
+streamer.d: version.h
 
 GRAPES:
 	git clone http://www.disi.unitn.it/~kiraly/PublicGits/GRAPES.git
@@ -217,3 +230,16 @@ clean:
 	rm -f $(GRAPES)/src/net_helper.o
 	rm -f *.o
 	rm -f Chunkiser/*.o
+	rm -f version.h
+	rm -f *.d
+
+distclean: clean
+	rm -f config.mak
+
+### Automatic generation of headers dependencies ###
+%.d: %.c
+	$(CC) $(CPPFLAGS) -MM -MF $@ $<
+
+%.o: %.d
+
+-include $(OBJS:.o=.d) streamer.d

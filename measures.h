@@ -31,6 +31,7 @@ double get_receive_delay(void);
 double get_rtt(struct nodeID *id);
 double get_rtt_var(struct nodeID *id);
 double get_lossrate(struct nodeID *id);
+double get_transmitter_lossrate(struct nodeID *id);
 double get_average_lossrate(struct  nodeID**id, int len);
 int get_hopcount(struct nodeID *id);
 #endif

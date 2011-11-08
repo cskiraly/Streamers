@@ -283,7 +283,7 @@ void add_measures(struct nodeID *id)
 	/* Loss */
        id->mhs[j] = monCreateMeasure(SEQWIN, PACKET | IN_BAND);
        start_measure(id->mhs[j++], 0, NULL, NULL, 0, id->addr, MSG_TYPE_CHUNK);
-       id->mhs[j] = monCreateMeasure(LOSS, PACKET | IN_BAND);
+       id->mhs[j] = monCreateMeasure(LOSS, PACKET | IN_BAND | REMOTE_RESULTS);
        start_measure(id->mhs[j++], P2P_PUBLISH_INTERVAL, "LossRate", stwinavg, sizeof(stwinavg)/sizeof(enum stat_types), id->addr, MSG_TYPE_CHUNK);	//LossRate_avg [probability 0..1] LossRate_rate [lost_pkts/sec]
 
        /* RX,TX volume in bytes (only chunks) */
@@ -384,6 +384,13 @@ double get_average_rtt(struct nodeID **ids, int len){
 */
 double get_lossrate(struct nodeID *id){
 	return get_measure(id, 3, WIN_AVG);
+}
+
+/*
+ * loss ratio from a given peer as 0..1
+*/
+double get_transmitter_lossrate(struct nodeID *id){
+	return (monRetrieveResultById(id->addr, MSG_TYPE_CHUNK, PACKET | IN_BAND | REMOTE, LOSS, WIN_AVG));
 }
 
 /*
