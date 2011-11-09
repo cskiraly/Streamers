@@ -43,7 +43,7 @@ struct event_base *base;
 
 #define FDSSIZE 16
 
-#define STUN_SERVER_DEFAULT "130.192.9.140"	//rucola.polito.it
+#define STUN_SERVER_DEFAULT "130.192.9.140+stun.softjoys.com+stun.ekiga.org"	//rucola.polito.it
 #define STUN_PORT_DEFAULT 3478
 #define STUN_SERVERS_MAX 32
 static char *stun_servers[STUN_SERVERS_MAX];
