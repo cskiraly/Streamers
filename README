@@ -1,0 +1,21 @@
+This is Streamers, the cross-platform streaming engine of the PeerStreamer p2p media streaming framework.
+
+The Streamers code implements the application logic of a peer-to-peer
+streaming engine, emphasizing simplicity, configurability and
+variability. It forms the basis of the PeerStreamer application, but it
+is written in a way to allow experimentation with a number of scheduling
+and streaming protocols. Various branches of the Streamers repository
+implement largely different streaming applications.
+
+Dependencies
+------------
+
+Streamers requires the GRAPES library (http://peerstreamer.org/GRAPES)
+in order to compile. Other libraries can be included to improve
+functionality, but they are kept optional in order to allow research and
+experimentation with the core streaming engine without the added
+complexity of these components.
+
+We recommend using the PeerStreamer build environment to get a
+full-fledged version with all the bells and whistles. See
+http://peerstreamer.org/content/development
