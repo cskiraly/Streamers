@@ -15,7 +15,7 @@ It accept the following options:
     --with-x264 dir: path to X264 libarary, needed when GRAPES was compilef with it
     --with-napa dir: path to the NAPA BASELIBS
     --with-libevent dir: path to the LIBEVENT libarary, required by the ML
-    --with-ml: use ML, the Messaging Library
+    --with-net-helper: which net-helper to use (ml for the Messaging Library, udp for GRAPES UDP)
     --with-monl: use MONL, the MONitoring Library (requires ML)
     --with-io mode: choose IO/type (grapes/chunkstream)
     --with-static dir: set default build to 0:dynamic 1:halfstatic 2:static
@@ -60,8 +60,10 @@ while [ -n "$1" ] ; do
     --with-libevent=*)
       LIBEVENT_DIR="${1#*=}" ;;
 
-    --with-ml)
-      ML=1 ;;
+    --with-net-helper) shift
+      NET_HELPER=$1 ;;
+    --with-net-helper=*)
+      NET_HELPER="${1#*=}" ;;
 
     --with-monl)
       MONL=1 ;;
@@ -97,7 +99,7 @@ X264_DIR?=$X264_DIR
 GRAPES?=$GRAPES
 NAPA?=$NAPA
 LIBEVENT_DIR?=$LIBEVENT_DIR
-ML?=$ML
+NET_HELPER?=$NET_HELPER
 MONL?=$MONL
 END
 

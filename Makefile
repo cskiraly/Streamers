@@ -54,7 +54,10 @@ CFLAGS += -pthread
 LDFLAGS += -pthread
 LDLIBS += $(call ld-option, -lz)
 endif
-ifdef ML
+
+NET_HELPER ?= ml
+ifeq ($(NET_HELPER), ml)
+OBJS += $(GRAPES)/src/net_helper-ml.o
 LDFLAGS += -L$(NAPA)/ml -L$(LIBEVENT_DIR)/lib
 LDLIBS += -lml -lm
 LIBFILES += $(NAPA)/ml/libml.a
@@ -78,6 +81,10 @@ endif
 
 LDLIBS += $(LIBEVENT)
 LDLIBS += $(call ld-option, -lrt)
+endif
+
+ifeq ($(NET_HELPER), udp)
+OBJS += $(GRAPES)/src/net_helper-udp.o
 endif
 
 OBJS += streaming.o
@@ -141,9 +148,9 @@ OBJS += input-chunkstream.o output-chunkstream.o
 endif
 
 EXECTARGET = streamer
-ifdef ML
-EXECTARGET := $(EXECTARGET)-ml
-endif
+
+EXECTARGET := $(EXECTARGET)-$(NET_HELPER)
+
 ifdef MONL
 EXECTARGET := $(EXECTARGET)-monl
 endif
@@ -192,11 +199,8 @@ LDLIBS += $(call ld-option, -lm)
 all: $(EXECTARGET)
 
 $(EXECTARGET): $(LIBFILES)
-ifndef ML
-$(EXECTARGET): $(OBJS) $(GRAPES)/src/net_helper-udp.o $(EXECTARGET).o
-else
-$(EXECTARGET): $(OBJS) $(GRAPES)/src/net_helper-ml.o $(EXECTARGET).o
-endif
+
+$(EXECTARGET): $(OBJS)  $(EXECTARGET).o
 	$(LINKER) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(LDFLAGSPOST) -o $@
 
 $(EXECTARGET).o: streamer.o
