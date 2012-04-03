@@ -87,6 +87,10 @@ ifeq ($(NET_HELPER), udp)
 OBJS += $(GRAPES)/src/net_helper-udp.o
 endif
 
+ifeq ($(NET_HELPER), tcp)
+OBJS += $(GRAPES)/src/net_helper-tcp.o
+endif
+
 OBJS += streaming.o
 OBJS += net_helpers.o 
 
