@@ -217,13 +217,6 @@ ffmpeg:
 	(wget http://ffmpeg.org/releases/ffmpeg-checkout-snapshot.tar.bz2; tar xjf ffmpeg-checkout-snapshot.tar.bz2; mv ffmpeg-checkout-20* ffmpeg) || svn checkout svn://svn.ffmpeg.org/ffmpeg/trunk ffmpeg
 	cd ffmpeg; ./configure
 
-prepare: $(GRAPES) $(FFSRC)
-	$(MAKE) -C $(GRAPES) -f Makefile
-ifdef ML
-	cd $(NAPA); ./autogen.sh; $(MAKE)
-endif
-	$(MAKE) -C $(FFSRC)
-
 clean:
 	rm -f streamer-*
 	rm -f $(GRAPES)/src/net_helper-ml.o
