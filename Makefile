@@ -1,5 +1,7 @@
 include utils.mak
 include config.mak
+   
+all: exectarget
 
 #save external LDLIBS
 LDLIBS_IN := $(LDLIBS)
@@ -198,9 +200,9 @@ LDLIBS += $(LDLIBS_IN)
 #lm might be needed again at the end
 LDLIBS += $(call ld-option, -lm)
 
-.PHONY: clean distclean
+.PHONY: clean distclean exectarget
 
-all: $(EXECTARGET)
+exectarget: $(EXECTARGET)
 
 $(EXECTARGET): $(LIBFILES)
 
