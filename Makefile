@@ -92,6 +92,9 @@ endif
 ifeq ($(NET_HELPER), tcp)
 OBJS += $(GRAPES)/src/net_helper-tcp.o
 LDLIBS += -ldacav
+
+$(GRAPES)/src/net_helper-tcp.o:
+	$(MAKE) -C $(GRAPES)/src net_helper-tcp.o
 endif
 
 OBJS += streaming.o
