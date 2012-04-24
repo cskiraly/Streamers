@@ -91,6 +91,7 @@ endif
 
 ifeq ($(NET_HELPER), tcp)
 OBJS += $(GRAPES)/src/net_helper-tcp.o
+LDLIBS += -ldacav
 endif
 
 OBJS += streaming.o
