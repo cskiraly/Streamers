@@ -12,7 +12,6 @@ It accept the following options:
     --with-ldflags dir: extra LDFLAGS to pass to make
     --with-grapes dir: path to the GRAPES libarary
     --with-ffmpeg dir: path to FFMPEG libs, needed when GRAPES was compilef with it
-    --with-x264 dir: path to X264 libarary, needed when GRAPES was compilef with it
     --with-napa dir: path to the NAPA BASELIBS
     --with-libevent dir: path to the LIBEVENT libarary, required by the ML
     --with-net-helper: which net-helper to use (ml for the Messaging Library, udp for GRAPES UDP)
@@ -44,11 +43,6 @@ while [ -n "$1" ] ; do
       FFMPEG_DIR=$1  ;;
     --with-ffmpeg=*)
       FFMPEG_DIR="${1#*=}" ;;
-
-    --with-x264) shift
-      X264_DIR=$1  ;;
-    --with-x264=*)
-      X264_DIR="${1#*=}" ;;
 
     --with-napa) shift
       NAPA=$1 ;;
@@ -95,7 +89,6 @@ cat >config.mak.tmp <<END
 LDLIBS+=$LDLIBS
 LDFLAGS+=$LDFLAGS
 FFMPEG_DIR?=$FFMPEG_DIR
-X264_DIR?=$X264_DIR
 GRAPES?=$GRAPES
 NAPA?=$NAPA
 LIBEVENT_DIR?=$LIBEVENT_DIR
