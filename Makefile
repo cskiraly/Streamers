@@ -187,7 +187,7 @@ EXECTARGET := $(EXECTARGET)-$(RELEASE)
 endif
 
 ifeq ($(HOSTARCH), mingw32)
-LDLIBS += -lmsvcrt -lwsock32 -lws2_32 -liberty
+LDLIBS += -lmsvcrt -lwsock32 -lws2_32
 EXECTARGET := $(EXECTARGET).exe
 else
 LDLIBS += $(LIBRT)
