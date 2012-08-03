@@ -67,6 +67,7 @@ char *iface_addr(const char *iface)
 
     return strdup(buff);
 #else
+    if(iface != NULL && strcmp(iface, "lo") == 0) return "127.0.0.1";
     if(iface != NULL && inet_addr(iface) != INADDR_NONE) return strdup(iface);
     return default_ip_addr();
 #endif
