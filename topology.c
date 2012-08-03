@@ -165,7 +165,7 @@ static const struct nodeID **topoGetNeighbourhood(int *n)
 		tmanGivePeers(*n,neighbors,(void *)mdata);
 
 		if (cnt % TMAN_LOG_EVERY == 0) {
-			dprintf("abouttopublish,%s,%s,,Tman_chunk_delay,%f\n",node_addr(me),node_addr(me),my_metadata.recv_delay);
+			dprintf("abouttopublish,%s,%s,,Tman_chunk_delay,%f\n",node_addr_tr(me),node_addr_tr(me),my_metadata.recv_delay);
 			for (i=0;i<(*n) && i<NEIGHBORHOOD_TARGET_SIZE;i++) {
 				d = *((double *)(mdata+i*msize));
 				dprintf("abouttopublish,%s,",node_addr_tr(me));
