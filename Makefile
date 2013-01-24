@@ -59,7 +59,7 @@ endif
 
 NET_HELPER ?= ml
 ifeq ($(NET_HELPER), ml)
-OBJS += $(GRAPES)/src/net_helper-ml.o
+OBJS += net_helper-ml.o
 LDFLAGS += -L$(NAPA)/ml -L$(LIBEVENT_DIR)/lib
 LDLIBS += -lml -lm
 LIBFILES += $(NAPA)/ml/libml.a
@@ -224,7 +224,6 @@ ffmpeg:
 
 clean:
 	rm -f streamer-*
-	rm -f $(GRAPES)/src/net_helper-ml.o
 	rm -f $(GRAPES)/src/net_helper.o
 	rm -f *.o
 	rm -f Chunkiser/*.o
