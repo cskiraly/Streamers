@@ -146,16 +146,25 @@ int input_get(struct input_desc *s, struct chunk *c)
     pos += ret;
   }
 
-  if ( pos < sizeof(size)) {
-    return INT_MAX;
+
+  if ( pos < sizeof(size)) { // not enough data to decode chunk size
+    if (ret == 0) {	// connection closed
+      return -1;
+    } else {
+      return INT_MAX;
+    }
   }
 
+
   size = ntohl(*(uint32_t*)recvbuf);
+  if (ret == 0 && pos < sizeof(size) + size) { // connection closed, not enough data to decode last chunk
+      return -1;
+  }
   if (pos >= sizeof(size) + size) {
     ret = decodeChunk(c, recvbuf + sizeof(size), size);
     if (ret < 0) {
       printf("Error decoding chunk!\n");
-      return INT_MAX;
+      return -1;
     }
 
     // remove attributes //TODO: verify whether this is the right place to do this
