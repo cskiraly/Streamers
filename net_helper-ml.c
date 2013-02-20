@@ -43,6 +43,12 @@ struct event_base *base;
 
 #define FDSSIZE 16
 
+#define STUN_SERVER_DEFAULT "77.72.174.163+stun.softjoys.com+stun.ekiga.org"
+#define STUN_PORT_DEFAULT 3478
+#define STUN_SERVERS_MAX 32
+static char *stun_servers[STUN_SERVERS_MAX];
+static int stun_servers_cnt = 0;
+
 static bool connect_on_know = false;	//whether to try to connect as soon as we get to know a nodeID
 
 static int sIdx = 0;
@@ -191,6 +197,12 @@ static int next_S() {
  * @param errorstatus
  */
 static void init_myNodeID_cb (socketID_handle local_socketID,int errorstatus) {
+	static int stun_retry_cnt = 0;
+	int stun_retries = 1;	//set number of retries (0: no retry)
+	char *stun_server;
+	char *c;
+	int stun_port;
+
 	switch (errorstatus) {
 	case 0:
 		me->addr = malloc(SOCKETID_SIZE);
@@ -217,10 +229,33 @@ static void init_myNodeID_cb (socketID_handle local_socketID,int errorstatus) {
 		exit(1);
 		break;
 	case 2:
-	    fprintf(stderr,"Net-helper init : NAT traversal timeout while creating socket\n");
-	    fprintf(stderr,"Net-helper init : Retrying without STUN\n");
-	    mlSetStunServer(0,NULL);
-	    break;
+		fprintf(stderr,"Net-helper init : NAT traversal timeout while creating socket\n");
+
+		if (stun_servers[stun_servers_cnt+1]) {
+			stun_servers_cnt++;
+		} else {
+			stun_servers_cnt = 0;
+			stun_retry_cnt++;
+		}
+		stun_server = strdup(stun_servers[stun_servers_cnt]);
+
+		if ((c = strchr(stun_server,':'))) {
+			*c = 0;
+			stun_port = atoi(c+1);
+		} else {
+			stun_port = STUN_PORT_DEFAULT;
+		}
+
+		//fprintf(stderr, "STUN server: %s:%d\n", stun_server, stun_port);
+
+		if (stun_retry_cnt > stun_retries) {
+			fprintf(stderr,"Net-helper init : Retrying without STUN\n");
+			mlSetStunServer(0,NULL);
+		} else {
+			mlSetStunServer(stun_port, stun_server);
+		}
+		free(stun_server);
+		break;
 	default :	// should never happen
 		//
 		fprintf(stderr,"Net-helper init : Unknown error in ml while creating socket\n");
@@ -352,15 +387,16 @@ static void recv_data_cb(char *buffer, int buflen, unsigned char msgtype, recv_p
 //	event_base_loopbreak(base);
 }
 
-
 struct nodeID *net_helper_init(const char *IPaddr, int port, const char *config) {
 
 	struct timeval tout = NH_ML_INIT_TIMEOUT;
 	int s, i;
 	struct tag *cfg_tags;
 	const char *res;
-	const char *stun_server = "130.192.9.140";	//rucola.polito.it
-	int stun_port = 3478;
+	char *stun_server_str;
+	char *stun_server;
+	int stun_port;
+	char *c;
 	const char *repo_address = NULL;
 	int publish_interval = 60;
 
@@ -383,11 +419,7 @@ struct nodeID *net_helper_init(const char *IPaddr, int port, const char *config)
 		return NULL;
 	}
 
-	res = config_value_str(cfg_tags, "stun_server");
-	if (res) {
-		stun_server = res;
-	}
-	config_value_int(cfg_tags, "stun_port", &stun_port);
+	stun_server_str = config_value_str_default(cfg_tags, "stun_server", STUN_SERVER_DEFAULT);
 
 	res = config_value_str(cfg_tags, "repo_address");
 	if (res) {
@@ -419,10 +451,33 @@ struct nodeID *net_helper_init(const char *IPaddr, int port, const char *config)
 
 	mlRegisterErrorConnectionCb(&connError_cb);
 	mlRegisterRecvConnectionCb(&receive_conn_cb);
+
+	for (i = 1, stun_servers[0] = strdup(stun_server_str); i<STUN_SERVERS_MAX ; i++) {
+		char *next = strchr(stun_servers[i-1], '+');
+		if (next) {
+			*next = 0;
+			stun_servers[i] = strdup(next+1);
+		} else {
+			break;
+		}
+	}
+
+	stun_servers_cnt = 0;
+	stun_server = strdup(stun_servers[stun_servers_cnt]);
+	if ((c = strchr(stun_server,':'))) {
+		*c = 0;
+		stun_port = atoi(c+1);
+	} else {
+		stun_port = STUN_PORT_DEFAULT;
+	}
+
+	//fprintf(stderr, "STUN server: %s:%d\n", stun_server, stun_port);
+
 	s = mlInit(1, tout, port, IPaddr, stun_port, stun_server, &init_myNodeID_cb, base);
 	if (s < 0) {
 		fprintf(stderr, "Net-helper : error initializing ML!\n");
 		free(me);
+		free(stun_server);
 		return NULL;
 	}
 
@@ -454,6 +509,7 @@ struct nodeID *net_helper_init(const char *IPaddr, int port, const char *config)
 	timeoutFired = 0;
 //	fprintf(stderr,"Net-helper init : back from init!\n");
 
+	free(stun_server);
 	return me;
 }
 
